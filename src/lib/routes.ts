@@ -7,6 +7,8 @@ export const routes = {
     ({ pathname: '/business/[id]', params: { id } }) as unknown as Href,
   editBusiness: (id: string) =>
     ({ pathname: '/business/[id]/edit', params: { id } }) as Href,
+  interestedTalent: (id: string) =>
+    ({ pathname: '/business/[id]/interested-talent', params: { id } }) as Href,
   opportunities: '/opportunity' as Href,
   newOpportunity: (businessId?: string) =>
     businessId

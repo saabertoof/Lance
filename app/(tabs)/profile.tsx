@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
+import type { ComponentProps } from 'react';
 import { useCallback, useState } from 'react';
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -22,6 +23,8 @@ import {
   getOptionLabel,
   opportunityInterestOptions,
   PersonalProfile,
+  ProfileLink,
+  ProfileLinkType,
   remotePreferenceOptions,
 } from '@/types/profile';
 
@@ -106,6 +109,22 @@ export default function ProfileScreen() {
       .map((part) => part[0]?.toUpperCase())
       .join('') || 'L';
 
+  async function openProfileLink(link: ProfileLink) {
+    const target = link.linkType === 'email' ? `mailto:${link.value}` : link.value;
+
+    try {
+      const isSafeTarget = target.startsWith('https://') || target.startsWith('mailto:');
+
+      if (!isSafeTarget || !(await Linking.canOpenURL(target))) {
+        throw new Error('Unsupported link');
+      }
+
+      await Linking.openURL(target);
+    } catch {
+      setError(`${link.label} could not be opened on this device.`);
+    }
+  }
+
   return (
     <Screen scroll contentStyle={styles.screen}>
       <View style={styles.topBar}>
@@ -131,7 +150,7 @@ export default function ProfileScreen() {
         <Text style={styles.username}>@{profile.username}</Text>
         <Text style={styles.headline}>{profile.headline}</Text>
         <Text style={styles.location}>
-          {profile.primaryRole} · {profile.city}
+          {profile.primaryRole} | {profile.city}
         </Text>
       </View>
 
@@ -226,17 +245,19 @@ export default function ProfileScreen() {
 
       {profile.links.length > 0 ? (
         <ProfileSection title="Links">
-          <View style={styles.linkList}>
+          <View style={styles.socialLinks}>
             {profile.links.map((link) => (
               <Pressable
+                accessibilityLabel={link.label}
                 accessibilityRole="link"
                 key={link.linkType}
-                onPress={() =>
-                  Linking.openURL(link.linkType === 'email' ? `mailto:${link.value}` : link.value)
-                }
-                style={({ pressed }) => [styles.linkRow, pressed && styles.pressed]}>
-                <Text style={styles.linkLabel}>{link.label}</Text>
-                <Ionicons color={theme.colors.muted} name="open-outline" size={18} />
+                onPress={() => void openProfileLink(link)}
+                style={({ pressed }) => [styles.socialLink, pressed && styles.pressed]}>
+                <Ionicons
+                  color={theme.colors.accentStrong}
+                  name={profileLinkIcons[link.linkType]}
+                  size={23}
+                />
               </Pressable>
             ))}
           </View>
@@ -288,6 +309,22 @@ function ManagementLink({ label, onPress }: { label: string; onPress: () => void
     </Pressable>
   );
 }
+
+const profileLinkIcons: Record<
+  ProfileLinkType,
+  ComponentProps<typeof Ionicons>['name']
+> = {
+  portfolio: 'briefcase-outline',
+  website: 'globe-outline',
+  instagram: 'logo-instagram',
+  tiktok: 'logo-tiktok',
+  x: 'logo-x',
+  linkedin: 'logo-linkedin',
+  github: 'logo-github',
+  discord: 'logo-discord',
+  calendly: 'calendar-outline',
+  email: 'mail-outline',
+};
 
 const styles = StyleSheet.create({
   screen: {
@@ -462,19 +499,20 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textAlign: 'right',
   },
-  linkList: {
-    gap: theme.spacing.sm,
-  },
-  linkRow: {
-    alignItems: 'center',
+  socialLinks: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    minHeight: theme.layout.minTouchTarget,
+    flexWrap: 'wrap',
+    gap: theme.spacing.md,
   },
-  linkLabel: {
-    color: theme.colors.accentStrong,
-    fontSize: theme.typography.body,
-    fontWeight: '700',
+  socialLink: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.accentSoft,
+    borderColor: '#DDD4FF',
+    borderRadius: theme.radii.pill,
+    borderWidth: 1,
+    height: 50,
+    justifyContent: 'center',
+    width: 50,
   },
   error: {
     color: theme.colors.danger,

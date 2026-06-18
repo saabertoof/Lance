@@ -9,7 +9,7 @@ import {
   StepProgress,
   TagInput,
 } from '@/components/profile';
-import { Button, TextField } from '@/components/ui';
+import { Button, DateField, TextField } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { needsCompensationWarning, validateOpportunityDraft } from '@/lib/opportunity';
 import type { BusinessRecord } from '@/types/business';
@@ -358,16 +358,15 @@ export function OpportunityEditor({
               selected={draft.industry}
             />
           </FormSection>
-          <TextField
+          <DateField
             label="Expected start date (optional)"
-            onChangeText={(expectedStartDate) => set('expectedStartDate', expectedStartDate)}
-            placeholder="YYYY-MM-DD"
+            onChange={(expectedStartDate) => set('expectedStartDate', expectedStartDate)}
             value={draft.expectedStartDate}
           />
-          <TextField
+          <DateField
             label="Expiration date (optional)"
-            onChangeText={(expirationDate) => set('expirationDate', expirationDate)}
-            placeholder="YYYY-MM-DD"
+            minimumDate={draft.expectedStartDate || undefined}
+            onChange={(expirationDate) => set('expirationDate', expirationDate)}
             value={draft.expirationDate}
           />
           <TextField

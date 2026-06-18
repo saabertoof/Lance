@@ -1,12 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { OpportunityEditor } from '@/components/opportunity';
 import { LoadingState, Screen } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
+import { useFeedback } from '@/context/FeedbackContext';
 import { loadMyBusinesses } from '@/lib/business';
 import { formatOpportunityError, saveOpportunity } from '@/lib/opportunity';
 import { loadPersonalProfile } from '@/lib/profile';
@@ -21,6 +22,8 @@ import {
 export default function NewOpportunityScreen() {
   const { businessId } = useLocalSearchParams<{ businessId?: string }>();
   const { user } = useAuth();
+  const { showSuccess } = useFeedback();
+  const submissionRef = useRef(false);
   const [businesses, setBusinesses] = useState<BusinessRecord[]>([]);
   const [displayName, setDisplayName] = useState('My profile');
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
@@ -67,16 +70,19 @@ export default function NewOpportunityScreen() {
   }, [businessId, user]);
 
   async function save(draft: OpportunityDraft, status: OpportunityStatus) {
-    if (!user) return;
+    if (!user || submissionRef.current) return;
+    submissionRef.current = true;
     setIsSaving(true);
     setError(null);
 
     try {
       const id = await saveOpportunity(draft, user.id, status);
+      showSuccess(status === 'draft' ? 'Opportunity draft saved.' : 'Opportunity published.');
       router.replace(routes.opportunity(id));
     } catch (saveError) {
       setError(formatOpportunityError(saveError));
     } finally {
+      submissionRef.current = false;
       setIsSaving(false);
     }
   }

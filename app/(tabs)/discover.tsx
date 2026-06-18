@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Card, Chip, EmptyState, Screen } from '@/components/ui';
@@ -8,7 +9,12 @@ export default function DiscoverScreen() {
   return (
     <Screen>
       <View style={styles.header}>
-        <Text style={styles.eyebrow}>Lance</Text>
+        <Image
+          accessibilityLabel="Lance"
+          contentFit="contain"
+          source={require('../../assets/images/lance_wordmark_transparent.png')}
+          style={styles.wordmark}
+        />
         <Text style={styles.title}>Discover</Text>
       </View>
 
@@ -34,10 +40,9 @@ const styles = StyleSheet.create({
     gap: theme.spacing.xs,
     marginBottom: theme.spacing.xl,
   },
-  eyebrow: {
-    color: theme.colors.accent,
-    fontSize: theme.typography.small,
-    fontWeight: '800',
+  wordmark: {
+    height: 34,
+    width: 132,
   },
   title: {
     color: theme.colors.text,

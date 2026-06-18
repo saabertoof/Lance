@@ -168,8 +168,16 @@ export function formatProfileError(error: unknown) {
       return 'Your session cannot update this profile. Sign in again and retry.';
     }
 
-    if (possibleError.message) {
-      return `${possibleError.name ?? 'Profile error'}: ${possibleError.message}`;
+    if (possibleError.name === 'Error' && possibleError.message) {
+      return possibleError.message;
+    }
+
+    if (__DEV__) {
+      console.warn('[Profile operation]', {
+        code: possibleError.code ?? null,
+        message: possibleError.message ?? 'Unknown error',
+        name: possibleError.name ?? 'UnknownError',
+      });
     }
   }
 

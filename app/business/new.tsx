@@ -1,36 +1,56 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { BusinessForm } from '@/components/business';
+import { BusinessForm, BusinessUrlStatus } from '@/components/business';
 import { Button, Screen } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
+import { useFeedback } from '@/context/FeedbackContext';
 import { formatBusinessError, saveBusiness } from '@/lib/business';
 import { routes } from '@/lib/routes';
 import { createEmptyBusinessDraft } from '@/types/business';
 
 export default function NewBusinessScreen() {
   const { user } = useAuth();
+  const { showSuccess, showWarning } = useFeedback();
+  const submissionRef = useRef(false);
   const [draft, setDraft] = useState(createEmptyBusinessDraft);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [urlStatus, setUrlStatus] = useState<BusinessUrlStatus>('idle');
 
   async function createBusiness() {
-    if (!user) {
+    if (!user || submissionRef.current) {
       return;
     }
 
+    if (urlStatus !== 'available') {
+      setError('Choose an available Lance URL before creating this business.');
+      return;
+    }
+
+    submissionRef.current = true;
     setIsSaving(true);
     setError(null);
 
     try {
-      const business = await saveBusiness(draft, user.id);
-      router.replace(routes.business(business.id));
+      const result = await saveBusiness(draft, user.id);
+
+      if (result.logoWarning) {
+        showWarning(result.logoWarning);
+      } else {
+        showSuccess(
+          draft.localLogoBase64 ? 'Business created. Logo uploaded.' : 'Business created.',
+        );
+      }
+
+      router.replace(routes.business(result.business.id));
     } catch (saveError) {
       setError(formatBusinessError(saveError));
     } finally {
+      submissionRef.current = false;
       setIsSaving(false);
     }
   }
@@ -48,12 +68,22 @@ export default function NewBusinessScreen() {
         <Text style={styles.title}>Create business</Text>
         <View style={styles.placeholder} />
       </View>
-      <BusinessForm draft={draft} onChange={setDraft} onError={setError} />
+      <BusinessForm
+        draft={draft}
+        onChange={setDraft}
+        onError={setError}
+        onUrlStatusChange={setUrlStatus}
+      />
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {isSaving && draft.localLogoBase64 ? (
         <Text style={styles.loading}>Saving business and uploading logo...</Text>
       ) : null}
-      <Button label="Create business or project" loading={isSaving} onPress={createBusiness} />
+      <Button
+        disabled={urlStatus !== 'available'}
+        label="Create business or project"
+        loading={isSaving}
+        onPress={createBusiness}
+      />
     </Screen>
   );
 }

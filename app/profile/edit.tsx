@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
@@ -12,6 +12,7 @@ import {
 import { Button, LoadingState, Screen } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
+import { useFeedback } from '@/context/FeedbackContext';
 import {
   formatProfileError,
   loadPersonalProfile,
@@ -24,11 +25,12 @@ import { ProfileDraft } from '@/types/profile';
 
 export default function EditProfileScreen() {
   const { refreshProfileStatus, user } = useAuth();
+  const { showSuccess } = useFeedback();
+  const submissionRef = useRef(false);
   const [draft, setDraft] = useState<ProfileDraft | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [isSuccess, setIsSuccess] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -63,17 +65,18 @@ export default function EditProfileScreen() {
   }, [user]);
 
   async function saveProfile() {
-    if (!draft || !user) {
+    if (!draft || !user || submissionRef.current) {
       return;
     }
 
+    submissionRef.current = true;
     setIsSaving(true);
     setFeedback(null);
-    setIsSuccess(false);
 
     try {
       const normalizedLinks = normalizeProfileLinks(draft.links);
       let avatarUrl = draft.avatarUrl;
+      const uploadedAvatar = Boolean(draft.localAvatarBase64);
 
       if (draft.localAvatarBase64) {
         avatarUrl = await uploadAvatar(user.id, draft.localAvatarBase64);
@@ -89,12 +92,12 @@ export default function EditProfileScreen() {
 
       await savePersonalProfile(savedDraft, false);
       await refreshProfileStatus();
-      setDraft(savedDraft);
-      setIsSuccess(true);
-      setFeedback('Profile updated successfully.');
+      showSuccess(uploadedAvatar ? 'Profile updated. Profile photo uploaded.' : 'Profile updated.');
+      router.replace('/profile');
     } catch (error) {
       setFeedback(formatProfileError(error));
     } finally {
+      submissionRef.current = false;
       setIsSaving(false);
     }
   }
@@ -131,10 +134,7 @@ export default function EditProfileScreen() {
         <BasicProfileFields
           draft={draft}
           onChange={setDraft}
-          onError={(message) => {
-            setIsSuccess(false);
-            setFeedback(message);
-          }}
+          onError={setFeedback}
           showAdultConfirmation={false}
         />
       </FormSection>
@@ -153,9 +153,7 @@ export default function EditProfileScreen() {
         <ProfileLinksFields draft={draft} onChange={setDraft} onError={setFeedback} />
       </FormSection>
 
-      {feedback ? (
-        <Text style={isSuccess ? styles.success : styles.error}>{feedback}</Text>
-      ) : null}
+      {feedback ? <Text style={styles.error}>{feedback}</Text> : null}
       {isSaving && draft.localAvatarBase64 ? (
         <Text style={styles.uploading}>Uploading profile photo...</Text>
       ) : null}
@@ -199,17 +197,6 @@ const styles = StyleSheet.create({
     borderRadius: theme.radii.md,
     borderWidth: 1,
     color: theme.colors.danger,
-    fontSize: theme.typography.small,
-    lineHeight: 20,
-    padding: theme.spacing.md,
-    textAlign: 'center',
-  },
-  success: {
-    backgroundColor: '#EFFBF3',
-    borderColor: '#CDEFD9',
-    borderRadius: theme.radii.md,
-    borderWidth: 1,
-    color: theme.colors.success,
     fontSize: theme.typography.small,
     lineHeight: 20,
     padding: theme.spacing.md,

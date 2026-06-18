@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Linking,
@@ -16,6 +16,7 @@ import { OpportunityCard } from '@/components/opportunity';
 import { Button, Chip, LoadingState, Screen } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
+import { useFeedback } from '@/context/FeedbackContext';
 import { archiveBusiness, formatBusinessError, loadBusiness } from '@/lib/business';
 import { loadBusinessOpportunities } from '@/lib/opportunity';
 import { routes } from '@/lib/routes';
@@ -31,9 +32,12 @@ import { getOptionLabel } from '@/types/profile';
 export default function BusinessDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
+  const { showSuccess } = useFeedback();
+  const archiveRef = useRef(false);
   const [business, setBusiness] = useState<BusinessRecord | null>(null);
   const [opportunities, setOpportunities] = useState<OpportunityRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isArchiving, setIsArchiving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -88,12 +92,18 @@ export default function BusinessDetailScreen() {
           text: 'Archive',
           style: 'destructive',
           onPress: async () => {
-            if (!user) return;
+            if (!user || archiveRef.current) return;
+            archiveRef.current = true;
+            setIsArchiving(true);
             try {
               await archiveBusiness(businessId, user.id);
+              showSuccess('Business archived.');
               router.replace(routes.businesses);
             } catch (archiveError) {
               setError(formatBusinessError(archiveError));
+            } finally {
+              archiveRef.current = false;
+              setIsArchiving(false);
             }
           },
         },
@@ -192,6 +202,28 @@ export default function BusinessDetailScreen() {
       </Section>
 
       {isOwner ? (
+        <Section title="Interested talent">
+          <Text style={styles.muted}>
+            People who express interest in your opportunities will appear here.
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => router.push(routes.interestedTalent(business.id))}
+            style={({ pressed }) => [styles.interestCard, pressed && styles.pressed]}>
+            <View style={styles.interestIcon}>
+              <Ionicons
+                color={theme.colors.accentStrong}
+                name="people-outline"
+                size={22}
+              />
+            </View>
+            <Text style={styles.interestLabel}>View interested talent</Text>
+            <Ionicons color={theme.colors.muted} name="chevron-forward" size={20} />
+          </Pressable>
+        </Section>
+      ) : null}
+
+      {isOwner ? (
         <View style={styles.ownerActions}>
           {business.status === 'active' ? (
             <>
@@ -204,7 +236,12 @@ export default function BusinessDetailScreen() {
                 onPress={() => router.push(routes.editBusiness(business.id))}
                 variant="secondary"
               />
-              <Button label="Archive business" onPress={confirmArchive} variant="danger" />
+              <Button
+                label="Archive business"
+                loading={isArchiving}
+                onPress={confirmArchive}
+                variant="danger"
+              />
             </>
           ) : (
             <Text style={styles.muted}>This business is archived and read-only.</Text>
@@ -352,6 +389,34 @@ const styles = StyleSheet.create({
   },
   ownerActions: {
     gap: theme.spacing.md,
+  },
+  interestCard: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.surfaceMuted,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radii.md,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: theme.spacing.md,
+    minHeight: 64,
+    padding: theme.spacing.md,
+  },
+  interestIcon: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.accentSoft,
+    borderRadius: theme.radii.md,
+    height: 40,
+    justifyContent: 'center',
+    width: 40,
+  },
+  interestLabel: {
+    color: theme.colors.text,
+    flex: 1,
+    fontSize: theme.typography.small,
+    fontWeight: '800',
+  },
+  pressed: {
+    opacity: 0.7,
   },
   error: {
     color: theme.colors.danger,

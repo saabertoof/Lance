@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Linking,
@@ -20,6 +20,8 @@ import {
 import { Button, Chip, LoadingState, Screen } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
+import { useFeedback } from '@/context/FeedbackContext';
+import { formatDateLabel } from '@/lib/date';
 import {
   deleteDraftOpportunity,
   formatCompensation,
@@ -43,6 +45,8 @@ import { getOptionLabel } from '@/types/profile';
 export default function OpportunityDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
+  const { showSuccess } = useFeedback();
+  const updateRef = useRef(false);
   const [opportunity, setOpportunity] = useState<OpportunityRecord | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -66,16 +70,19 @@ export default function OpportunityDetailScreen() {
   }, [load]);
 
   async function changeStatus(status: OpportunityStatus) {
-    if (!user) return;
+    if (!user || updateRef.current) return;
+    updateRef.current = true;
     setIsUpdating(true);
     setError(null);
 
     try {
       await updateOpportunityStatus(id, user.id, status);
       await load();
+      showSuccess(getStatusSuccessMessage(status, opportunity?.status));
     } catch (updateError) {
       setError(formatOpportunityError(updateError));
     } finally {
+      updateRef.current = false;
       setIsUpdating(false);
     }
   }
@@ -98,12 +105,18 @@ export default function OpportunityDetailScreen() {
         text: 'Delete',
         style: 'destructive',
         onPress: async () => {
-          if (!user) return;
+          if (!user || updateRef.current) return;
+          updateRef.current = true;
+          setIsUpdating(true);
           try {
             await deleteDraftOpportunity(id, user.id);
+            showSuccess('Opportunity draft deleted.');
             router.replace(routes.opportunities);
           } catch (deleteError) {
             setError(formatOpportunityError(deleteError));
+          } finally {
+            updateRef.current = false;
+            setIsUpdating(false);
           }
         },
       },
@@ -261,11 +274,19 @@ export default function OpportunityDetailScreen() {
       <Section title="Dates and link">
         <Detail
           label="Expected start"
-          value={opportunity.expectedStartDate || 'Not specified'}
+          value={
+            opportunity.expectedStartDate
+              ? formatDateLabel(opportunity.expectedStartDate)
+              : 'Not specified'
+          }
         />
         <Detail
           label="Expires"
-          value={opportunity.expirationDate || 'Not specified'}
+          value={
+            opportunity.expirationDate
+              ? formatDateLabel(opportunity.expirationDate)
+              : 'Not specified'
+          }
         />
         <Detail
           label="Published"
@@ -341,28 +362,57 @@ function OwnerControls({
       {status === 'draft' ? (
         <>
           <Button loading={isUpdating} label="Publish" onPress={onPublish} />
-          <Button label="Delete draft" onPress={onDeleteDraft} variant="danger" />
+          <Button
+            disabled={isUpdating}
+            label="Delete draft"
+            onPress={onDeleteDraft}
+            variant="danger"
+          />
         </>
       ) : null}
       {status === 'published' ? (
         <>
           <Button loading={isUpdating} label="Pause" onPress={onPause} variant="secondary" />
-          <Button label="Close" onPress={onClose} variant="danger" />
-          <Button label="Archive" onPress={onArchive} variant="ghost" />
+          <Button disabled={isUpdating} label="Close" onPress={onClose} variant="danger" />
+          <Button disabled={isUpdating} label="Archive" onPress={onArchive} variant="ghost" />
         </>
       ) : null}
       {status === 'paused' ? (
         <>
           <Button loading={isUpdating} label="Resume" onPress={onResume} />
-          <Button label="Close" onPress={onClose} variant="danger" />
-          <Button label="Archive" onPress={onArchive} variant="ghost" />
+          <Button disabled={isUpdating} label="Close" onPress={onClose} variant="danger" />
+          <Button disabled={isUpdating} label="Archive" onPress={onArchive} variant="ghost" />
         </>
       ) : null}
       {status === 'closed' ? (
-        <Button label="Archive" onPress={onArchive} variant="danger" />
+        <Button
+          disabled={isUpdating}
+          label="Archive"
+          onPress={onArchive}
+          variant="danger"
+        />
       ) : null}
     </View>
   );
+}
+
+function getStatusSuccessMessage(
+  status: OpportunityStatus,
+  previousStatus?: OpportunityStatus,
+) {
+  if (status === 'published' && previousStatus === 'paused') {
+    return 'Opportunity resumed.';
+  }
+
+  const messages: Record<OpportunityStatus, string> = {
+    draft: 'Opportunity draft saved.',
+    published: 'Opportunity published.',
+    paused: 'Opportunity paused.',
+    closed: 'Opportunity closed.',
+    archived: 'Opportunity archived.',
+  };
+
+  return messages[status];
 }
 
 function Section({ children, title }: { children: React.ReactNode; title: string }) {

@@ -76,8 +76,41 @@ export function slugify(value: string) {
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9]+/g, '-')
+    .replace(/-+/g, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, 60);
+}
+
+export function normalizeBusinessSlugInput(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+/g, '')
+    .slice(0, 60);
+}
+
+export async function checkBusinessSlugAvailability(
+  slug: string,
+  excludingBusinessId?: string,
+) {
+  const normalized = slugify(slug);
+
+  if (!/^[a-z0-9-]{3,60}$/.test(normalized)) {
+    return false;
+  }
+
+  const { data, error } = await supabase.rpc('is_business_slug_available', {
+    candidate: normalized,
+    excluding_business_id: excludingBusinessId ?? null,
+  });
+
+  if (error) {
+    logBusinessOperationError('check-url-availability', error);
+    throw error;
+  }
+
+  return data === true;
 }
 
 export function normalizeOptionalUrl(value: string) {
@@ -196,10 +229,21 @@ export async function saveBusiness(
   ownerId: string,
   businessId?: string,
 ) {
-  const validationError = validateBusinessDraft(draft);
+  const normalizedDraft = { ...draft, slug: slugify(draft.slug) };
+  const validationError = validateBusinessDraft(normalizedDraft);
 
   if (validationError) {
     throw new Error(validationError);
+  }
+
+  const normalizedSlug = normalizedDraft.slug;
+  const isSlugAvailable = await checkBusinessSlugAvailability(
+    normalizedSlug,
+    businessId,
+  );
+
+  if (!isSlugAvailable) {
+    throw new Error('That Lance URL is already in use. Choose another one.');
   }
 
   let row: RawBusiness;
@@ -207,13 +251,14 @@ export async function saveBusiness(
   if (businessId) {
     const { data, error } = await supabase
       .from('businesses')
-      .update(businessPayload(draft, ownerId))
+      .update(businessPayload(normalizedDraft, ownerId))
       .eq('id', businessId)
       .eq('owner_profile_id', ownerId)
       .select('*')
       .single();
 
     if (error) {
+      logBusinessOperationError('update-business', error);
       throw error;
     }
 
@@ -221,40 +266,50 @@ export async function saveBusiness(
   } else {
     const { data, error } = await supabase
       .from('businesses')
-      .insert(businessPayload(draft, ownerId))
+      .insert(businessPayload(normalizedDraft, ownerId))
       .select('*')
       .single();
 
     if (error) {
+      logBusinessOperationError('create-business', error);
       throw error;
     }
 
     row = data as RawBusiness;
   }
+
+  let logoWarning: string | null = null;
 
   if (draft.localLogoBase64 && draft.localLogoMimeType) {
-    const logoUrl = await uploadBusinessLogo(
-      ownerId,
-      row.id,
-      draft.localLogoBase64,
-      draft.localLogoMimeType,
-    );
-    const { data, error } = await supabase
-      .from('businesses')
-      .update({ logo_url: logoUrl })
-      .eq('id', row.id)
-      .eq('owner_profile_id', ownerId)
-      .select('*')
-      .single();
+    try {
+      const logoUrl = await uploadBusinessLogo(
+        ownerId,
+        row.id,
+        draft.localLogoBase64,
+        draft.localLogoMimeType,
+      );
+      const { error } = await supabase
+        .from('businesses')
+        .update({ logo_url: logoUrl })
+        .eq('id', row.id)
+        .eq('owner_profile_id', ownerId);
 
-    if (error) {
-      throw error;
+      if (error) {
+        throw error;
+      }
+
+      row = { ...row, logo_url: logoUrl };
+    } catch (error) {
+      logBusinessOperationError('upload-business-logo', error);
+      logoWarning =
+        'Business saved, but the logo upload failed. You can retry it from Edit Business.';
     }
-
-    row = data as RawBusiness;
   }
 
-  return mapBusiness(row);
+  return {
+    business: mapBusiness(row),
+    logoWarning,
+  };
 }
 
 export async function loadMyBusinesses(ownerId: string, includeArchived = false) {
@@ -393,19 +448,36 @@ export function formatBusinessError(error: unknown) {
     const possibleError = error as { code?: string; message?: string; name?: string };
 
     if (possibleError.code === '23505') {
-      return 'That business slug is already in use. Try another one.';
+      return 'That Lance URL is already in use. Choose another one.';
     }
 
     if (possibleError.code === '42501') {
       return 'You do not have permission to change this business.';
     }
 
-    if (possibleError.message) {
-      return `${possibleError.name ?? 'Business error'}: ${possibleError.message}`;
+    if (possibleError.name === 'Error' && possibleError.message) {
+      return possibleError.message;
     }
   }
 
   return 'The business could not be saved. Check your connection and try again.';
+}
+
+function logBusinessOperationError(stage: string, error: unknown) {
+  if (!__DEV__) {
+    return;
+  }
+
+  const details =
+    error && typeof error === 'object'
+      ? (error as { code?: string; message?: string; name?: string })
+      : {};
+
+  console.warn(`[Business operation: ${stage}]`, {
+    code: details.code ?? null,
+    message: details.message ?? 'Unknown error',
+    name: details.name ?? 'UnknownError',
+  });
 }
 
 function mapBusiness(row: RawBusiness): BusinessRecord {

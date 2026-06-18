@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { parseDateValue } from '@/lib/date';
 import { normalizeListEntry } from '@/lib/profile';
 import { slugify } from '@/lib/business';
 import { supabase } from '@/lib/supabase';
@@ -181,12 +182,12 @@ export function validateOpportunityDraft(draft: OpportunityDraft, publishing: bo
     }
   }
 
-  if (draft.expectedStartDate && Number.isNaN(Date.parse(draft.expectedStartDate))) {
-    return 'Expected start date must use YYYY-MM-DD.';
+  if (draft.expectedStartDate && !parseDateValue(draft.expectedStartDate)) {
+    return 'Choose a valid expected start date.';
   }
 
-  if (draft.expirationDate && Number.isNaN(Date.parse(draft.expirationDate))) {
-    return 'Expiration date must use YYYY-MM-DD.';
+  if (draft.expirationDate && !parseDateValue(draft.expirationDate)) {
+    return 'Choose a valid expiration date.';
   }
 
   if (
@@ -523,12 +524,24 @@ export function formatOpportunityError(error: unknown) {
       return 'You do not have permission to change this opportunity or posting identity.';
     }
 
-    if (possibleError.message) {
-      return `${possibleError.name ?? 'Opportunity error'}: ${possibleError.message}`;
+    if (possibleError.name === 'Error' && possibleError.message) {
+      return possibleError.message;
     }
+
+    logOpportunityError(possibleError);
   }
 
   return 'The opportunity could not be saved. Check your connection and try again.';
+}
+
+function logOpportunityError(error: { code?: string; message?: string; name?: string }) {
+  if (!__DEV__) return;
+
+  console.warn('[Opportunity operation]', {
+    code: error.code ?? null,
+    message: error.message ?? 'Unknown error',
+    name: error.name ?? 'UnknownError',
+  });
 }
 
 export function groupOpportunities(opportunities: OpportunityRecord[]) {

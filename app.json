@@ -4,7 +4,7 @@
     "slug": "lance",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/lance_app_icon_white.png",
+    "icon": "./assets/images/lance_app_icon_white_large.png",
     "scheme": "lance",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
@@ -14,15 +14,15 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#FFFFFF",
-        "foregroundImage": "./assets/images/lance_app_icon_white.png",
-        "monochromeImage": "./assets/images/lance_app_icon_black.png"
+        "foregroundImage": "./assets/images/lance_app_icon_white_large.png",
+        "monochromeImage": "./assets/images/lance_app_icon_black_large.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/lance_app_icon_white.png"
+      "favicon": "./assets/images/lance_app_icon_white_large.png"
     },
     "plugins": [
       "expo-router",

@@ -2,19 +2,23 @@
 
 Lance is a mobile-first platform for discovering people and opportunities, structured search, and direct communication. Lance does not employ users, process payments, hold escrow, manage contracts, or guarantee compensation.
 
-## Phase 3
+## Phase 3.5
 
-Phase 3 includes:
+Phase 3.5 preserves the Phase 3 product scope and adds:
 
 - Supabase authentication, onboarding, profiles, profile editing, and avatars.
 - Optional business and project profiles.
-- Business logo uploads.
+- Reliable business creation with business and logo outcomes handled separately.
+- Live Lance URL normalization, preview, availability checks, and suggestions.
+- Business logo uploads protected by owner-scoped Storage policies.
 - Business creation, viewing, editing, management, sharing, and archiving.
 - A functional Create tab.
 - Personal and business posting identities.
-- Seven-step opportunity creation using React Hook Form and Zod validation.
+- Seven-step opportunity creation with native Expo Go-compatible date pickers.
 - Draft, preview, publish, edit, pause, resume, close, archive, and draft-delete flows.
 - My Businesses and My Opportunities management screens.
+- Clickable profile social icons and consistent success feedback.
+- An owner-only Interested talent placeholder.
 - Reusable native business and opportunity cards.
 - Structured fields and indexes for future Discover, Search, filters, and AI-assisted search.
 
@@ -25,7 +29,7 @@ Discover, Search, and Messages remain placeholders. Phase 3 does not implement s
 - Node.js LTS
 - npm
 - Expo Go
-- A Supabase project with migrations `0001`, `0002`, and `0003` already applied
+- A Supabase project with migrations `0001` through `0004` already applied
 
 On this Windows machine, use `npm.cmd` if PowerShell blocks `npm`.
 
@@ -65,6 +69,25 @@ Migration `0004`:
 - Requires at least one skill and disclaimer acceptance before publishing.
 - Creates the `business-assets` Storage bucket and logo policies.
 
+## Apply Migration 0005
+
+Apply this migration after `0004`. Do not modify or rerun migrations `0001` through `0004`.
+
+1. Open your Supabase project.
+2. Open **SQL Editor**.
+3. Open `supabase/migrations/0005_phase_3_5_business_creation_fix.sql` locally.
+4. Paste the entire file into a new SQL query.
+5. Run it once.
+6. Confirm the query completes without an error.
+
+Migration `0005`:
+
+- Adds a safe URL-availability function that checks active and archived businesses.
+- Keeps business URL uniqueness details private while returning only available or unavailable.
+- Adds a security-definer ownership helper for business logo paths.
+- Replaces only the three owner logo policies from `0004`.
+- Keeps RLS enabled and does not grant client access to any service-role capability.
+
 ## Posting Identity Model
 
 Every opportunity stores the signed-in creator in `owner_profile_id`.
@@ -96,6 +119,7 @@ RLS and a database trigger prevent users from posting as another person or anoth
 
 - Logos are publicly readable.
 - Uploads require authentication.
+- The ownership helper reads only the signed-in user ID and path.
 - Users may upload, replace, or delete only inside:
 
 ```text
@@ -111,8 +135,8 @@ Migration `0004` creates the bucket automatically. In Supabase:
 3. Confirm it is public.
 4. Confirm the file-size limit is 5 MB.
 5. Confirm allowed MIME types are JPEG, PNG, and WebP.
-6. Confirm insert, update, and delete policies require the first folder to match `auth.uid()`.
-7. Confirm the second folder must be a business owned by that user.
+6. Confirm insert, update, and delete policies call `can_manage_business_asset(name)`.
+7. Confirm the first folder matches `auth.uid()` and the second folder is an owned business.
 
 No manual bucket creation is needed if the migration succeeds.
 
@@ -130,14 +154,20 @@ Scan the QR code using Expo Go while the phone and computer are on the same netw
 1. Log in and complete onboarding.
 2. Open **Create**.
 3. Tap **Create a business or project**.
-4. Complete all required fields.
+4. Enter a Lance URL and wait for the available confirmation.
 5. Select a JPEG, PNG, or WebP logo under 5 MB.
 6. Create the business.
-7. Verify its detail screen, links, owner name, and placeholder share action.
+7. Verify only one business was created and that the detail screen opens.
 8. Edit the description or location.
-9. Return to **Profile > My businesses and projects**.
-10. Confirm active and draft opportunity counts.
-11. Archive the business and confirm it becomes read-only.
+9. Change the Lance URL and confirm availability excludes the current business.
+10. Open **Interested talent** and confirm the polished empty state.
+11. Return to **Profile > My businesses and projects**.
+12. Confirm active and draft opportunity counts.
+13. Archive the business and confirm it becomes read-only.
+
+To test the separated logo warning, temporarily make the logo upload fail while leaving
+business inserts available. The app should navigate to the single created business and show:
+`Business saved, but the logo upload failed. You can retry it from Edit Business.`
 
 ## Opportunity Phone Test
 
@@ -146,11 +176,14 @@ Scan the QR code using Expo Go while the phone and computer are on the same netw
 3. Complete all seven steps.
 4. Save as a draft.
 5. Open **My Opportunities** and reopen the draft.
-6. Add or change fields and preview it.
-7. Accept the Lance disclaimer and publish.
-8. Test the placeholder share action.
-9. Repeat using an active business as the posting identity.
-10. Confirm the business logo and name appear on the card and detail screen.
+6. Choose expected-start and expiration dates using the system date picker.
+7. Clear each optional date and choose it again.
+8. Confirm an expiration date cannot be earlier than the expected start date.
+9. Save, reopen, and confirm both dates persisted.
+10. Accept the Lance disclaimer and publish.
+11. Test the placeholder share action.
+12. Repeat using an active business as the posting identity.
+13. Confirm the business logo and name appear on the card and detail screen.
 
 ## Lifecycle Test
 
@@ -187,11 +220,13 @@ npm.cmd run lint
 npm.cmd run expo:config
 ```
 
-There is no automated test suite configured. Database-backed business, opportunity, Storage, sharing, and cross-user RLS flows require migration `0004` and phone testing.
+There is no automated test suite configured. Database-backed business, opportunity, Storage,
+sharing, and cross-user RLS flows require migrations `0004` and `0005` plus phone testing.
 
 ## Checkpoints
 
 - Phase 1: `629773a`
 - Phase 2: `a5ef0f8`
+- Phase 3: `8d7639d`
 
-No OpenAI API key or external search service is used.
+No OpenAI API key or external search service is used. Phase 4 has not started.

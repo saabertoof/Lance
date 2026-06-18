@@ -1,12 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { BusinessForm } from '@/components/business';
+import { BusinessForm, BusinessUrlStatus } from '@/components/business';
 import { Button, LoadingState, Screen } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
+import { useFeedback } from '@/context/FeedbackContext';
 import {
   businessToDraft,
   formatBusinessError,
@@ -19,10 +20,13 @@ import type { BusinessDraft } from '@/types/business';
 export default function EditBusinessScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
+  const { showSuccess, showWarning } = useFeedback();
+  const submissionRef = useRef(false);
   const [draft, setDraft] = useState<BusinessDraft | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [urlStatus, setUrlStatus] = useState<BusinessUrlStatus>('checking');
 
   useEffect(() => {
     let active = true;
@@ -44,16 +48,33 @@ export default function EditBusinessScreen() {
   }, [id]);
 
   async function save() {
-    if (!draft || !user) return;
+    if (!draft || !user || submissionRef.current) return;
+
+    if (urlStatus !== 'available') {
+      setError('Choose an available Lance URL before saving.');
+      return;
+    }
+
+    submissionRef.current = true;
     setIsSaving(true);
     setError(null);
 
     try {
-      await saveBusiness(draft, user.id, id);
+      const result = await saveBusiness(draft, user.id, id);
+
+      if (result.logoWarning) {
+        showWarning(result.logoWarning);
+      } else {
+        showSuccess(
+          draft.localLogoBase64 ? 'Business updated. Logo uploaded.' : 'Business updated.',
+        );
+      }
+
       router.replace(routes.business(id));
     } catch (saveError) {
       setError(formatBusinessError(saveError));
     } finally {
+      submissionRef.current = false;
       setIsSaving(false);
     }
   }
@@ -80,9 +101,20 @@ export default function EditBusinessScreen() {
         <Text style={styles.title}>Edit business</Text>
         <View style={styles.placeholder} />
       </View>
-      <BusinessForm draft={draft} onChange={setDraft} onError={setError} />
+      <BusinessForm
+        businessId={id}
+        draft={draft}
+        onChange={setDraft}
+        onError={setError}
+        onUrlStatusChange={setUrlStatus}
+      />
       {error ? <Text style={styles.error}>{error}</Text> : null}
-      <Button label="Save changes" loading={isSaving} onPress={save} />
+      <Button
+        disabled={urlStatus !== 'available'}
+        label="Save changes"
+        loading={isSaving}
+        onPress={save}
+      />
     </Screen>
   );
 }
