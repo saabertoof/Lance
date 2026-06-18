@@ -1,0 +1,22 @@
+import { ThemeProvider } from '@react-navigation/native';
+import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import 'react-native-reanimated';
+
+import { lanceNavigationTheme } from '@/constants/theme';
+import { AuthProvider } from '@/context/AuthContext';
+
+export default function RootLayout() {
+  return (
+    <AuthProvider>
+      <ThemeProvider value={lanceNavigationTheme}>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="(tabs)" />
+        </Stack>
+        <StatusBar style="dark" />
+      </ThemeProvider>
+    </AuthProvider>
+  );
+}
