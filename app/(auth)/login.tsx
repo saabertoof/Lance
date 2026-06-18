@@ -55,7 +55,7 @@ export default function LoginScreen() {
       return;
     }
 
-    router.replace('/discover');
+    router.replace('/');
   }
 
   async function onTestConnection() {

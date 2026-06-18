@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Card, Chip, EmptyState, Screen } from '@/components/ui';
@@ -16,9 +17,12 @@ export default function DiscoverScreen() {
           <Chip accent label="People" />
           <Chip label="Opportunities" />
         </View>
+        <View style={styles.icon}>
+          <Ionicons color={theme.colors.accentStrong} name="sparkles-outline" size={24} />
+        </View>
         <EmptyState
-          title="No cards yet"
-          body="Your discovery feed will come online after onboarding, profiles, and opportunities are added."
+          title="Discovery comes next"
+          body="This will become Lance's one-card-at-a-time experience for exploring real people and opportunities."
         />
       </Card>
     </Screen>
@@ -41,10 +45,19 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   modeCard: {
+    alignItems: 'flex-start',
     gap: theme.spacing.xl,
   },
   modeRow: {
     flexDirection: 'row',
     gap: theme.spacing.sm,
+  },
+  icon: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.accentSoft,
+    borderRadius: theme.radii.md,
+    height: 48,
+    justifyContent: 'center',
+    width: 48,
   },
 });

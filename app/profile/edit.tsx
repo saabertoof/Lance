@@ -1,0 +1,226 @@
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+
+import {
+  BasicProfileFields,
+  FormSection,
+  ProfileLinksFields,
+  ProfessionalProfileFields,
+} from '@/components/profile';
+import { Button, LoadingState, Screen } from '@/components/ui';
+import { theme } from '@/constants/theme';
+import { useAuth } from '@/context/AuthContext';
+import {
+  formatProfileError,
+  loadPersonalProfile,
+  normalizeProfileLinks,
+  profileToDraft,
+  savePersonalProfile,
+  uploadAvatar,
+} from '@/lib/profile';
+import { ProfileDraft } from '@/types/profile';
+
+export default function EditProfileScreen() {
+  const { refreshProfileStatus, user } = useAuth();
+  const [draft, setDraft] = useState<ProfileDraft | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadProfile() {
+      if (!user) {
+        return;
+      }
+
+      try {
+        const profile = await loadPersonalProfile(user.id, user.email ?? null);
+
+        if (active && profile) {
+          setDraft(profileToDraft(profile));
+        }
+      } catch (error) {
+        if (active) {
+          setFeedback(formatProfileError(error));
+        }
+      } finally {
+        if (active) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    void loadProfile();
+
+    return () => {
+      active = false;
+    };
+  }, [user]);
+
+  async function saveProfile() {
+    if (!draft || !user) {
+      return;
+    }
+
+    setIsSaving(true);
+    setFeedback(null);
+    setIsSuccess(false);
+
+    try {
+      const normalizedLinks = normalizeProfileLinks(draft.links);
+      let avatarUrl = draft.avatarUrl;
+
+      if (draft.localAvatarBase64) {
+        avatarUrl = await uploadAvatar(user.id, draft.localAvatarBase64);
+      }
+
+      const savedDraft = {
+        ...draft,
+        avatarUrl,
+        links: normalizedLinks,
+        localAvatarBase64: null,
+        localAvatarUri: null,
+      };
+
+      await savePersonalProfile(savedDraft, false);
+      await refreshProfileStatus();
+      setDraft(savedDraft);
+      setIsSuccess(true);
+      setFeedback('Profile updated successfully.');
+    } catch (error) {
+      setFeedback(formatProfileError(error));
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  if (isLoading) {
+    return <LoadingState message="Loading profile editor" />;
+  }
+
+  if (!draft) {
+    return (
+      <Screen centered>
+        <Text style={styles.error}>{feedback ?? 'Your profile could not be loaded.'}</Text>
+      </Screen>
+    );
+  }
+
+  return (
+    <Screen scroll contentStyle={styles.screen}>
+      <View style={styles.topBar}>
+        <Pressable
+          accessibilityLabel="Close profile editor"
+          accessibilityRole="button"
+          onPress={() => router.back()}
+          style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}>
+          <Ionicons color={theme.colors.text} name="close" size={24} />
+        </Pressable>
+        <Text style={styles.title}>Edit profile</Text>
+        <View style={styles.iconPlaceholder} />
+      </View>
+
+      <FormSection
+        description="The details people use to recognize and find you."
+        title="Basic information">
+        <BasicProfileFields
+          draft={draft}
+          onChange={setDraft}
+          onError={(message) => {
+            setIsSuccess(false);
+            setFeedback(message);
+          }}
+          showAdultConfirmation={false}
+        />
+      </FormSection>
+
+      <FormSection
+        description="Keep this concise and useful rather than resume-heavy."
+        title="Professional identity">
+        <ProfessionalProfileFields
+          draft={draft}
+          onChange={setDraft}
+          onError={setFeedback}
+        />
+      </FormSection>
+
+      <FormSection description="All links are optional." title="External links">
+        <ProfileLinksFields draft={draft} onChange={setDraft} onError={setFeedback} />
+      </FormSection>
+
+      {feedback ? (
+        <Text style={isSuccess ? styles.success : styles.error}>{feedback}</Text>
+      ) : null}
+      {isSaving && draft.localAvatarBase64 ? (
+        <Text style={styles.uploading}>Uploading profile photo...</Text>
+      ) : null}
+      <Button label="Save changes" loading={isSaving} onPress={saveProfile} />
+    </Screen>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: {
+    gap: theme.spacing.xxl,
+    paddingBottom: theme.spacing.xxxl,
+  },
+  topBar: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  iconButton: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.surfaceMuted,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radii.md,
+    borderWidth: 1,
+    height: 44,
+    justifyContent: 'center',
+    width: 44,
+  },
+  iconPlaceholder: {
+    height: 44,
+    width: 44,
+  },
+  title: {
+    color: theme.colors.text,
+    fontSize: theme.typography.heading,
+    fontWeight: '900',
+  },
+  error: {
+    backgroundColor: '#FFF3F3',
+    borderColor: '#FFD7D7',
+    borderRadius: theme.radii.md,
+    borderWidth: 1,
+    color: theme.colors.danger,
+    fontSize: theme.typography.small,
+    lineHeight: 20,
+    padding: theme.spacing.md,
+    textAlign: 'center',
+  },
+  success: {
+    backgroundColor: '#EFFBF3',
+    borderColor: '#CDEFD9',
+    borderRadius: theme.radii.md,
+    borderWidth: 1,
+    color: theme.colors.success,
+    fontSize: theme.typography.small,
+    lineHeight: 20,
+    padding: theme.spacing.md,
+    textAlign: 'center',
+  },
+  uploading: {
+    color: theme.colors.muted,
+    fontSize: theme.typography.small,
+    textAlign: 'center',
+  },
+  pressed: {
+    opacity: 0.65,
+  },
+});

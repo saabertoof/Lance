@@ -41,6 +41,12 @@ yarn-error.*
 # local reference and temporary folders
 _codex_inspect/
 _expo_scaffold/
+_git_data/
+_repo_meta*/
+_checkpoint_meta/
+_phase1_history.bundle
+.git-empty-phase1-backup/
+.git-pointer*
 
 # unused images from the Expo starter template
 assets/images/android-icon-background.png

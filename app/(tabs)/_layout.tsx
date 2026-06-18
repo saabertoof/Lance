@@ -6,7 +6,7 @@ import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 
 export default function TabLayout() {
-  const { isLoading, session } = useAuth();
+  const { isLoading, onboardingStatus, session } = useAuth();
 
   if (isLoading) {
     return <LoadingState message="Loading your space" />;
@@ -14,6 +14,10 @@ export default function TabLayout() {
 
   if (!session) {
     return <Redirect href="/login" />;
+  }
+
+  if (onboardingStatus !== 'complete') {
+    return <Redirect href="/onboarding" />;
   }
 
   return (
@@ -42,10 +46,10 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="connections"
+        name="search"
         options={{
-          title: 'Connections',
-          tabBarIcon: ({ color, size }) => <Ionicons color={color} name="people-outline" size={size} />,
+          title: 'Search',
+          tabBarIcon: ({ color, size }) => <Ionicons color={color} name="search-outline" size={size} />,
         }}
       />
       <Tabs.Screen

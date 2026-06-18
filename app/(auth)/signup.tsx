@@ -42,7 +42,7 @@ export default function SignupScreen() {
     }
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email: parsed.data.email,
         password: parsed.data.password,
         options: {
@@ -56,12 +56,14 @@ export default function SignupScreen() {
         setError('email', { message: formatAuthError(error) });
         return;
       }
+
+      if (data.session) {
+        router.replace('/onboarding');
+      }
     } catch (error) {
       setError('email', { message: formatAuthError(error) });
       return;
     }
-
-    router.replace('/discover');
   }
 
   return (
