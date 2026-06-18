@@ -2,10 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import type { ComponentProps } from 'react';
 import { useCallback, useState } from 'react';
-import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { ProfileSocialLinks } from '@/components/profile';
 import { Button, Card, Chip, LoadingState, Screen } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
@@ -23,8 +23,6 @@ import {
   getOptionLabel,
   opportunityInterestOptions,
   PersonalProfile,
-  ProfileLink,
-  ProfileLinkType,
   remotePreferenceOptions,
 } from '@/types/profile';
 
@@ -109,22 +107,6 @@ export default function ProfileScreen() {
       .map((part) => part[0]?.toUpperCase())
       .join('') || 'L';
 
-  async function openProfileLink(link: ProfileLink) {
-    const target = link.linkType === 'email' ? `mailto:${link.value}` : link.value;
-
-    try {
-      const isSafeTarget = target.startsWith('https://') || target.startsWith('mailto:');
-
-      if (!isSafeTarget || !(await Linking.canOpenURL(target))) {
-        throw new Error('Unsupported link');
-      }
-
-      await Linking.openURL(target);
-    } catch {
-      setError(`${link.label} could not be opened on this device.`);
-    }
-  }
-
   return (
     <Screen scroll contentStyle={styles.screen}>
       <View style={styles.topBar}>
@@ -175,6 +157,10 @@ export default function ProfileScreen() {
           <Count label="Drafts" value={managementCounts.draftOpportunities} />
         </View>
         <View style={styles.managementLinks}>
+          <ManagementLink
+            label="Saved people and opportunities"
+            onPress={() => router.push(routes.saved)}
+          />
           <ManagementLink
             label="My businesses and projects"
             onPress={() => router.push(routes.businesses)}
@@ -245,22 +231,7 @@ export default function ProfileScreen() {
 
       {profile.links.length > 0 ? (
         <ProfileSection title="Links">
-          <View style={styles.socialLinks}>
-            {profile.links.map((link) => (
-              <Pressable
-                accessibilityLabel={link.label}
-                accessibilityRole="link"
-                key={link.linkType}
-                onPress={() => void openProfileLink(link)}
-                style={({ pressed }) => [styles.socialLink, pressed && styles.pressed]}>
-                <Ionicons
-                  color={theme.colors.accentStrong}
-                  name={profileLinkIcons[link.linkType]}
-                  size={23}
-                />
-              </Pressable>
-            ))}
-          </View>
+          <ProfileSocialLinks links={profile.links} onError={setError} />
         </ProfileSection>
       ) : null}
 
@@ -309,22 +280,6 @@ function ManagementLink({ label, onPress }: { label: string; onPress: () => void
     </Pressable>
   );
 }
-
-const profileLinkIcons: Record<
-  ProfileLinkType,
-  ComponentProps<typeof Ionicons>['name']
-> = {
-  portfolio: 'briefcase-outline',
-  website: 'globe-outline',
-  instagram: 'logo-instagram',
-  tiktok: 'logo-tiktok',
-  x: 'logo-x',
-  linkedin: 'logo-linkedin',
-  github: 'logo-github',
-  discord: 'logo-discord',
-  calendly: 'calendar-outline',
-  email: 'mail-outline',
-};
 
 const styles = StyleSheet.create({
   screen: {
@@ -498,21 +453,6 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.small,
     fontWeight: '700',
     textAlign: 'right',
-  },
-  socialLinks: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: theme.spacing.md,
-  },
-  socialLink: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.accentSoft,
-    borderColor: '#DDD4FF',
-    borderRadius: theme.radii.pill,
-    borderWidth: 1,
-    height: 50,
-    justifyContent: 'center',
-    width: 50,
   },
   error: {
     color: theme.colors.danger,

@@ -3,6 +3,7 @@ export * from './FormSection';
 export * from './MultiSelectChips';
 export * from './ProfileFormFields';
 export * from './ProfilePreviewCard';
+export * from './ProfileSocialLinks';
 export * from './SearchPlaceholder';
 export * from './SelectableOption';
 export * from './SingleSelectChips';

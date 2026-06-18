@@ -375,6 +375,30 @@ export async function loadBusiness(businessId: string) {
   return business;
 }
 
+export async function loadPublicBusinessesByIds(businessIds: string[]) {
+  if (businessIds.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from('businesses')
+    .select('*, profiles!businesses_owner_profile_id_fkey(display_name)')
+    .in('id', businessIds)
+    .eq('status', 'active')
+    .is('deleted_at', null);
+
+  if (error) {
+    throw error;
+  }
+
+  const businesses = await addBusinessCounts(
+    (data ?? []).map((row) => mapBusiness(row as RawBusiness)),
+  );
+  const byId = new Map(businesses.map((business) => [business.id, business]));
+
+  return businessIds
+    .map((businessId) => byId.get(businessId))
+    .filter((business): business is BusinessRecord => Boolean(business));
+}
+
 async function addBusinessCounts(businesses: BusinessRecord[]) {
   if (businesses.length === 0) {
     return businesses;
@@ -382,7 +406,7 @@ async function addBusinessCounts(businesses: BusinessRecord[]) {
 
   const { data, error } = await supabase
     .from('opportunities')
-    .select('business_id, status')
+    .select('business_id, status, expires_at')
     .in(
       'business_id',
       businesses.map((business) => business.id),
@@ -396,7 +420,9 @@ async function addBusinessCounts(businesses: BusinessRecord[]) {
     ...business,
     activeOpportunityCount: (data ?? []).filter(
       (opportunity) =>
-        opportunity.business_id === business.id && opportunity.status === 'published',
+        opportunity.business_id === business.id &&
+        opportunity.status === 'published' &&
+        (!opportunity.expires_at || new Date(opportunity.expires_at).getTime() > Date.now()),
     ).length,
     draftOpportunityCount: (data ?? []).filter(
       (opportunity) =>

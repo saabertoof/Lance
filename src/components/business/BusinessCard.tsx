@@ -10,9 +10,10 @@ import { businessTypeOptions, BusinessRecord } from '@/types/business';
 type BusinessCardProps = {
   business: BusinessRecord;
   onPress: () => void;
+  showDrafts?: boolean;
 };
 
-export function BusinessCard({ business, onPress }: BusinessCardProps) {
+export function BusinessCard({ business, onPress, showDrafts = true }: BusinessCardProps) {
   return (
     <Pressable
       accessibilityRole="button"
@@ -44,7 +45,7 @@ export function BusinessCard({ business, onPress }: BusinessCardProps) {
           accent={business.activeOpportunityCount > 0}
           label={`${business.activeOpportunityCount} active`}
         />
-        <Chip label={`${business.draftOpportunityCount} drafts`} />
+        {showDrafts ? <Chip label={`${business.draftOpportunityCount} drafts`} /> : null}
         {business.status === 'archived' ? <Chip label="Archived" /> : null}
       </View>
     </Pressable>

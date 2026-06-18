@@ -43,6 +43,16 @@ const warningCompensationTypes = new Set([
   'mixed',
 ]);
 
+const clearlyPaidCompensationTypes = new Set([
+  'hourly',
+  'fixed_project',
+  'weekly',
+  'monthly',
+  'retainer',
+  'salary',
+  'mixed',
+]);
+
 type RawOpportunity = {
   id: string;
   owner_profile_id: string;
@@ -105,6 +115,14 @@ type RawOpportunity = {
 
 export function needsCompensationWarning(compensationType: OpportunityDraft['compensationType']) {
   return warningCompensationTypes.has(compensationType);
+}
+
+export function isClearlyPaid(opportunity: OpportunityDraft) {
+  return (
+    clearlyPaidCompensationTypes.has(opportunity.compensationType) &&
+    Boolean(opportunity.compensationMin) &&
+    Number(opportunity.compensationMin) > 0
+  );
 }
 
 export function formatCompensation(opportunity: OpportunityDraft) {
@@ -426,6 +444,33 @@ export async function loadOpportunity(opportunityId: string) {
   }
 
   return mapOpportunity(data as RawOpportunity);
+}
+
+export async function loadPublicOpportunitiesByIds(opportunityIds: string[]) {
+  if (opportunityIds.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from('opportunities')
+    .select(opportunitySelect)
+    .in('id', opportunityIds)
+    .eq('status', 'published')
+    .is('deleted_at', null)
+    .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`);
+
+  if (error) {
+    throw error;
+  }
+
+  const byId = new Map(
+    (data ?? []).map((row) => {
+      const opportunity = mapOpportunity(row as RawOpportunity);
+      return [opportunity.id, opportunity] as const;
+    }),
+  );
+
+  return opportunityIds
+    .map((opportunityId) => byId.get(opportunityId))
+    .filter((opportunity): opportunity is OpportunityRecord => Boolean(opportunity));
 }
 
 export async function loadBusinessOpportunities(businessId: string) {

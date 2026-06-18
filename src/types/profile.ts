@@ -120,6 +120,25 @@ export type PersonalProfile = Omit<
   email: string | null;
 };
 
+export type PublicProfile = {
+  id: string;
+  displayName: string;
+  username: string;
+  avatarUrl: string | null;
+  city: string;
+  remotePreference: RemotePreference;
+  primaryRole: string;
+  headline: string;
+  bio: string;
+  experienceLevel: ExperienceLevel;
+  availability: Availability;
+  skills: string[];
+  opportunityInterests: OpportunityInterest[];
+  industryExperience: string[];
+  links: ProfileLink[];
+  updatedAt: string;
+};
+
 export function createEmptyProfileDraft(displayName = ''): ProfileDraft {
   return {
     displayName,

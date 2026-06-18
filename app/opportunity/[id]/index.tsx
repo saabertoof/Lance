@@ -17,10 +17,12 @@ import {
   OpportunityStatusBadge,
   WorkArrangementBadge,
 } from '@/components/opportunity';
+import { SaveButton } from '@/components/saved';
 import { Button, Chip, LoadingState, Screen } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { useFeedback } from '@/context/FeedbackContext';
+import { useSaved } from '@/context/SavedContext';
 import { formatDateLabel } from '@/lib/date';
 import {
   deleteDraftOpportunity,
@@ -46,6 +48,7 @@ export default function OpportunityDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
   const { showSuccess } = useFeedback();
+  const { isOpportunitySaved, setOpportunitySaved } = useSaved();
   const updateRef = useRef(false);
   const [opportunity, setOpportunity] = useState<OpportunityRecord | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -147,6 +150,7 @@ export default function OpportunityDetailScreen() {
   }
 
   const isOwner = opportunity.ownerProfileId === user?.id;
+  const isSaved = isOpportunitySaved(opportunity.id);
   const mark = opportunity.poster.name.charAt(0).toUpperCase() || 'L';
   const compensationWarning = needsCompensationWarning(opportunity.compensationType);
 
@@ -209,6 +213,18 @@ export default function OpportunityDetailScreen() {
           />
         </View>
       </View>
+
+      {!isOwner ? (
+        <View style={styles.saveArea}>
+          <SaveButton
+            isSaved={isSaved}
+            onPress={() => void setOpportunitySaved(opportunity.id, !isSaved)}
+          />
+          <Text style={styles.saveNote}>
+            Saving is private and does not express interest or notify the poster.
+          </Text>
+        </View>
+      ) : null}
 
       {compensationWarning ? (
         <View style={styles.warning}>
@@ -506,6 +522,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: theme.spacing.sm,
+  },
+  saveArea: {
+    alignItems: 'flex-start',
+    gap: theme.spacing.sm,
+  },
+  saveNote: {
+    color: theme.colors.muted,
+    fontSize: theme.typography.tiny,
+    lineHeight: 18,
   },
   warning: {
     alignItems: 'flex-start',

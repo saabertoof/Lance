@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { SaveButton } from '@/components/saved';
 import { Chip } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { formatCompensation } from '@/lib/opportunity';
@@ -20,11 +21,18 @@ import {
 } from './OpportunityBadges';
 
 type OpportunityCardProps = {
+  isSaved?: boolean;
   opportunity: OpportunityRecord;
   onPress: () => void;
+  onSavePress?: () => void;
 };
 
-export function OpportunityCard({ onPress, opportunity }: OpportunityCardProps) {
+export function OpportunityCard({
+  isSaved,
+  onPress,
+  onSavePress,
+  opportunity,
+}: OpportunityCardProps) {
   const mark = opportunity.poster.name.charAt(0).toUpperCase() || 'L';
 
   return (
@@ -50,7 +58,18 @@ export function OpportunityCard({ onPress, opportunity }: OpportunityCardProps) 
             {opportunity.poster.identityType === 'business' ? 'Business' : 'Personal profile'}
           </Text>
         </View>
-        <OpportunityStatusBadge status={opportunity.status} />
+        {onSavePress ? (
+          <SaveButton
+            compact
+            isSaved={Boolean(isSaved)}
+            onPress={(event) => {
+              event?.stopPropagation();
+              onSavePress();
+            }}
+          />
+        ) : (
+          <OpportunityStatusBadge status={opportunity.status} />
+        )}
       </View>
 
       <View style={styles.titleRow}>

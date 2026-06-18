@@ -3,6 +3,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  RefreshControl,
   StyleProp,
   StyleSheet,
   View,
@@ -17,9 +18,19 @@ type ScreenProps = PropsWithChildren<{
   scroll?: boolean;
   style?: StyleProp<ViewStyle>;
   contentStyle?: StyleProp<ViewStyle>;
+  onRefresh?: () => void;
+  refreshing?: boolean;
 }>;
 
-export function Screen({ centered, children, contentStyle, scroll, style }: ScreenProps) {
+export function Screen({
+  centered,
+  children,
+  contentStyle,
+  onRefresh,
+  refreshing,
+  scroll,
+  style,
+}: ScreenProps) {
   const content = (
     <View style={[styles.content, centered && styles.centered, contentStyle]}>{children}</View>
   );
@@ -32,6 +43,15 @@ export function Screen({ centered, children, contentStyle, scroll, style }: Scre
         {scroll ? (
           <ScrollView
             keyboardShouldPersistTaps="handled"
+            refreshControl={
+              onRefresh ? (
+                <RefreshControl
+                  onRefresh={onRefresh}
+                  refreshing={Boolean(refreshing)}
+                  tintColor={theme.colors.accent}
+                />
+              ) : undefined
+            }
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}>
             {content}
