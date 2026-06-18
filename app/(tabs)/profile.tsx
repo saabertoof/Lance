@@ -13,6 +13,9 @@ import {
   formatProfileError,
   loadPersonalProfile,
 } from '@/lib/profile';
+import { loadMyBusinesses } from '@/lib/business';
+import { loadMyOpportunities } from '@/lib/opportunity';
+import { routes } from '@/lib/routes';
 import {
   availabilityOptions,
   experienceOptions,
@@ -27,6 +30,11 @@ export default function ProfileScreen() {
   const [profile, setProfile] = useState<PersonalProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [managementCounts, setManagementCounts] = useState({
+    activeBusinesses: 0,
+    publishedOpportunities: 0,
+    draftOpportunities: 0,
+  });
 
   useFocusEffect(
     useCallback(() => {
@@ -41,10 +49,23 @@ export default function ProfileScreen() {
         setError(null);
 
         try {
-          const result = await loadPersonalProfile(user.id, user.email ?? null);
+          const [result, businesses, opportunities] = await Promise.all([
+            loadPersonalProfile(user.id, user.email ?? null),
+            loadMyBusinesses(user.id),
+            loadMyOpportunities(user.id),
+          ]);
 
           if (active) {
             setProfile(result);
+            setManagementCounts({
+              activeBusinesses: businesses.length,
+              publishedOpportunities: opportunities.filter(
+                (opportunity) => opportunity.status === 'published',
+              ).length,
+              draftOpportunities: opportunities.filter(
+                (opportunity) => opportunity.status === 'draft',
+              ).length,
+            });
           }
         } catch (loadError) {
           if (active) {
@@ -121,6 +142,36 @@ export default function ProfileScreen() {
         </View>
         <View style={styles.track}>
           <View style={[styles.fill, { width: `${completion}%` }]} />
+        </View>
+      </Card>
+
+      <Card style={styles.managementCard}>
+        <Text style={styles.sectionTitle}>Build and post</Text>
+        <View style={styles.counts}>
+          <Count label="Businesses" value={managementCounts.activeBusinesses} />
+          <Count
+            label="Published"
+            value={managementCounts.publishedOpportunities}
+          />
+          <Count label="Drafts" value={managementCounts.draftOpportunities} />
+        </View>
+        <View style={styles.managementLinks}>
+          <ManagementLink
+            label="My businesses and projects"
+            onPress={() => router.push(routes.businesses)}
+          />
+          <ManagementLink
+            label="My opportunities"
+            onPress={() => router.push(routes.opportunities)}
+          />
+          <ManagementLink
+            label="Create business or project"
+            onPress={() => router.push(routes.newBusiness)}
+          />
+          <ManagementLink
+            label="Post an opportunity"
+            onPress={() => router.push(routes.newOpportunity())}
+          />
         </View>
       </Card>
 
@@ -217,6 +268,27 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+function Count({ label, value }: { label: string; value: number }) {
+  return (
+    <View style={styles.count}>
+      <Text style={styles.countValue}>{value}</Text>
+      <Text style={styles.countLabel}>{label}</Text>
+    </View>
+  );
+}
+
+function ManagementLink({ label, onPress }: { label: string; onPress: () => void }) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [styles.managementLink, pressed && styles.pressed]}>
+      <Text style={styles.managementLabel}>{label}</Text>
+      <Ionicons color={theme.colors.muted} name="chevron-forward" size={19} />
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
   screen: {
     gap: theme.spacing.xl,
@@ -289,6 +361,46 @@ const styles = StyleSheet.create({
   },
   completionCard: {
     gap: theme.spacing.md,
+  },
+  managementCard: {
+    gap: theme.spacing.lg,
+  },
+  counts: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
+  count: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.surfaceMuted,
+    borderRadius: theme.radii.md,
+    flex: 1,
+    gap: theme.spacing.xs,
+    padding: theme.spacing.md,
+  },
+  countValue: {
+    color: theme.colors.text,
+    fontSize: theme.typography.heading,
+    fontWeight: '900',
+  },
+  countLabel: {
+    color: theme.colors.muted,
+    fontSize: theme.typography.tiny,
+    textAlign: 'center',
+  },
+  managementLinks: {
+    borderTopColor: theme.colors.border,
+    borderTopWidth: 1,
+  },
+  managementLink: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    minHeight: 48,
+  },
+  managementLabel: {
+    color: theme.colors.text,
+    fontSize: theme.typography.small,
+    fontWeight: '700',
   },
   completionHeader: {
     alignItems: 'center',

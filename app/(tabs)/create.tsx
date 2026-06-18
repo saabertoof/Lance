@@ -1,28 +1,87 @@
 import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, Text, View } from 'react-native';
+import { router } from 'expo-router';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Card, EmptyState, Screen } from '@/components/ui';
+import { Card, Screen } from '@/components/ui';
 import { theme } from '@/constants/theme';
+import { routes } from '@/lib/routes';
 
 export default function CreateScreen() {
   return (
-    <Screen>
-      <Text style={styles.title}>Create</Text>
-      <Text style={styles.subtitle}>Share an opportunity when the right structure is ready.</Text>
-      <Card style={styles.card}>
-        <View style={styles.icon}>
-          <Ionicons color={theme.colors.accentStrong} name="add-outline" size={26} />
-        </View>
-        <EmptyState
-          title="Creation is coming later"
-          body="A future phase will let personal accounts and businesses publish structured opportunities."
-        />
-      </Card>
+    <Screen scroll contentStyle={styles.screen}>
+      <View>
+        <Text style={styles.title}>Create</Text>
+        <Text style={styles.subtitle}>Publish work or build an identity for a business or project.</Text>
+      </View>
+
+      <ActionCard
+        body="Post personally or as a business you own. Draft first or publish when ready."
+        icon="briefcase-outline"
+        onPress={() => router.push(routes.newOpportunity())}
+        title="Post an opportunity"
+      />
+      <ActionCard
+        body="Create a profile for a startup, agency, local business, project, or community."
+        icon="business-outline"
+        onPress={() => router.push(routes.newBusiness)}
+        title="Create a business or project"
+      />
+
+      <View style={styles.secondary}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push(routes.opportunities)}
+          style={({ pressed }) => [styles.secondaryAction, pressed && styles.pressed]}>
+          <Text style={styles.secondaryLabel}>Manage my opportunities</Text>
+          <Ionicons color={theme.colors.muted} name="chevron-forward" size={20} />
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push(routes.businesses)}
+          style={({ pressed }) => [styles.secondaryAction, pressed && styles.pressed]}>
+          <Text style={styles.secondaryLabel}>Manage my businesses</Text>
+          <Ionicons color={theme.colors.muted} name="chevron-forward" size={20} />
+        </Pressable>
+      </View>
     </Screen>
   );
 }
 
+function ActionCard({
+  body,
+  icon,
+  onPress,
+  title,
+}: {
+  body: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  onPress: () => void;
+  title: string;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => pressed && styles.pressed}>
+      <Card style={styles.card}>
+        <View style={styles.icon}>
+          <Ionicons color={theme.colors.accentStrong} name={icon} size={25} />
+        </View>
+        <View style={styles.cardCopy}>
+          <Text style={styles.cardTitle}>{title}</Text>
+          <Text style={styles.cardBody}>{body}</Text>
+        </View>
+        <Ionicons color={theme.colors.muted} name="arrow-forward" size={21} />
+      </Card>
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
+  screen: {
+    gap: theme.spacing.lg,
+    paddingBottom: theme.spacing.xxxl,
+  },
   title: {
     color: theme.colors.text,
     fontSize: theme.typography.title,
@@ -32,19 +91,53 @@ const styles = StyleSheet.create({
     color: theme.colors.muted,
     fontSize: theme.typography.body,
     lineHeight: 24,
-    marginBottom: theme.spacing.xl,
     marginTop: theme.spacing.sm,
   },
   card: {
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    flexDirection: 'row',
     gap: theme.spacing.lg,
   },
   icon: {
     alignItems: 'center',
     backgroundColor: theme.colors.accentSoft,
     borderRadius: theme.radii.md,
-    height: 48,
+    height: 52,
     justifyContent: 'center',
-    width: 48,
+    width: 52,
+  },
+  cardCopy: {
+    flex: 1,
+    gap: theme.spacing.xs,
+  },
+  cardTitle: {
+    color: theme.colors.text,
+    fontSize: theme.typography.subheading,
+    fontWeight: '900',
+  },
+  cardBody: {
+    color: theme.colors.muted,
+    fontSize: theme.typography.small,
+    lineHeight: 20,
+  },
+  secondary: {
+    borderTopColor: theme.colors.border,
+    borderTopWidth: 1,
+    marginTop: theme.spacing.sm,
+    paddingTop: theme.spacing.md,
+  },
+  secondaryAction: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    minHeight: 52,
+  },
+  secondaryLabel: {
+    color: theme.colors.text,
+    fontSize: theme.typography.body,
+    fontWeight: '700',
+  },
+  pressed: {
+    opacity: 0.7,
   },
 });

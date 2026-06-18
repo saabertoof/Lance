@@ -1,36 +1,37 @@
 # Lance
 
-Lance is a mobile-first discovery, search, and messaging platform for adults who want to find people, freelance work, collaborators, businesses, services, and opportunities.
+Lance is a mobile-first platform for discovering people and opportunities, structured search, and direct communication. Lance does not employ users, process payments, hold escrow, manage contracts, or guarantee compensation.
 
-Lance helps users discover, search, connect, and communicate. It does not employ users, process payments, run payroll, hold escrow, manage contracts, or guarantee compensation.
+## Phase 3
 
-## Phase 2
+Phase 3 includes:
 
-Phase 2 includes:
+- Supabase authentication, onboarding, profiles, profile editing, and avatars.
+- Optional business and project profiles.
+- Business logo uploads.
+- Business creation, viewing, editing, management, sharing, and archiving.
+- A functional Create tab.
+- Personal and business posting identities.
+- Seven-step opportunity creation using React Hook Form and Zod validation.
+- Draft, preview, publish, edit, pause, resume, close, archive, and draft-delete flows.
+- My Businesses and My Opportunities management screens.
+- Reusable native business and opportunity cards.
+- Structured fields and indexes for future Discover, Search, filters, and AI-assisted search.
 
-- Email/password authentication with persisted Supabase sessions.
-- Protected routing based on authentication and onboarding completion.
-- Six-step personal onboarding.
-- Structured personal profiles with normalized skills and opportunity interests.
-- Optional avatar selection and Supabase Storage upload.
-- Personal profile viewing and editing.
-- Discover, Search, Create, and Messages placeholders.
-- Bottom navigation: Discover, Search, Create, Messages, Profile.
-
-Phase 2 does not include real search, businesses, opportunity posting, swiping, likes, matches, messaging, payments, subscriptions, or AI features.
+Discover, Search, and Messages remain placeholders. Phase 3 does not implement swiping, real search, filters, AI, applications, likes, matches, message requests, direct messages, payments, contracts, reviews, verification, or premium features.
 
 ## Requirements
 
 - Node.js LTS
 - npm
-- Expo Go on an iOS or Android phone
-- A Supabase project
+- Expo Go
+- A Supabase project with migrations `0001`, `0002`, and `0003` already applied
 
 On this Windows machine, use `npm.cmd` if PowerShell blocks `npm`.
 
 ## Environment
 
-The root `.env` file must sit beside `package.json` and contain:
+The root `.env` file belongs beside `package.json`:
 
 ```bash
 EXPO_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
@@ -38,107 +39,159 @@ EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-public-publishable-key
 EXPO_PUBLIC_USE_RN_FETCH=1
 ```
 
-Use only the public publishable key. Never put a service-role or secret key in the mobile app.
+Use only the public publishable key. Never add a service-role or secret key to the mobile client.
 
-Restart Expo with a cleared cache after changing `.env`:
+## Apply Migration 0004
 
-```bash
-npm.cmd run start -- --clear
+Do not edit or rerun the already-applied migrations.
+
+1. Open your Supabase project.
+2. Open **SQL Editor**.
+3. Open `supabase/migrations/0004_businesses_and_opportunities.sql` locally.
+4. Paste the entire file into a new SQL query.
+5. Run it once.
+6. Confirm the query completes without an error.
+
+Migration `0004`:
+
+- Extends the existing `businesses` and `opportunities` tables.
+- Reuses `business_members`, `skills`, and `opportunity_skills`.
+- Adds structured business type, size, industry, links, and archive fields.
+- Adds structured opportunity work, compensation, arrangement, commitment, experience, date, and lifecycle fields.
+- Adds case-insensitive slug indexes.
+- Validates posting identity and ownership.
+- Enforces allowed opportunity status transitions.
+- Allows permanent deletion only for drafts.
+- Requires at least one skill and disclaimer acceptance before publishing.
+- Creates the `business-assets` Storage bucket and logo policies.
+
+## Posting Identity Model
+
+Every opportunity stores the signed-in creator in `owner_profile_id`.
+
+- Personal post: `posted_as_business = false` and `business_id = NULL`.
+- Business post: `posted_as_business = true` and `business_id` references a business owned by `owner_profile_id`.
+
+RLS and a database trigger prevent users from posting as another person or another user's business.
+
+## Important Security Policies
+
+### Businesses
+
+- Authenticated users may read active businesses.
+- Owners may read their own archived businesses.
+- Only the owner may insert, update, archive, or delete their business row.
+- A business owner membership row is created automatically.
+
+### Opportunities
+
+- Authenticated users may read published opportunities.
+- Owners may read all their own drafts, paused, closed, and archived opportunities.
+- Inserts and updates must use the signed-in user's `owner_profile_id`.
+- Business posts require ownership of the referenced active business.
+- Only owners may update lifecycle status or delete drafts.
+- Database triggers reject invalid posting identities and lifecycle transitions.
+
+### Business Logos
+
+- Logos are publicly readable.
+- Uploads require authentication.
+- Users may upload, replace, or delete only inside:
+
+```text
+business-assets/{owner_user_id}/{business_id}/
 ```
-
-## Database Migration
-
-The Phase 1 migrations must already be applied:
-
-1. `supabase/migrations/0001_initial_schema.sql`
-2. `supabase/migrations/0002_rls_policies.sql`
-
-For Phase 2:
-
-1. Open the Supabase dashboard.
-2. Select the Lance project.
-3. Open **SQL Editor**.
-4. Open `supabase/migrations/0003_onboarding_and_profiles.sql` locally.
-5. Paste the full migration into a new SQL query.
-6. Run it once.
-7. Confirm it finishes without errors.
-
-Do not rerun or edit the already-applied `0001` and `0002` files.
-
-## What Migration 0003 Adds
-
-- Revised intent, experience, availability, and opportunity-interest enum values.
-- Structured `industry_experience` on profiles.
-- `user_preferences` for the primary onboarding intent.
-- `profile_opportunity_interests` for multi-select work preferences.
-- Search-oriented indexes for names, locations, industries, and interests.
-- A transactional `save_my_profile` function.
-- An `avatars` Storage bucket limited to JPEG, PNG, or WebP files up to 5 MB.
-
-### Important RLS Protections
-
-- Users can manage only their own preferences and opportunity interests.
-- Profile opportunity interests are readable by authenticated users for future discovery.
-- Users may add normalized skill names, but cannot edit or delete the shared skill catalog.
-- The profile save function still runs through the signed-in user's RLS permissions.
-- Avatar files are publicly readable, but authenticated users can upload, replace, or delete files only inside their own user-ID folder.
-- Existing profile, link, and profile-skill ownership policies from `0002` remain unchanged.
 
 ## Storage Verification
 
-Migration `0003` creates the bucket and policies. In Supabase, verify:
+Migration `0004` creates the bucket automatically. In Supabase:
 
 1. Open **Storage**.
-2. Confirm the `avatars` bucket exists.
+2. Confirm `business-assets` exists.
 3. Confirm it is public.
 4. Confirm the file-size limit is 5 MB.
 5. Confirm allowed MIME types are JPEG, PNG, and WebP.
-6. In **Policies**, confirm avatar upload, update, and delete operations require the first folder name to equal the authenticated user's ID.
+6. Confirm insert, update, and delete policies require the first folder to match `auth.uid()`.
+7. Confirm the second folder must be a business owned by that user.
 
 No manual bucket creation is needed if the migration succeeds.
 
 ## Run
 
-```bash
+```powershell
 npm.cmd install
 npm.cmd run start -- --clear
 ```
 
-Scan the QR code with Expo Go while the phone and computer are on the same network.
+Scan the QR code using Expo Go while the phone and computer are on the same network.
 
-## Reset Onboarding
+## Business Phone Test
 
-To send one existing account through onboarding again:
+1. Log in and complete onboarding.
+2. Open **Create**.
+3. Tap **Create a business or project**.
+4. Complete all required fields.
+5. Select a JPEG, PNG, or WebP logo under 5 MB.
+6. Create the business.
+7. Verify its detail screen, links, owner name, and placeholder share action.
+8. Edit the description or location.
+9. Return to **Profile > My businesses and projects**.
+10. Confirm active and draft opportunity counts.
+11. Archive the business and confirm it becomes read-only.
 
-1. Open Supabase **Table Editor**.
-2. Open `profiles`.
-3. Find the profile by username or user ID.
-4. Set `onboarding_completed_at` to `NULL`.
-5. Fully reload Lance in Expo Go.
+## Opportunity Phone Test
 
-The existing profile data remains and will prefill onboarding.
+1. Open **Create > Post an opportunity**.
+2. Select **My personal profile**.
+3. Complete all seven steps.
+4. Save as a draft.
+5. Open **My Opportunities** and reopen the draft.
+6. Add or change fields and preview it.
+7. Accept the Lance disclaimer and publish.
+8. Test the placeholder share action.
+9. Repeat using an active business as the posting identity.
+10. Confirm the business logo and name appear on the card and detail screen.
 
-The equivalent SQL is:
+## Lifecycle Test
 
-```sql
-update public.profiles
-set onboarding_completed_at = null
-where id = 'USER_UUID_HERE';
-```
+1. Publish an opportunity.
+2. Pause it.
+3. Resume it.
+4. Close it.
+5. Archive it.
+6. Confirm archived opportunities remain visible to the owner.
+7. Create another draft and permanently delete it.
+8. Confirm published or closed records cannot be permanently deleted.
+
+## Cross-User RLS Test
+
+Use two real Supabase accounts:
+
+1. Account A creates a business and both a draft and published opportunity.
+2. Account B signs in.
+3. Confirm B can read A's active business.
+4. Confirm B can read A's published opportunity.
+5. Confirm B cannot read A's draft.
+6. Attempt to update A's business using B's session; Supabase should deny it.
+7. Attempt to create an opportunity with B as creator and A's business ID; Supabase should deny it.
+8. Attempt to update, pause, close, archive, or delete A's opportunity; Supabase should deny it.
+9. Confirm B cannot upload a logo into A's owner/business folder.
+
+The final five denial checks are best performed with a second test client or Supabase API request using Account B's access token.
 
 ## Checks
 
-```bash
+```powershell
 npm.cmd run typecheck
 npm.cmd run lint
 npm.cmd run expo:config
 ```
 
-There is no automated test suite configured yet. The onboarding, profile editing, storage policies, session persistence, and cross-user RLS behavior require phone and Supabase testing after migration `0003` is applied.
+There is no automated test suite configured. Database-backed business, opportunity, Storage, sharing, and cross-user RLS flows require migration `0004` and phone testing.
 
-## Project Notes
+## Checkpoints
 
-- `.env` and local Expo/npm caches are ignored by Git.
-- `_codex_inspect/` contains supplied reference material and is ignored.
-- The Phase 1 checkpoint commit is `629773a`.
-- No OpenAI API key or external search service is used.
+- Phase 1: `629773a`
+- Phase 2: `a5ef0f8`
+
+No OpenAI API key or external search service is used.
