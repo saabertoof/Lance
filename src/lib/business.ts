@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { supabase } from '@/lib/supabase';
+import { registerCustomIndustries } from '@/lib/catalogs';
 import {
   businessRemoteOptions,
   businessSizeOptions,
@@ -55,6 +56,9 @@ type RawBusiness = {
   industry: string | null;
   business_size: BusinessDraft['businessSize'] | null;
   location: string | null;
+  location_id: string | null;
+  location_region: string | null;
+  location_country: string | null;
   remote_status: BusinessDraft['remoteStatus'] | null;
   founding_year: number | null;
   website: string | null;
@@ -211,6 +215,9 @@ function businessPayload(draft: BusinessDraft, ownerId: string) {
     industry: draft.industry,
     business_size: draft.businessSize,
     location: draft.location.trim() || null,
+    location_id: draft.locationId,
+    location_region: draft.locationRegion || null,
+    location_country: draft.locationCountry || null,
     remote_status: draft.remoteStatus,
     founding_year: draft.foundingYear ? Number(draft.foundingYear) : null,
     website: normalizeOptionalUrl(draft.websiteUrl) || null,
@@ -245,6 +252,7 @@ export async function saveBusiness(
   if (!isSlugAvailable) {
     throw new Error('That Lance URL is already in use. Choose another one.');
   }
+  await registerCustomIndustries([normalizedDraft.industry]);
 
   let row: RawBusiness;
 
@@ -453,6 +461,9 @@ export function businessToDraft(business: BusinessRecord): BusinessDraft {
     industry: business.industry,
     businessSize: business.businessSize,
     location: business.location,
+    locationId: business.locationId,
+    locationRegion: business.locationRegion,
+    locationCountry: business.locationCountry,
     remoteStatus: business.remoteStatus,
     foundingYear: business.foundingYear?.toString() ?? '',
     logoUrl: business.logoUrl,
@@ -522,6 +533,9 @@ function mapBusiness(row: RawBusiness): BusinessRecord {
     industry: row.industry ?? 'Other',
     businessSize: row.business_size ?? 'one_person',
     location: row.location ?? '',
+    locationId: row.location_id,
+    locationRegion: row.location_region ?? '',
+    locationCountry: row.location_country ?? '',
     remoteStatus: row.remote_status ?? 'flexible',
     foundingYear: row.founding_year,
     websiteUrl: row.website ?? '',

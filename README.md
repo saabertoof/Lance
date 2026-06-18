@@ -2,7 +2,7 @@
 
 Lance is a mobile-first platform for discovering people and opportunities, structured search, and direct communication. Lance does not employ users, process payments, hold escrow, manage contracts, or guarantee compensation.
 
-## Phase 4
+## Phase 4.5
 
 Phase 4 preserves the Phase 1-3.5 product and adds:
 
@@ -27,8 +27,13 @@ Phase 4 preserves the Phase 1-3.5 product and adds:
 - Real paginated People, Opportunity, and Business search.
 - Structured filters using normalized profile and opportunity data.
 - Private saved People and Opportunities with a Saved screen under Profile.
+- Nearly full-screen Discover cards with Pass, Save, upward detail navigation,
+  recommendation reasons, haptics, next-card presence, and session Undo.
+- Curated skills, industries, and structured locations with normalized custom values.
+- Current intents, prompts, banners, controlled themes, portfolio media, and custom links.
+- A creator/founder-style public profile with top social icons and a snapping carousel.
 
-Messages remains a placeholder. Phase 4 does not implement likes, expressions of interest,
+Messages remains a placeholder. Phase 4.5 does not implement likes, expressions of interest,
 matches, applications, interested-talent records, message requests, direct messages, AI,
 payments, contracts, reviews, verification, notifications, or premium features.
 
@@ -37,7 +42,7 @@ payments, contracts, reviews, verification, notifications, or premium features.
 - Node.js LTS
 - npm
 - Expo Go
-- A Supabase project with migrations `0001` through `0005` already applied
+- A Supabase project with migrations `0001` through `0006` already applied
 
 On this Windows machine, use `npm.cmd` if PowerShell blocks `npm`.
 
@@ -116,6 +121,29 @@ Migration `0006`:
 - Adds parameterized `SECURITY INVOKER` search functions for People, Opportunities, and Businesses.
 - Uses existing RLS inside every search function; no service-role or bypass access is granted.
 - Centralizes clearly-paid filtering around guaranteed numeric compensation.
+
+## Apply Migration 0007
+
+Apply this migration once after `0006`. Do not modify or rerun migrations `0001`
+through `0006`.
+
+1. Open your Supabase project.
+2. Open **SQL Editor**.
+3. Open `supabase/migrations/0007_phase_4_5_discover_profile_polish.sql` locally.
+4. Paste the entire file into a new SQL query.
+5. Run it once.
+6. Confirm it completes without an error.
+
+Migration `0007`:
+
+- Extends the existing skills, profiles, businesses, opportunities, links, and portfolio tables.
+- Adds curated industries and canonical locations while preserving legacy text.
+- Adds current intents, prompts, profile themes, banner paths, and portfolio metadata.
+- Creates the private `profile-media` bucket for owner-scoped banner and portfolio images.
+- Keeps profile media reads tied to readable profiles and mutations tied to `auth.uid()`.
+
+No manual bucket creation is required if `0007` succeeds. Verify in **Storage** that
+`profile-media` is private, accepts only JPEG/PNG/WebP, and has owner-folder policies.
 
 ## Posting Identity Model
 
@@ -278,7 +306,7 @@ npm.cmd run expo:config
 ```
 
 There is no automated test suite configured. Database-backed Discover, Search, filters, saves,
-Storage, and cross-user RLS flows require migrations `0004` through `0006` plus phone testing.
+Storage, and cross-user RLS flows require migrations `0004` through `0007` plus phone testing.
 
 ## Checkpoints
 
@@ -286,5 +314,6 @@ Storage, and cross-user RLS flows require migrations `0004` through `0006` plus 
 - Phase 2: `a5ef0f8`
 - Phase 3: `8d7639d`
 - Phase 3.5: `1bfe862`
+- Phase 4: `eeae16d`
 
 No OpenAI API key or external search service is used. Phase 5 has not started.

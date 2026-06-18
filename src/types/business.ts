@@ -61,6 +61,9 @@ export type BusinessDraft = {
   industry: string;
   businessSize: BusinessSize;
   location: string;
+  locationId: string | null;
+  locationRegion: string;
+  locationCountry: string;
   remoteStatus: BusinessRemoteStatus;
   foundingYear: string;
   logoUrl: string | null;
@@ -102,6 +105,9 @@ export function createEmptyBusinessDraft(): BusinessDraft {
     industry: 'Technology',
     businessSize: 'one_person',
     location: '',
+    locationId: null,
+    locationRegion: '',
+    locationCountry: '',
     remoteStatus: 'flexible',
     foundingYear: '',
     logoUrl: null,

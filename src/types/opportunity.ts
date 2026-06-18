@@ -114,6 +114,9 @@ export type OpportunityDraft = {
   compensationNotes: string;
   workplace: WorkArrangement;
   location: string;
+  locationId: string | null;
+  locationRegion: string;
+  locationCountry: string;
   timeCommitment: TimeCommitment;
   experienceLevel: OpportunityExperience;
   skills: string[];
@@ -165,6 +168,9 @@ export function createEmptyOpportunityDraft(): OpportunityDraft {
     compensationNotes: '',
     workplace: 'remote',
     location: '',
+    locationId: null,
+    locationRegion: '',
+    locationCountry: '',
     timeCommitment: 'one_time_deliverable',
     experienceLevel: 'any_level',
     skills: [],

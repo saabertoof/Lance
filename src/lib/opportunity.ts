@@ -4,6 +4,8 @@ import { parseDateValue } from '@/lib/date';
 import { normalizeListEntry } from '@/lib/profile';
 import { slugify } from '@/lib/business';
 import { supabase } from '@/lib/supabase';
+import { normalizeCatalogValue } from '@/constants/catalogs';
+import { registerCustomIndustries } from '@/lib/catalogs';
 import type { BusinessRecord } from '@/types/business';
 import {
   compensationTypeOptions,
@@ -73,6 +75,9 @@ type RawOpportunity = {
   commitment: OpportunityDraft['timeCommitment'] | null;
   workplace: OpportunityDraft['workplace'];
   location: string | null;
+  location_id: string | null;
+  location_region: string | null;
+  location_country: string | null;
   expected_start_date: string | null;
   expires_at: string | null;
   experience_requirements: OpportunityDraft['experienceLevel'] | null;
@@ -275,6 +280,9 @@ function opportunityPayload(
     commitment: draft.timeCommitment,
     workplace: draft.workplace,
     location: draft.location.trim() || null,
+    location_id: draft.locationId,
+    location_region: draft.locationRegion || null,
+    location_country: draft.locationCountry || null,
     expected_start_date: draft.expectedStartDate || null,
     expires_at: draft.expirationDate
       ? new Date(`${draft.expirationDate}T23:59:59.000Z`).toISOString()
@@ -302,6 +310,7 @@ export async function saveOpportunity(
   if (validationError) {
     throw new Error(validationError);
   }
+  await registerCustomIndustries([draft.industry]);
 
   let row: RawOpportunity;
   const stageBeforePublishing = status === 'published' && draft.status === 'draft';
@@ -360,10 +369,12 @@ async function syncOpportunitySkills(opportunityId: string, skillNames: string[]
   const skillIds: string[] = [];
 
   for (const name of normalizedNames) {
+    const normalizedName = normalizeCatalogValue(name);
     const { data: existing, error: selectError } = await supabase
       .from('skills')
       .select('id')
-      .ilike('name', name)
+      .eq('normalized_name', normalizedName)
+      .limit(1)
       .maybeSingle();
 
     if (selectError) {
@@ -377,7 +388,12 @@ async function syncOpportunitySkills(opportunityId: string, skillNames: string[]
 
     const { data: created, error: insertError } = await supabase
       .from('skills')
-      .insert({ name })
+      .insert({
+        name,
+        normalized_name: normalizedName,
+        is_curated: false,
+        is_default_suggestion: false,
+      })
       .select('id')
       .single();
 
@@ -542,6 +558,9 @@ export function opportunityToDraft(opportunity: OpportunityRecord): OpportunityD
     compensationNotes: opportunity.compensationNotes,
     workplace: opportunity.workplace,
     location: opportunity.location,
+    locationId: opportunity.locationId,
+    locationRegion: opportunity.locationRegion,
+    locationCountry: opportunity.locationCountry,
     timeCommitment: opportunity.timeCommitment,
     experienceLevel: opportunity.experienceLevel,
     skills: opportunity.skills,
@@ -632,6 +651,9 @@ function mapOpportunity(row: RawOpportunity): OpportunityRecord {
     compensationNotes: row.compensation_label ?? '',
     workplace: row.workplace,
     location: row.location ?? '',
+    locationId: row.location_id,
+    locationRegion: row.location_region ?? '',
+    locationCountry: row.location_country ?? '',
     timeCommitment: row.commitment ?? fallback.timeCommitment,
     experienceLevel: row.experience_requirements ?? fallback.experienceLevel,
     skills,

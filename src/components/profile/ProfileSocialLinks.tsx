@@ -4,16 +4,22 @@ import { Linking, Pressable, StyleSheet, View } from 'react-native';
 
 import { theme } from '@/constants/theme';
 import type { ProfileLink, ProfileLinkType } from '@/types/profile';
+import type { CustomProfileLink } from '@/types/profilePolish';
 
 export function ProfileSocialLinks({
   links,
+  customLinks = [],
   onError,
 }: {
   links: ProfileLink[];
+  customLinks?: CustomProfileLink[];
   onError: (message: string) => void;
 }) {
-  async function open(link: ProfileLink) {
-    const target = link.linkType === 'email' ? `mailto:${link.value}` : link.value;
+  const recognizedCustom = customLinks
+    .map((link) => ({ ...link, platform: recognizedSocialPlatform(link.url) }))
+    .filter((link) => link.platform);
+
+  async function open(target: string, label: string) {
 
     try {
       const isSafeTarget = target.startsWith('https://') || target.startsWith('mailto:');
@@ -22,7 +28,7 @@ export function ProfileSocialLinks({
       }
       await Linking.openURL(target);
     } catch {
-      onError(`${link.label} could not be opened on this device.`);
+      onError(`${label} could not be opened on this device.`);
     }
   }
 
@@ -33,11 +39,27 @@ export function ProfileSocialLinks({
           accessibilityLabel={link.label}
           accessibilityRole="link"
           key={`${link.linkType}:${link.value}`}
-          onPress={() => void open(link)}
+          onPress={() =>
+            void open(link.linkType === 'email' ? `mailto:${link.value}` : link.value, link.label)
+          }
           style={({ pressed }) => [styles.link, pressed && styles.pressed]}>
           <Ionicons
             color={theme.colors.accentStrong}
             name={profileLinkIcons[link.linkType]}
+            size={23}
+          />
+        </Pressable>
+      ))}
+      {recognizedCustom.map((link) => (
+        <Pressable
+          accessibilityLabel={link.label}
+          accessibilityRole="link"
+          key={link.id}
+          onPress={() => void open(link.url, link.label)}
+          style={({ pressed }) => [styles.link, pressed && styles.pressed]}>
+          <Ionicons
+            color={theme.colors.accentStrong}
+            name={link.platform === 'youtube' ? 'logo-youtube' : 'globe-outline'}
             size={23}
           />
         </Pressable>
@@ -61,6 +83,16 @@ const profileLinkIcons: Record<
   calendly: 'calendar-outline',
   email: 'mail-outline',
 };
+
+export function recognizedSocialPlatform(value: string) {
+  try {
+    const host = new URL(value).hostname.replace(/^www\./, '').toLowerCase();
+    if (host === 'youtube.com' || host === 'youtu.be') return 'youtube';
+    return null;
+  } catch {
+    return null;
+  }
+}
 
 const styles = StyleSheet.create({
   links: {

@@ -2,6 +2,8 @@ import type { ImagePickerAsset } from 'expo-image-picker';
 import { z } from 'zod';
 
 import { supabase } from '@/lib/supabase';
+import { normalizeCatalogValue } from '@/constants/catalogs';
+import { registerCustomIndustries } from '@/lib/catalogs';
 import {
   availabilityOptions,
   experienceOptions,
@@ -426,6 +428,8 @@ export async function savePersonalProfile(
     display_order: index,
   }));
 
+  const canonicalSkills = await canonicalizeSkillNames(draft.skills);
+  await registerCustomIndustries(draft.industryExperience);
   const { data, error } = await supabase.rpc('save_my_profile', {
     p_display_name: draft.displayName.trim(),
     p_username: draft.username.trim().toLowerCase(),
@@ -439,7 +443,7 @@ export async function savePersonalProfile(
     p_availability: draft.availability,
     p_industry_experience: draft.industryExperience,
     p_primary_intent: draft.primaryIntent,
-    p_skill_names: draft.skills,
+    p_skill_names: canonicalSkills,
     p_opportunity_interests: draft.opportunityInterests,
     p_links: links,
     p_confirm_adult: draft.confirmedAdult,
@@ -451,4 +455,22 @@ export async function savePersonalProfile(
   }
 
   return data;
+}
+
+async function canonicalizeSkillNames(skillNames: string[]) {
+  const normalized = [...new Set(skillNames.map(normalizeCatalogValue).filter(Boolean))];
+  if (normalized.length === 0) return [];
+  const { data, error } = await supabase
+    .from('skills')
+    .select('name, normalized_name')
+    .in('normalized_name', normalized);
+  if (error) throw error;
+  const existing = new Map(
+    (data ?? []).map((skill) => [skill.normalized_name, skill.name]),
+  );
+  return skillNames.map(
+    (name) =>
+      existing.get(normalizeCatalogValue(name)) ??
+      name.trim().replace(/\s+/g, ' '),
+  );
 }

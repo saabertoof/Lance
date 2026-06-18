@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { TextField } from '@/components/ui';
+import { industryCatalog, skillCatalog } from '@/constants/catalogs';
 import { theme } from '@/constants/theme';
 import {
   availabilityOptions,
@@ -15,10 +16,10 @@ import {
 } from '@/types/profile';
 
 import { AvatarPicker } from './AvatarPicker';
+import { CatalogSelector } from './CatalogSelector';
 import { FormSection } from './FormSection';
 import { MultiSelectChips } from './MultiSelectChips';
 import { SingleSelectChips } from './SingleSelectChips';
-import { TagInput } from './TagInput';
 
 type ProfileFieldsProps = {
   draft: ProfileDraft;
@@ -31,7 +32,8 @@ export function BasicProfileFields({
   onChange,
   onError,
   showAdultConfirmation = true,
-}: ProfileFieldsProps & { showAdultConfirmation?: boolean }) {
+  showLocation = true,
+}: ProfileFieldsProps & { showAdultConfirmation?: boolean; showLocation?: boolean }) {
   function selectAvatar(asset: ImagePickerAsset) {
     onChange({
       ...draft,
@@ -70,14 +72,16 @@ export function BasicProfileFields({
         placeholder="alexcarter"
         value={draft.username}
       />
-      <TextField
-        autoCapitalize="words"
-        label="City or general location"
-        maxLength={80}
-        onChangeText={(city) => onChange({ ...draft, city })}
-        placeholder="Chicago, IL"
-        value={draft.city}
-      />
+      {showLocation ? (
+        <TextField
+          autoCapitalize="words"
+          label="City or general location"
+          maxLength={80}
+          onChangeText={(city) => onChange({ ...draft, city })}
+          placeholder="Chicago, IL"
+          value={draft.city}
+        />
+      ) : null}
       <FormSection title="Remote preference">
         <SingleSelectChips
           onChange={(remotePreference) => onChange({ ...draft, remotePreference })}
@@ -147,7 +151,9 @@ export function ProfessionalProfileFields({ draft, onChange }: ProfileFieldsProp
           selected={draft.availability}
         />
       </FormSection>
-      <TagInput
+      <CatalogSelector
+        catalog={skillCatalog}
+        catalogType="skills"
         label="Skills"
         onChange={(skills) => onChange({ ...draft, skills })}
         placeholder="Add a skill"
@@ -162,7 +168,9 @@ export function ProfessionalProfileFields({ draft, onChange }: ProfileFieldsProp
           selected={draft.opportunityInterests}
         />
       </FormSection>
-      <TagInput
+      <CatalogSelector
+        catalog={industryCatalog.map((label) => ({ label, category: 'Industries' }))}
+        catalogType="industries"
         label="Industry experience (optional)"
         max={15}
         onChange={(industryExperience) => onChange({ ...draft, industryExperience })}

@@ -1,3 +1,5 @@
+import type { ProfilePolish } from './profilePolish';
+
 export const intentOptions = [
   { label: 'Find opportunities', value: 'find_opportunities' },
   { label: 'Find people', value: 'find_people' },
@@ -136,6 +138,7 @@ export type PublicProfile = {
   opportunityInterests: OpportunityInterest[];
   industryExperience: string[];
   links: ProfileLink[];
+  polish: ProfilePolish;
   updatedAt: string;
 };
 

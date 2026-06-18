@@ -1,29 +1,29 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Modal,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import {
   FormSection,
+  CatalogSelector,
+  LocationSelector,
   MultiSelectChips,
   SingleSelectChips,
-  TagInput,
 } from '@/components/profile';
-import { Button, TextField } from '@/components/ui';
+import { Button } from '@/components/ui';
 import { theme } from '@/constants/theme';
+import { industryCatalog, locationCatalog } from '@/constants/catalogs';
 import {
   businessRemoteOptions,
   businessSizeOptions,
   businessTypeOptions,
-  industryOptions,
 } from '@/types/business';
 import {
   BusinessFilters,
@@ -78,26 +78,13 @@ export function FilterModal({
   const [peopleDraft, setPeopleDraft] = useState(peopleFilters);
   const [opportunityDraft, setOpportunityDraft] = useState(opportunityFilters);
   const [businessDraft, setBusinessDraft] = useState(businessFilters);
-  const [skillQuery, setSkillQuery] = useState('');
 
   useEffect(() => {
     if (!visible) return;
     setPeopleDraft(clonePeopleFilters(peopleFilters));
     setOpportunityDraft(cloneOpportunityFilters(opportunityFilters));
     setBusinessDraft({ ...businessFilters });
-    setSkillQuery('');
   }, [businessFilters, opportunityFilters, peopleFilters, visible]);
-
-  const filteredSkills = useMemo(() => {
-    const normalized = skillQuery.trim().toLowerCase();
-    const selected =
-      mode === 'people' ? peopleDraft.skills : opportunityDraft.skills;
-    const candidates = normalized
-      ? skillOptions.filter((skill) => skill.toLowerCase().includes(normalized))
-      : skillOptions;
-
-    return [...new Set([...selected, ...candidates])].slice(0, 40);
-  }, [mode, opportunityDraft.skills, peopleDraft.skills, skillOptions, skillQuery]);
 
   function apply() {
     if (mode === 'people') onApplyPeople(peopleDraft);
@@ -143,19 +130,15 @@ export function FilterModal({
           {mode === 'people' ? (
             <PeopleFilterFields
               draft={peopleDraft}
-              filteredSkills={filteredSkills}
               onChange={setPeopleDraft}
-              onSkillQueryChange={setSkillQuery}
-              skillQuery={skillQuery}
+              skillOptions={skillOptions}
             />
           ) : null}
           {mode === 'opportunities' ? (
             <OpportunityFilterFields
               draft={opportunityDraft}
-              filteredSkills={filteredSkills}
               onChange={setOpportunityDraft}
-              onSkillQueryChange={setSkillQuery}
-              skillQuery={skillQuery}
+              skillOptions={skillOptions}
             />
           ) : null}
           {mode === 'businesses' ? (
@@ -174,16 +157,12 @@ export function FilterModal({
 
 function PeopleFilterFields({
   draft,
-  filteredSkills,
   onChange,
-  onSkillQueryChange,
-  skillQuery,
+  skillOptions,
 }: {
   draft: PeopleFilters;
-  filteredSkills: string[];
   onChange: (filters: PeopleFilters) => void;
-  onSkillQueryChange: (value: string) => void;
-  skillQuery: string;
+  skillOptions: string[];
 }) {
   return (
     <>
@@ -198,11 +177,9 @@ function PeopleFilterFields({
         />
       </FormSection>
       <SkillFilter
-        filteredSkills={filteredSkills}
         onChange={(skills) => onChange({ ...draft, skills })}
-        onQueryChange={onSkillQueryChange}
-        query={skillQuery}
         selected={draft.skills}
+        skillOptions={skillOptions}
       />
       <FormSection title="Experience level">
         <SingleSelectChips
@@ -218,11 +195,10 @@ function PeopleFilterFields({
           selected={draft.availability}
         />
       </FormSection>
-      <TextField
-        label="General location"
-        onChangeText={(location) => onChange({ ...draft, location })}
-        placeholder="Chicago or Midwest"
-        value={draft.location}
+      <LocationSelector
+        legacyValue={draft.location}
+        onChange={(location) => onChange({ ...draft, location: location?.label ?? '' })}
+        value={locationCatalog.find((location) => location.label === draft.location) ?? null}
       />
       <FormSection title="Remote preference">
         <SingleSelectChips
@@ -242,7 +218,9 @@ function PeopleFilterFields({
           selected={draft.opportunityInterests}
         />
       </FormSection>
-      <TagInput
+      <CatalogSelector
+        catalog={industryCatalog.map((label) => ({ label, category: 'Industries' }))}
+        catalogType="industries"
         label="Industry experience"
         onChange={(industryExperience) => onChange({ ...draft, industryExperience })}
         placeholder="Add an industry"
@@ -254,22 +232,13 @@ function PeopleFilterFields({
 
 function OpportunityFilterFields({
   draft,
-  filteredSkills,
   onChange,
-  onSkillQueryChange,
-  skillQuery,
+  skillOptions,
 }: {
   draft: OpportunityFilters;
-  filteredSkills: string[];
   onChange: (filters: OpportunityFilters) => void;
-  onSkillQueryChange: (value: string) => void;
-  skillQuery: string;
+  skillOptions: string[];
 }) {
-  const industries = industryOptions.map((industry) => ({
-    label: industry,
-    value: industry,
-  }));
-
   return (
     <>
       <FormSection title="Category">
@@ -280,19 +249,19 @@ function OpportunityFilterFields({
         />
       </FormSection>
       <SkillFilter
-        filteredSkills={filteredSkills}
         onChange={(skills) => onChange({ ...draft, skills })}
-        onQueryChange={onSkillQueryChange}
-        query={skillQuery}
         selected={draft.skills}
+        skillOptions={skillOptions}
       />
-      <FormSection title="Industry">
-        <SingleSelectChips
-          onChange={(industry) => onChange({ ...draft, industry })}
-          options={[{ label: 'Any industry', value: '' }, ...industries]}
-          selected={draft.industry}
-        />
-      </FormSection>
+      <CatalogSelector
+        catalog={industryCatalog.map((label) => ({ label, category: 'Industries' }))}
+        catalogType="industries"
+        label="Industry"
+        max={1}
+        onChange={(industries) => onChange({ ...draft, industry: industries.at(-1) ?? '' })}
+        placeholder="Search industries"
+        values={draft.industry ? [draft.industry] : []}
+      />
       <FormSection title="Compensation">
         <SingleSelectChips
           onChange={(compensationType) => onChange({ ...draft, compensationType })}
@@ -336,11 +305,10 @@ function OpportunityFilterFields({
           selected={draft.experienceLevel}
         />
       </FormSection>
-      <TextField
-        label="General location"
-        onChangeText={(location) => onChange({ ...draft, location })}
-        placeholder="Chicago or Midwest"
-        value={draft.location}
+      <LocationSelector
+        legacyValue={draft.location}
+        onChange={(location) => onChange({ ...draft, location: location?.label ?? '' })}
+        value={locationCatalog.find((location) => location.label === draft.location) ?? null}
       />
     </>
   );
@@ -353,11 +321,6 @@ function BusinessFilterFields({
   draft: BusinessFilters;
   onChange: (filters: BusinessFilters) => void;
 }) {
-  const industries = industryOptions.map((industry) => ({
-    label: industry,
-    value: industry,
-  }));
-
   return (
     <>
       <FormSection title="Business or project type">
@@ -374,18 +337,19 @@ function BusinessFilterFields({
           selected={draft.businessSize}
         />
       </FormSection>
-      <FormSection title="Industry">
-        <SingleSelectChips
-          onChange={(industry) => onChange({ ...draft, industry })}
-          options={[{ label: 'Any industry', value: '' }, ...industries]}
-          selected={draft.industry}
-        />
-      </FormSection>
-      <TextField
-        label="General location"
-        onChangeText={(location) => onChange({ ...draft, location })}
-        placeholder="Chicago or Midwest"
-        value={draft.location}
+      <CatalogSelector
+        catalog={industryCatalog.map((label) => ({ label, category: 'Industries' }))}
+        catalogType="industries"
+        label="Industry"
+        max={1}
+        onChange={(industries) => onChange({ ...draft, industry: industries.at(-1) ?? '' })}
+        placeholder="Search industries"
+        values={draft.industry ? [draft.industry] : []}
+      />
+      <LocationSelector
+        legacyValue={draft.location}
+        onChange={(location) => onChange({ ...draft, location: location?.label ?? '' })}
+        value={locationCatalog.find((location) => location.label === draft.location) ?? null}
       />
       <FormSection title="Remote status">
         <SingleSelectChips
@@ -409,39 +373,23 @@ function BusinessFilterFields({
 }
 
 function SkillFilter({
-  filteredSkills,
   onChange,
-  onQueryChange,
-  query,
   selected,
+  skillOptions,
 }: {
-  filteredSkills: string[];
   onChange: (skills: string[]) => void;
-  onQueryChange: (value: string) => void;
-  query: string;
   selected: string[];
+  skillOptions: string[];
 }) {
   return (
-    <FormSection description="Matches any selected normalized skill." title="Skills">
-      <View style={styles.skillSearch}>
-        <Ionicons color={theme.colors.muted} name="search-outline" size={19} />
-        <TextInput
-          onChangeText={onQueryChange}
-          placeholder="Find a skill"
-          placeholderTextColor={theme.colors.mutedLight}
-          style={styles.skillInput}
-          value={query}
-        />
-      </View>
-      <MultiSelectChips
-        onChange={onChange}
-        options={filteredSkills.map((skill) => ({ label: skill, value: skill }))}
-        selected={selected}
-      />
-      {filteredSkills.length === 0 ? (
-        <Text style={styles.noSkills}>No normalized skills match that search.</Text>
-      ) : null}
-    </FormSection>
+    <CatalogSelector
+      catalog={skillOptions.map((label) => ({ label, category: 'Skills' }))}
+      catalogType="skills"
+      label="Skills"
+      onChange={onChange}
+      placeholder="Find or add a skill"
+      values={selected}
+    />
   );
 }
 
@@ -533,26 +481,6 @@ const styles = StyleSheet.create({
   },
   apply: {
     flex: 1,
-  },
-  skillSearch: {
-    alignItems: 'center',
-    borderColor: theme.colors.border,
-    borderRadius: theme.radii.md,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: theme.spacing.sm,
-    minHeight: theme.layout.inputHeight,
-    paddingHorizontal: theme.spacing.md,
-  },
-  skillInput: {
-    color: theme.colors.text,
-    flex: 1,
-    fontSize: theme.typography.body,
-    minHeight: theme.layout.inputHeight,
-  },
-  noSkills: {
-    color: theme.colors.muted,
-    fontSize: theme.typography.small,
   },
   booleanRow: {
     alignItems: 'center',

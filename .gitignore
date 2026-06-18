@@ -44,6 +44,7 @@ _expo_scaffold/
 _git_data/
 _repo_meta*/
 _checkpoint_meta/
+_phase*_checkpoint_meta/
 _phase1_history.bundle
 .git-empty-phase1-backup/
 .git-pointer*

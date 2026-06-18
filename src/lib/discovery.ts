@@ -1,6 +1,8 @@
 import { loadPublicBusinessesByIds } from '@/lib/business';
 import { loadPublicOpportunitiesByIds } from '@/lib/opportunity';
 import { supabase } from '@/lib/supabase';
+import { signProfileMedia } from '@/lib/profilePolish';
+import { locationCatalog, skillCatalog } from '@/constants/catalogs';
 import type { BusinessRecord } from '@/types/business';
 import type {
   BusinessFilters,
@@ -17,6 +19,13 @@ import {
   type ProfileLink,
   type PublicProfile,
 } from '@/types/profile';
+import {
+  createEmptyProfilePolish,
+  defaultProfileTheme,
+  type CustomProfileLink,
+  type PortfolioItem,
+  type ProfilePrompt,
+} from '@/types/profilePolish';
 
 export const SEARCH_PAGE_SIZE = 20;
 export const DISCOVER_BATCH_SIZE = 12;
@@ -35,6 +44,15 @@ type RawPublicProfile = {
   availability: PublicProfile['availability'] | null;
   industry_experience: string[] | null;
   updated_at: string;
+  banner_path: string | null;
+  location_id: string | null;
+  location_region: string | null;
+  location_country: string | null;
+  profile_template: PublicProfile['polish']['theme']['template'] | null;
+  profile_accent: PublicProfile['polish']['theme']['accent'] | null;
+  profile_header_alignment: PublicProfile['polish']['theme']['headerAlignment'] | null;
+  profile_card_shape: PublicProfile['polish']['theme']['cardShape'] | null;
+  profile_background: PublicProfile['polish']['theme']['background'] | null;
   profile_skills?: {
     skills?: { name?: string } | { name?: string }[] | null;
   }[];
@@ -42,9 +60,34 @@ type RawPublicProfile = {
     interest?: PublicProfile['opportunityInterests'][number];
   }[];
   user_links?: {
+    id: string;
     label: string;
-    link_type: ProfileLink['linkType'];
+    link_type: string;
     value: string;
+    display_order: number;
+    icon_key: string | null;
+  }[];
+  profile_current_intents?: {
+    intent: PublicProfile['polish']['currentIntents'][number];
+    visibility: string;
+    display_order: number;
+  }[];
+  profile_prompts?: {
+    id: string;
+    prompt_key: string;
+    answer: string;
+    display_order: number;
+  }[];
+  portfolio_items?: {
+    id: string;
+    item_type: PortfolioItem['itemType'];
+    title: string;
+    description: string | null;
+    media_url: string | null;
+    storage_path: string | null;
+    thumbnail_url: string | null;
+    external_url: string | null;
+    accessibility_description: string | null;
     display_order: number;
   }[];
 };
@@ -67,10 +110,22 @@ const publicProfileSelect = `
   experience_level,
   availability,
   industry_experience,
+  banner_path,
+  location_id,
+  location_region,
+  location_country,
+  profile_template,
+  profile_accent,
+  profile_header_alignment,
+  profile_card_shape,
+  profile_background,
   updated_at,
   profile_skills(skills(name)),
   profile_opportunity_interests(interest),
-  user_links(label, link_type, value, display_order)
+  user_links(id, label, link_type, value, display_order, icon_key),
+  profile_current_intents(intent, visibility, display_order),
+  profile_prompts(id, prompt_key, answer, display_order),
+  portfolio_items(id, item_type, title, description, media_url, storage_path, thumbnail_url, external_url, accessibility_description, display_order)
 `;
 
 export async function loadPublicProfile(profileId: string) {
@@ -90,9 +145,21 @@ export async function loadPublicProfilesByIds(profileIds: string[]) {
 
   if (error) throw error;
 
+  const rows = (data ?? []) as unknown as RawPublicProfile[];
+  const mediaPaths = rows.flatMap((row) => [
+    row.banner_path,
+    ...(row.portfolio_items ?? []).flatMap((item) => [
+      item.storage_path,
+      item.thumbnail_url?.startsWith('profile-media:')
+        ? item.thumbnail_url.slice('profile-media:'.length)
+        : null,
+    ]),
+  ]).filter((path): path is string => Boolean(path));
+  const signedUrls = await signProfileMedia(mediaPaths);
+
   const byId = new Map(
-    (data ?? []).map((row) => {
-      const profile = mapPublicProfile(row as RawPublicProfile);
+    rows.map((row) => {
+      const profile = mapPublicProfile(row, signedUrls);
       return [profile.id, profile] as const;
     }),
   );
@@ -103,14 +170,7 @@ export async function loadPublicProfilesByIds(profileIds: string[]) {
 }
 
 export async function loadSkillOptions() {
-  const { data, error } = await supabase
-    .from('skills')
-    .select('name')
-    .order('name')
-    .limit(200);
-
-  if (error) throw error;
-  return (data ?? []).map((skill) => skill.name);
+  return skillCatalog.map((skill) => skill.label);
 }
 
 export async function searchPeople(
@@ -215,7 +275,10 @@ export function formatDiscoveryError(error: unknown) {
   return 'Lance could not load these results. Check your connection and try again.';
 }
 
-function mapPublicProfile(row: RawPublicProfile): PublicProfile {
+function mapPublicProfile(
+  row: RawPublicProfile,
+  signedUrls: Map<string, string>,
+): PublicProfile {
   const skills = (row.profile_skills ?? [])
     .map((item) => {
       const relation = item.skills;
@@ -234,10 +297,85 @@ function mapPublicProfile(row: RawPublicProfile): PublicProfile {
     .sort((left, right) => left.display_order - right.display_order)
     .map((link) => ({
       label: link.label,
-      linkType: link.link_type,
+      linkType: link.link_type as ProfileLink['linkType'],
       value: link.value,
       displayOrder: link.display_order,
     }));
+  const customLinks = (row.user_links ?? [])
+    .filter((link) => link.link_type === 'custom')
+    .sort((left, right) => left.display_order - right.display_order)
+    .map(
+      (link): CustomProfileLink => ({
+        id: link.id,
+        label: link.label,
+        url: link.value,
+        iconKey: link.icon_key,
+        displayOrder: link.display_order,
+      }),
+    );
+  const location =
+    locationCatalog.find((option) => option.id === row.location_id) ??
+    (row.location_id
+      ? {
+          id: row.location_id,
+          label: [row.city, row.location_region, row.location_country]
+            .filter(Boolean)
+            .join(', '),
+          city: row.city,
+          region: row.location_region,
+          country: row.location_country ?? '',
+          search: [row.city, row.location_region, row.location_country]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase(),
+        }
+      : null);
+  const polish = createEmptyProfilePolish(row.city ?? '');
+  polish.bannerPath = row.banner_path;
+  polish.bannerUrl = row.banner_path ? signedUrls.get(row.banner_path) ?? null : null;
+  polish.location = location;
+  polish.currentIntents = (row.profile_current_intents ?? [])
+    .filter((intent) => intent.visibility === 'public')
+    .sort((left, right) => left.display_order - right.display_order)
+    .map((intent) => intent.intent);
+  polish.prompts = (row.profile_prompts ?? [])
+    .sort((left, right) => left.display_order - right.display_order)
+    .map(
+      (prompt): ProfilePrompt => ({
+        id: prompt.id,
+        promptKey: prompt.prompt_key,
+        answer: prompt.answer,
+        displayOrder: prompt.display_order,
+      }),
+    );
+  polish.theme = {
+    template: row.profile_template ?? defaultProfileTheme.template,
+    accent: row.profile_accent ?? defaultProfileTheme.accent,
+    headerAlignment:
+      row.profile_header_alignment ?? defaultProfileTheme.headerAlignment,
+    cardShape: row.profile_card_shape ?? defaultProfileTheme.cardShape,
+    background: row.profile_background ?? defaultProfileTheme.background,
+  };
+  polish.portfolio = (row.portfolio_items ?? [])
+    .sort((left, right) => left.display_order - right.display_order)
+    .map(
+      (item): PortfolioItem => ({
+        id: item.id,
+        itemType: item.item_type,
+        title: item.title,
+        caption: item.description ?? '',
+        mediaUrl:
+          (item.storage_path ? signedUrls.get(item.storage_path) : item.media_url) ?? null,
+        storagePath: item.storage_path,
+        thumbnailUrl: item.thumbnail_url?.startsWith('profile-media:')
+          ? signedUrls.get(item.thumbnail_url.slice('profile-media:'.length)) ?? null
+          : item.thumbnail_url,
+        externalUrl: item.external_url,
+        accessibilityDescription: item.accessibility_description ?? '',
+        displayOrder: item.display_order,
+      }),
+    );
+  polish.customLinks = customLinks;
 
   return {
     id: row.id,
@@ -267,6 +405,7 @@ function mapPublicProfile(row: RawPublicProfile): PublicProfile {
     opportunityInterests: interests,
     industryExperience: row.industry_experience ?? [],
     links,
+    polish,
     updatedAt: row.updated_at,
   };
 }

@@ -5,15 +5,16 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
   FormSection,
+  CatalogSelector,
+  LocationSelector,
   SingleSelectChips,
   StepProgress,
-  TagInput,
 } from '@/components/profile';
 import { Button, DateField, TextField } from '@/components/ui';
 import { theme } from '@/constants/theme';
+import { industryCatalog, locationCatalog, skillCatalog } from '@/constants/catalogs';
 import { needsCompensationWarning, validateOpportunityDraft } from '@/lib/opportunity';
 import type { BusinessRecord } from '@/types/business';
-import { industryOptions } from '@/types/business';
 import {
   compensationTypeOptions,
   opportunityCategoryOptions,
@@ -326,11 +327,6 @@ export function OpportunityEditor({
     }
 
     if (step === 4) {
-      const industries = industryOptions.map((industry) => ({
-        label: industry,
-        value: industry,
-      }));
-
       return (
         <>
           <StepHeader
@@ -344,20 +340,25 @@ export function OpportunityEditor({
               selected={draft.workplace}
             />
           </FormSection>
-          <TextField
-            label="Location (optional)"
-            maxLength={100}
-            onChangeText={(location) => set('location', location)}
-            placeholder="Chicago, IL"
-            value={draft.location}
+          <LocationSelector
+            legacyValue={draft.location}
+            onChange={(location) => {
+              set('location', location?.label ?? '');
+              set('locationId', location?.id ?? null);
+              set('locationRegion', location?.region ?? '');
+              set('locationCountry', location?.country ?? '');
+            }}
+            value={locationCatalog.find((location) => location.id === draft.locationId) ?? null}
           />
-          <FormSection title="Industry">
-            <SingleSelectChips
-              onChange={(industry) => set('industry', industry)}
-              options={industries}
-              selected={draft.industry}
-            />
-          </FormSection>
+          <CatalogSelector
+            catalog={industryCatalog.map((label) => ({ label, category: 'Industries' }))}
+            catalogType="industries"
+            label="Industry"
+            max={1}
+            onChange={(industries) => set('industry', industries.at(-1) ?? '')}
+            placeholder="Search industries"
+            values={draft.industry ? [draft.industry] : []}
+          />
           <DateField
             label="Expected start date (optional)"
             onChange={(expectedStartDate) => set('expectedStartDate', expectedStartDate)}
@@ -388,7 +389,9 @@ export function OpportunityEditor({
             title="Skills and experience"
             subtitle="These structured details will support future search and filters."
           />
-          <TagInput
+          <CatalogSelector
+            catalog={skillCatalog}
+            catalogType="skills"
             label="Required skills"
             onChange={(skills) => set('skills', skills)}
             placeholder="Add a skill"

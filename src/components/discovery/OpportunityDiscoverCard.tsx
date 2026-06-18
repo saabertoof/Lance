@@ -21,15 +21,17 @@ import { getOptionLabel } from '@/types/profile';
 export function OpportunityDiscoverCard({
   isSaved,
   opportunity,
+  reasons = [],
 }: {
   isSaved: boolean;
   opportunity: OpportunityRecord;
+  reasons?: string[];
 }) {
   const mark = opportunity.poster.name.charAt(0).toUpperCase() || 'L';
 
   return (
     <View style={styles.card}>
-      <View style={styles.posterRow}>
+      <View style={styles.visual}>
         <View style={styles.imageWrap}>
           {opportunity.poster.imageUrl ? (
             <Image
@@ -51,18 +53,21 @@ export function OpportunityDiscoverCard({
               : 'Personal profile'}
           </Text>
         </View>
-        <Ionicons
-          color={isSaved ? theme.colors.accentStrong : theme.colors.muted}
-          name={isSaved ? 'bookmark' : 'bookmark-outline'}
-          size={24}
-        />
+        <View style={styles.savedMark}>
+          <Ionicons
+            color={isSaved ? theme.colors.accentStrong : theme.colors.muted}
+            name={isSaved ? 'bookmark' : 'bookmark-outline'}
+            size={23}
+          />
+        </View>
       </View>
 
+      <View style={styles.content}>
       <View style={styles.hero}>
         <Text numberOfLines={3} style={styles.title}>
           {opportunity.title}
         </Text>
-        <Text numberOfLines={5} style={styles.summary}>
+        <Text numberOfLines={3} style={styles.summary}>
           {opportunity.shortSummary}
         </Text>
       </View>
@@ -101,6 +106,15 @@ export function OpportunityDiscoverCard({
           <Chip key={skill.toLowerCase()} label={skill} />
         ))}
       </View>
+      {reasons.length > 0 ? (
+        <View style={styles.reason}>
+          <Ionicons color={theme.colors.accentStrong} name="sparkles-outline" size={16} />
+          <Text numberOfLines={2} style={styles.reasonText}>
+            Why you&apos;re seeing this: {reasons.join(' · ')}
+          </Text>
+        </View>
+      ) : null}
+      </View>
     </View>
   );
 }
@@ -120,23 +134,29 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
     borderRadius: theme.radii.lg,
     borderWidth: 1,
-    gap: theme.spacing.lg,
+    flex: 1,
+    gap: 0,
     minHeight: 430,
-    padding: theme.spacing.xl,
+    overflow: 'hidden',
+    padding: 0,
   },
-  posterRow: {
+  visual: {
     alignItems: 'center',
+    backgroundColor: theme.colors.surfaceMuted,
     flexDirection: 'row',
     gap: theme.spacing.md,
+    minHeight: 130,
+    padding: theme.spacing.xl,
+    position: 'relative',
   },
   imageWrap: {
     alignItems: 'center',
     backgroundColor: theme.colors.accentSoft,
-    borderRadius: theme.radii.md,
-    height: 58,
+    borderRadius: theme.radii.lg,
+    height: 82,
     justifyContent: 'center',
     overflow: 'hidden',
-    width: 58,
+    width: 82,
   },
   image: {
     height: '100%',
@@ -160,14 +180,16 @@ const styles = StyleSheet.create({
     color: theme.colors.muted,
     fontSize: theme.typography.tiny,
   },
+  savedMark: { alignItems: 'center', backgroundColor: theme.colors.surface, borderRadius: 20, height: 40, justifyContent: 'center', position: 'absolute', right: 14, top: 14, width: 40 },
+  content: { flex: 1, gap: theme.spacing.md, padding: theme.spacing.lg },
   hero: {
     gap: theme.spacing.md,
   },
   title: {
     color: theme.colors.text,
-    fontSize: theme.typography.title,
+    fontSize: theme.typography.heading,
     fontWeight: '900',
-    lineHeight: 35,
+    lineHeight: 28,
   },
   summary: {
     color: theme.colors.textSoft,
@@ -206,4 +228,6 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: theme.spacing.sm,
   },
+  reason: { alignItems: 'flex-start', backgroundColor: theme.colors.accentSoft, borderRadius: theme.radii.sm, flexDirection: 'row', gap: theme.spacing.sm, marginTop: 'auto', padding: theme.spacing.sm },
+  reasonText: { color: theme.colors.accentStrong, flex: 1, fontSize: theme.typography.tiny, fontWeight: '700', lineHeight: 17 },
 });

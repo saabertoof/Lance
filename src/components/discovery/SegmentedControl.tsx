@@ -28,7 +28,11 @@ export function SegmentedControl<T extends string>({
               selected && styles.selected,
               pressed && styles.pressed,
             ]}>
-            <Text style={[styles.label, selected && styles.selectedLabel]}>
+            <Text
+              adjustsFontSizeToFit
+              minimumFontScale={0.86}
+              numberOfLines={1}
+              style={[styles.label, selected && styles.selectedLabel]}>
               {option.label}
             </Text>
           </Pressable>
@@ -53,7 +57,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     minHeight: 40,
-    paddingHorizontal: theme.spacing.md,
+    paddingHorizontal: theme.spacing.sm,
   },
   selected: {
     backgroundColor: theme.colors.surface,
@@ -63,7 +67,7 @@ const styles = StyleSheet.create({
   },
   label: {
     color: theme.colors.muted,
-    fontSize: theme.typography.small,
+    fontSize: 13,
     fontWeight: '800',
   },
   selectedLabel: {

@@ -10,9 +10,15 @@ import {
 } from 'react-native';
 
 import { BusinessLogoPicker } from '@/components/business/BusinessLogoPicker';
-import { FormSection, SingleSelectChips } from '@/components/profile';
+import {
+  CatalogSelector,
+  FormSection,
+  LocationSelector,
+  SingleSelectChips,
+} from '@/components/profile';
 import { Card, TextField } from '@/components/ui';
 import { theme } from '@/constants/theme';
+import { industryCatalog, locationCatalog } from '@/constants/catalogs';
 import {
   checkBusinessSlugAvailability,
   normalizeBusinessSlugInput,
@@ -23,7 +29,6 @@ import {
   businessSizeOptions,
   businessTypeOptions,
   BusinessDraft,
-  industryOptions,
 } from '@/types/business';
 
 export type BusinessUrlStatus =
@@ -117,11 +122,6 @@ export function BusinessForm({
       localLogoMimeType: asset.mimeType ?? null,
     });
   }
-
-  const industries = industryOptions.map((industry) => ({
-    label: industry,
-    value: industry,
-  }));
 
   return (
     <View style={styles.form}>
@@ -239,10 +239,14 @@ export function BusinessForm({
       </FormSection>
 
       <FormSection title="Industry and size">
-        <SingleSelectChips
-          onChange={(industry) => set('industry', industry)}
-          options={industries}
-          selected={draft.industry}
+        <CatalogSelector
+          catalog={industryCatalog.map((label) => ({ label, category: 'Industries' }))}
+          catalogType="industries"
+          label="Industry"
+          max={1}
+          onChange={(industries) => set('industry', industries.at(-1) ?? '')}
+          placeholder="Search industries"
+          values={draft.industry ? [draft.industry] : []}
         />
         <SingleSelectChips
           onChange={(businessSize) => set('businessSize', businessSize)}
@@ -260,12 +264,20 @@ export function BusinessForm({
       </FormSection>
 
       <FormSection title="Location and work style">
-        <TextField
-          label="Location (optional)"
-          maxLength={100}
-          onChangeText={(location) => set('location', location)}
-          placeholder="Chicago, IL"
-          value={draft.location}
+        <LocationSelector
+          legacyValue={draft.location}
+          onChange={(location) =>
+            onChange({
+              ...draft,
+              location: location?.label ?? '',
+              locationId: location?.id ?? null,
+              locationRegion: location?.region ?? '',
+              locationCountry: location?.country ?? '',
+            })
+          }
+          value={
+            locationCatalog.find((location) => location.id === draft.locationId) ?? null
+          }
         />
         <SingleSelectChips
           onChange={(remoteStatus) => set('remoteStatus', remoteStatus)}
