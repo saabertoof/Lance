@@ -21,15 +21,15 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     backgroundColor: theme.colors.chip,
     borderRadius: theme.radii.pill,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
   },
   accent: {
     backgroundColor: theme.colors.accentSoft,
   },
   label: {
     color: theme.colors.textSoft,
-    fontSize: theme.typography.small,
+    fontSize: 13,
     fontWeight: '600',
   },
   accentLabel: {

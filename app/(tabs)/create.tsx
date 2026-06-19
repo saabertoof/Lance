@@ -8,20 +8,22 @@ import { routes } from '@/lib/routes';
 
 export default function CreateScreen() {
   return (
-    <Screen scroll contentStyle={styles.screen}>
-      <View>
-        <Text style={styles.title}>Create</Text>
-        <Text style={styles.subtitle}>Publish work or build an identity for a business or project.</Text>
+    <Screen compact scroll contentStyle={styles.screen}>
+      <View style={styles.intro}>
+        <Text style={styles.sectionLabel}>What are you creating?</Text>
+        <Text style={styles.subtitle}>
+          Choose a job to publish or a business identity to manage.
+        </Text>
       </View>
 
       <ActionCard
-        body="Post personally or as a business you own. Draft first or publish when ready."
+        body="Post personally or as a business. Draft or publish when ready."
         icon="briefcase-outline"
         onPress={() => router.push(routes.newOpportunity())}
         title="Post an opportunity"
       />
       <ActionCard
-        body="Create a profile for a startup, agency, local business, project, or community."
+        body="Create a home for a startup, agency, project, or community."
         icon="business-outline"
         onPress={() => router.push(routes.newBusiness)}
         title="Create a business or project"
@@ -79,32 +81,33 @@ function ActionCard({
 
 const styles = StyleSheet.create({
   screen: {
-    gap: theme.spacing.lg,
-    paddingBottom: theme.spacing.xxxl,
+    gap: theme.density.contentGap,
   },
-  title: {
+  intro: {
+    gap: theme.spacing.xs,
+  },
+  sectionLabel: {
     color: theme.colors.text,
-    fontSize: theme.typography.title,
+    fontSize: theme.typography.sectionHeading,
     fontWeight: '900',
   },
   subtitle: {
     color: theme.colors.muted,
-    fontSize: theme.typography.body,
-    lineHeight: 24,
-    marginTop: theme.spacing.sm,
+    fontSize: theme.typography.bodySmall,
+    lineHeight: 20,
   },
   card: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: theme.spacing.lg,
+    gap: theme.spacing.md,
   },
   icon: {
     alignItems: 'center',
     backgroundColor: theme.colors.accentSoft,
     borderRadius: theme.radii.md,
-    height: 52,
+    height: 44,
     justifyContent: 'center',
-    width: 52,
+    width: 44,
   },
   cardCopy: {
     flex: 1,
@@ -112,29 +115,29 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     color: theme.colors.text,
-    fontSize: theme.typography.subheading,
+    fontSize: theme.typography.cardTitle,
     fontWeight: '900',
   },
   cardBody: {
     color: theme.colors.muted,
     fontSize: theme.typography.small,
-    lineHeight: 20,
+    lineHeight: 19,
   },
   secondary: {
     borderTopColor: theme.colors.border,
     borderTopWidth: 1,
-    marginTop: theme.spacing.sm,
-    paddingTop: theme.spacing.md,
+    marginTop: theme.spacing.xs,
+    paddingTop: theme.spacing.sm,
   },
   secondaryAction: {
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    minHeight: 52,
+    minHeight: theme.controls.standard,
   },
   secondaryLabel: {
     color: theme.colors.text,
-    fontSize: theme.typography.body,
+    fontSize: 15,
     fontWeight: '700',
   },
   pressed: {

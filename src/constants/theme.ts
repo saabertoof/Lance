@@ -2,15 +2,16 @@ import type { Theme } from '@react-navigation/native';
 
 const palette = {
   white: '#FFFFFF',
+  canvas: '#F7F7FA',
   ink: '#080A12',
   inkSoft: '#232633',
   gray900: '#171923',
   gray700: '#4B5161',
   gray600: '#626879',
   gray500: '#7A8091',
-  gray200: '#E7E8EE',
-  gray100: '#F4F5F8',
-  gray50: '#FAFAFC',
+  gray200: '#E2E4EA',
+  gray100: '#F0F1F5',
+  gray50: '#F4F5F8',
   purple: '#7C5CFF',
   purpleStrong: '#6843F4',
   purpleSoft: '#F0ECFF',
@@ -20,7 +21,8 @@ const palette = {
 
 export const theme = {
   colors: {
-    background: palette.white,
+    canvas: palette.canvas,
+    background: palette.canvas,
     surface: palette.white,
     surfaceMuted: palette.gray50,
     text: palette.ink,
@@ -45,6 +47,13 @@ export const theme = {
     body: 16,
     small: 14,
     tiny: 12,
+    heroIdentity: 28,
+    screenHeading: 24,
+    sectionHeading: 18,
+    cardTitle: 16,
+    bodySmall: 14,
+    label: 12,
+    caption: 11,
   },
   spacing: {
     xs: 4,
@@ -58,22 +67,40 @@ export const theme = {
   radii: {
     sm: 8,
     md: 12,
-    lg: 18,
-    xl: 24,
+    lg: 16,
+    xl: 20,
     pill: 999,
   },
   shadows: {
     card: {
       shadowColor: palette.ink,
-      shadowOpacity: 0.06,
-      shadowRadius: 18,
-      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.05,
+      shadowRadius: 14,
+      shadowOffset: { width: 0, height: 6 },
       elevation: 2,
     },
   },
+  density: {
+    hairlineGap: 2,
+    compactGap: 6,
+    controlGap: 8,
+    contentGap: 12,
+    sectionGap: 24,
+    screenTop: 8,
+  },
+  icons: {
+    small: 16,
+    standard: 20,
+    prominent: 24,
+  },
+  controls: {
+    compact: 40,
+    standard: 46,
+    large: 52,
+  },
   layout: {
-    screenPadding: 24,
-    inputHeight: 52,
+    screenPadding: 20,
+    inputHeight: 48,
     minTouchTarget: 44,
   },
 };

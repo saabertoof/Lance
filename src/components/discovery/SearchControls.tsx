@@ -14,7 +14,11 @@ export function SearchBar({
 }) {
   return (
     <View style={styles.search}>
-      <Ionicons color={theme.colors.muted} name="search-outline" size={21} />
+      <Ionicons
+        color={theme.colors.muted}
+        name="search-outline"
+        size={theme.icons.standard}
+      />
       <TextInput
         accessibilityLabel="Search"
         autoCapitalize="none"
@@ -32,7 +36,11 @@ export function SearchBar({
           accessibilityRole="button"
           onPress={() => onChangeText('')}
           style={styles.clear}>
-          <Ionicons color={theme.colors.muted} name="close-circle" size={21} />
+          <Ionicons
+            color={theme.colors.muted}
+            name="close-circle"
+            size={theme.icons.standard}
+          />
         </Pressable>
       ) : null}
     </View>
@@ -64,7 +72,7 @@ export function FilterButton({
       <Ionicons
         color={count > 0 ? theme.colors.accentStrong : theme.colors.text}
         name="options-outline"
-        size={21}
+        size={theme.icons.standard}
       />
       {!compact ? (
         <Text style={[styles.filterLabel, count > 0 && styles.activeLabel]}>
@@ -89,9 +97,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     flex: 1,
     flexDirection: 'row',
-    gap: theme.spacing.sm,
+    gap: theme.density.controlGap,
     minHeight: theme.layout.inputHeight,
-    paddingHorizontal: theme.spacing.md,
+    paddingHorizontal: 12,
   },
   input: {
     color: theme.colors.text,
@@ -114,7 +122,7 @@ const styles = StyleSheet.create({
     borderRadius: theme.radii.md,
     borderWidth: 1,
     flexDirection: 'row',
-    gap: theme.spacing.sm,
+    gap: theme.density.controlGap,
     minHeight: theme.layout.minTouchTarget,
     paddingHorizontal: theme.spacing.md,
   },

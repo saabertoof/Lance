@@ -188,10 +188,7 @@ export default function SearchScreen() {
   }
 
   return (
-    <Screen scroll contentStyle={styles.screen}>
-      <Text style={styles.title}>Search</Text>
-      <SegmentedControl onChange={setMode} options={searchModes} value={mode} />
-
+    <Screen compact scroll contentStyle={styles.screen}>
       <View style={styles.controls}>
         <SearchBar
           onChangeText={setQuery}
@@ -200,6 +197,7 @@ export default function SearchScreen() {
         />
         <FilterButton count={activeCount} onPress={() => setFiltersOpen(true)} />
       </View>
+      <SegmentedControl onChange={setMode} options={searchModes} value={mode} />
 
       {!isLoading && !error ? (
         <Text style={styles.resultCount}>
@@ -326,13 +324,7 @@ function mergeById<T extends { id: string }>(current: T[], next: T[]) {
 
 const styles = StyleSheet.create({
   screen: {
-    gap: theme.spacing.lg,
-    paddingBottom: theme.spacing.xxxl,
-  },
-  title: {
-    color: theme.colors.text,
-    fontSize: theme.typography.title,
-    fontWeight: '900',
+    gap: theme.density.contentGap,
   },
   controls: {
     alignItems: 'center',
@@ -341,16 +333,16 @@ const styles = StyleSheet.create({
   },
   resultCount: {
     color: theme.colors.muted,
-    fontSize: theme.typography.small,
+    fontSize: theme.typography.label,
   },
   results: {
-    gap: theme.spacing.md,
+    gap: theme.density.contentGap,
   },
   resultGroup: {
     gap: theme.spacing.sm,
   },
   state: {
     gap: theme.spacing.sm,
-    paddingVertical: theme.spacing.xl,
+    paddingVertical: theme.spacing.lg,
   },
 });

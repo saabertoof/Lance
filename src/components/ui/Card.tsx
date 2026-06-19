@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
     borderRadius: theme.radii.xl,
     borderWidth: 1,
-    padding: theme.spacing.xl,
+    padding: theme.spacing.lg,
     ...theme.shadows.card,
   },
 });

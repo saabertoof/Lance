@@ -99,7 +99,10 @@ export function CatalogSelector({
           value={query}
         />
         {query ? (
-          <Pressable accessibilityLabel="Clear search" onPress={() => setQuery('')}>
+          <Pressable
+            accessibilityLabel="Clear search"
+            onPress={() => setQuery('')}
+            style={styles.clear}>
             <Ionicons color={theme.colors.muted} name="close-circle" size={20} />
           </Pressable>
         ) : null}
@@ -177,13 +180,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.md,
   },
   input: { color: theme.colors.text, flex: 1, fontSize: theme.typography.body },
+  clear: {
+    alignItems: 'center',
+    height: theme.layout.minTouchTarget,
+    justifyContent: 'center',
+    width: theme.layout.minTouchTarget,
+  },
   options: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm },
   option: {
     borderColor: theme.colors.border,
     borderRadius: theme.radii.pill,
     borderWidth: 1,
     justifyContent: 'center',
-    minHeight: 40,
+    minHeight: theme.layout.minTouchTarget,
     paddingHorizontal: theme.spacing.md,
   },
   optionSelected: { backgroundColor: theme.colors.accentSoft, borderColor: theme.colors.accent },

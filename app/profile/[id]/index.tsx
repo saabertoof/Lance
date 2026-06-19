@@ -86,7 +86,8 @@ export default function PublicProfileScreen() {
       style={{
         backgroundColor: profileBackground(profile.polish.theme.background),
       }}
-      contentStyle={styles.screen}>
+      contentStyle={styles.screen}
+      topInset={false}>
       <ProfileHero
         accent={accent}
         profile={profile}
@@ -213,7 +214,7 @@ const styles = StyleSheet.create({
     paddingTop: 0,
   },
   body: {
-    gap: theme.spacing.xxl,
+    gap: theme.density.sectionGap,
     paddingBottom: theme.spacing.xxxl,
     paddingHorizontal: theme.layout.screenPadding,
   },

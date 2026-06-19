@@ -49,12 +49,12 @@ export function Button({
 
 const styles = StyleSheet.create({
   base: {
-    minHeight: theme.layout.minTouchTarget,
+    minHeight: theme.controls.standard,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: theme.radii.pill,
-    paddingHorizontal: theme.spacing.xl,
-    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm,
   },
   primary: {
     backgroundColor: theme.colors.text,
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   label: {
-    fontSize: theme.typography.body,
+    fontSize: 15,
     fontWeight: '700',
   },
   primaryLabel: {

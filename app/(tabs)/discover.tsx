@@ -307,7 +307,7 @@ export default function DiscoverScreen() {
       : countOpportunityFilters(opportunityFilters);
 
   return (
-    <Screen contentStyle={styles.screen}>
+    <Screen compact contentStyle={styles.screen}>
       <View style={styles.header}>
         <View style={styles.markSlot}>
           <Image
@@ -474,16 +474,14 @@ function DiscoverSkeleton() {
 
 const styles = StyleSheet.create({
   screen: {
-    gap: theme.spacing.sm,
-    paddingBottom: theme.spacing.sm,
+    gap: theme.density.compactGap,
     paddingHorizontal: theme.spacing.md,
-    paddingTop: theme.spacing.sm,
   },
   header: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: theme.spacing.sm,
-    minHeight: 46,
+    gap: theme.density.compactGap,
+    minHeight: 44,
   },
   mark: {
     height: 32,

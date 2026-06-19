@@ -49,14 +49,14 @@ const styles = StyleSheet.create({
     borderRadius: theme.radii.md,
     borderWidth: 1,
     flexDirection: 'row',
-    padding: 3,
+    padding: 2,
   },
   option: {
     alignItems: 'center',
     borderRadius: theme.radii.sm,
     flex: 1,
     justifyContent: 'center',
-    minHeight: 40,
+    minHeight: theme.layout.minTouchTarget,
     paddingHorizontal: theme.spacing.sm,
   },
   selected: {
@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
   },
   label: {
     color: theme.colors.muted,
-    fontSize: 13,
+    fontSize: theme.typography.label,
     fontWeight: '800',
   },
   selectedLabel: {

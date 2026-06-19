@@ -319,12 +319,51 @@ export async function updateOpportunityResponse(
 }
 
 export async function loadConversationSummaries(offset = 0) {
+  const user = await requireUser();
   const { data, error } = await supabase.rpc('phase5_list_chats', {
     target_limit: COMMUNICATION_PAGE_SIZE,
     target_offset: offset,
   });
   if (error) throw error;
-  return ((data ?? []) as UnknownRow[]).map(
+  const rows = (data ?? []) as UnknownRow[];
+  const profileIds = rows
+    .map((row) => row.other_profile_id as string)
+    .filter(Boolean);
+  const messageFilter = rows
+    .filter((row) => row.last_message_body && row.last_message_at)
+    .map(
+      (row) =>
+        `and(conversation_id.eq.${row.conversation_id},created_at.eq.${row.last_message_at})`,
+    )
+    .join(',');
+  const [profilesResult, sendersResult] = await Promise.all([
+    profileIds.length > 0
+      ? supabase
+          .from('profiles')
+          .select('id, username, primary_role, city')
+          .in('id', profileIds)
+      : Promise.resolve({ data: [], error: null }),
+    messageFilter
+      ? supabase
+          .from('messages')
+          .select('conversation_id, sender_profile_id, created_at')
+          .or(messageFilter)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+  const profiles = new Map(
+    (profilesResult.error ? [] : profilesResult.data ?? []).map((profile) => [
+      profile.id,
+      profile,
+    ]),
+  );
+  const senders = new Map(
+    (sendersResult.error ? [] : sendersResult.data ?? []).map((message) => [
+      `${message.conversation_id}:${message.created_at}`,
+      message.sender_profile_id,
+    ]),
+  );
+
+  return rows.map(
     (row): ConversationSummary => ({
       id: row.conversation_id as string,
       type: row.conversation_type as ConversationSummary['type'],
@@ -332,19 +371,58 @@ export async function loadConversationSummaries(offset = 0) {
       otherProfile: {
         id: row.other_profile_id as string,
         displayName: row.other_display_name as string,
-        username: '',
+        username:
+          profiles.get(row.other_profile_id as string)?.username ?? '',
         avatarUrl: (row.other_avatar_url as string | null) ?? null,
-        primaryRole: '',
-        city: '',
+        primaryRole:
+          profiles.get(row.other_profile_id as string)?.primary_role ?? '',
+        city: profiles.get(row.other_profile_id as string)?.city ?? '',
       },
       opportunityId: (row.opportunity_id as string | null) ?? null,
       opportunityTitle: (row.opportunity_title as string | null) ?? null,
       businessName: (row.business_name as string | null) ?? null,
       lastMessageBody: (row.last_message_body as string | null) ?? '',
+      lastMessageFromMe:
+        senders.get(`${row.conversation_id}:${row.last_message_at}`) === user.id,
       lastMessageAt: row.last_message_at as string,
       unreadCount: Number(row.unread_count ?? 0),
     }),
   );
+}
+
+export async function loadPendingInboxRequestCount() {
+  const user = await requireUser();
+  const now = new Date().toISOString();
+  const [connections, applications] = await Promise.all([
+    supabase
+      .from('connection_requests')
+      .select('id', { count: 'exact', head: true })
+      .eq('recipient_profile_id', user.id)
+      .eq('status', 'pending')
+      .gt('expires_at', now),
+    supabase
+      .from('opportunity_interests')
+      .select('id', { count: 'exact', head: true })
+      .eq('owner_profile_id', user.id)
+      .eq('status', 'submitted'),
+  ]);
+  const error = connections.error ?? applications.error;
+  if (error) throw error;
+  return (connections.count ?? 0) + (applications.count ?? 0);
+}
+
+export function subscribeToInbox(onChange: () => void) {
+  const channel = supabase
+    .channel(`inbox:${createClientNonce()}`)
+    .on(
+      'postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'messages' },
+      onChange,
+    )
+    .subscribe();
+  return () => {
+    void supabase.removeChannel(channel);
+  };
 }
 
 export async function loadConversationDetail(conversationId: string) {

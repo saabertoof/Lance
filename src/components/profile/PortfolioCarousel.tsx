@@ -193,9 +193,9 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
     borderRadius: theme.radii.pill,
     borderWidth: 1,
-    height: 34,
+    height: theme.layout.minTouchTarget,
     justifyContent: 'center',
-    width: 34,
+    width: theme.layout.minTouchTarget,
   },
   pressed: { opacity: 0.86 },
 });

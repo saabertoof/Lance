@@ -202,9 +202,11 @@ export default function ProfileScreen() {
 
   return (
     <Screen
+      compact
       scroll
       style={{ backgroundColor: profileBackground(profile.polish.theme.background) }}
-      contentStyle={styles.screen}>
+      contentStyle={styles.screen}
+      topInset={false}>
       <ProfileHero
         accent={accent}
         onEditBanner={editProfile}
@@ -340,8 +342,8 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
   },
   body: {
-    gap: theme.spacing.xxl,
-    paddingBottom: theme.spacing.xxxl,
+    gap: theme.density.sectionGap,
+    paddingBottom: theme.spacing.lg,
     paddingHorizontal: theme.layout.screenPadding,
   },
   error: {

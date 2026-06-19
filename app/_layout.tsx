@@ -16,18 +16,28 @@ export default function RootLayout() {
         <SavedProvider>
           <MessagingProvider>
             <ThemeProvider value={lanceNavigationTheme}>
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="index" />
-              <Stack.Screen name="(auth)" />
-              <Stack.Screen name="(onboarding)" />
-              <Stack.Screen name="(tabs)" />
-              <Stack.Screen name="business" />
-              <Stack.Screen name="opportunity" />
-              <Stack.Screen name="profile" />
-              <Stack.Screen name="messages" />
-              <Stack.Screen name="request" />
-            </Stack>
-            <StatusBar style="dark" />
+              <Stack
+                screenOptions={{
+                  contentStyle: {
+                    backgroundColor: lanceNavigationTheme.colors.background,
+                  },
+                  headerShown: false,
+                }}>
+                <Stack.Screen name="index" />
+                <Stack.Screen name="(auth)" />
+                <Stack.Screen name="(onboarding)" />
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="business" />
+                <Stack.Screen name="opportunity" />
+                <Stack.Screen name="profile" />
+                <Stack.Screen name="messages" />
+                <Stack.Screen name="request" />
+              </Stack>
+              <StatusBar
+                backgroundColor="transparent"
+                style="dark"
+                translucent
+              />
             </ThemeProvider>
           </MessagingProvider>
         </SavedProvider>

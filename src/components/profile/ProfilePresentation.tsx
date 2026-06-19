@@ -8,6 +8,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Chip } from '@/components/ui';
 import { theme } from '@/constants/theme';
@@ -41,8 +42,10 @@ export function ProfileHero({
   profile: PublicProfile;
   topBar: ReactNode;
 }) {
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={styles.banner}>
+    <View style={[styles.banner, { height: 190 + insets.top }]}>
       {profile.polish.bannerUrl ? (
         <Image
           accessibilityLabel={`${profile.displayName} profile banner`}
@@ -57,7 +60,7 @@ export function ProfileHero({
           <View style={[styles.bannerLine, { backgroundColor: accent }]} />
         </View>
       )}
-      <View style={styles.topBar}>{topBar}</View>
+      <View style={[styles.topBar, { top: insets.top + 8 }]}>{topBar}</View>
       {onEditBanner ? (
         <Pressable
           accessibilityLabel="Edit profile banner"
@@ -523,22 +526,21 @@ const styles = StyleSheet.create({
     left: 18,
     position: 'absolute',
     right: 18,
-    top: 14,
   },
   mediaEdit: {
     alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.94)',
     borderRadius: 18,
     bottom: 14,
-    height: 36,
+    height: theme.layout.minTouchTarget,
     justifyContent: 'center',
     position: 'absolute',
     right: 18,
-    width: 36,
+    width: theme.layout.minTouchTarget,
   },
   identity: {
     alignItems: 'flex-start',
-    gap: theme.spacing.sm,
+    gap: theme.density.controlGap,
   },
   centered: {
     alignItems: 'center',
@@ -627,7 +629,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   section: {
-    gap: theme.spacing.md,
+    gap: theme.density.contentGap,
   },
   sectionHeader: {
     alignItems: 'center',
@@ -637,14 +639,14 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     color: theme.colors.text,
-    fontSize: theme.typography.subheading,
+    fontSize: theme.typography.sectionHeading,
     fontWeight: '900',
   },
   sectionEdit: {
     alignItems: 'center',
-    height: 36,
+    height: theme.layout.minTouchTarget,
     justifyContent: 'center',
-    width: 36,
+    width: theme.layout.minTouchTarget,
   },
   ownerEmpty: {
     alignItems: 'center',

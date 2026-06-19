@@ -130,6 +130,7 @@ export type ConversationSummary = {
   opportunityTitle: string | null;
   businessName: string | null;
   lastMessageBody: string;
+  lastMessageFromMe: boolean;
   lastMessageAt: string;
   unreadCount: number;
 };
