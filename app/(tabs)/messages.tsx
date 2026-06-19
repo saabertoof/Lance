@@ -10,14 +10,10 @@ import {
 } from 'react';
 import {
   Pressable,
-  RefreshControl,
-  ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   ChatRow,
@@ -25,12 +21,10 @@ import {
   ConnectionRequestRow,
   OpportunityResponseRow,
 } from '@/components/communication';
-import { Button, EmptyState } from '@/components/ui';
+import { SearchBar } from '@/components/discovery';
+import { Button, EmptyState, Screen } from '@/components/ui';
 import { theme } from '@/constants/theme';
-import {
-  useAdaptiveTabBar,
-  useAdaptiveTabBarScroll,
-} from '@/context/AdaptiveTabBarContext';
+import { useAdaptiveTabBar } from '@/context/AdaptiveTabBarContext';
 import { useMessaging } from '@/context/MessagingContext';
 import {
   COMMUNICATION_PAGE_SIZE,
@@ -57,9 +51,7 @@ export default function MessagesScreen() {
     view?: string;
   }>();
   const { refreshUnread } = useMessaging();
-  const insets = useSafeAreaInsets();
-  const { contentBottomInset } = useAdaptiveTabBar();
-  const adaptiveScroll = useAdaptiveTabBarScroll();
+  const { expand } = useAdaptiveTabBar();
   const mounted = useRef(true);
   const realtimeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [mainTab, setMainTab] = useState<MainTab>(
@@ -219,14 +211,29 @@ export default function MessagesScreen() {
   function selectMainTab(value: MainTab) {
     setMainTab(value);
     if (value === 'requests') setQuery('');
-    adaptiveScroll.reset();
+    expand();
   }
 
   return (
-    <View style={styles.canvas}>
-      <View style={[styles.actionRow, { paddingTop: insets.top + 2 }]}>
+    <Screen
+      compact
+      onRefresh={() => void load(true)}
+      refreshing={isRefreshing}
+      scroll
+      contentStyle={styles.screen}>
+      <View style={styles.topRow}>
+        <SearchBar
+          accessibilityLabel="Search messages"
+          clearAccessibilityLabel="Clear message search"
+          onChangeText={(value) => {
+            setQuery(value);
+            if (value && mainTab !== 'chats') setMainTab('chats');
+          }}
+          placeholder="Search messages"
+          value={query}
+        />
         <Pressable
-          accessibilityLabel="Compose new message"
+          accessibilityLabel="New message"
           accessibilityRole="button"
           onPress={() => setComposeOpen(true)}
           style={({ pressed }) => [
@@ -235,33 +242,6 @@ export default function MessagesScreen() {
           ]}>
           <Ionicons color={theme.colors.text} name="create-outline" size={24} />
         </Pressable>
-      </View>
-
-      <View style={styles.search}>
-        <Ionicons color={theme.colors.muted} name="search-outline" size={20} />
-        <TextInput
-          accessibilityLabel="Search messages"
-          autoCapitalize="none"
-          autoCorrect={false}
-          onChangeText={(value) => {
-            setQuery(value);
-            if (value && mainTab !== 'chats') setMainTab('chats');
-          }}
-          placeholder="Search messages"
-          placeholderTextColor={theme.colors.mutedLight}
-          returnKeyType="search"
-          style={styles.searchInput}
-          value={query}
-        />
-        {query ? (
-          <Pressable
-            accessibilityLabel="Clear message search"
-            accessibilityRole="button"
-            onPress={() => setQuery('')}
-            style={styles.clear}>
-            <Ionicons color={theme.colors.muted} name="close-circle" size={20} />
-          </Pressable>
-        ) : null}
       </View>
 
       <View accessibilityRole="tablist" style={styles.sections}>
@@ -284,7 +264,7 @@ export default function MessagesScreen() {
             label="Received"
             onPress={() => {
               setDirection('received');
-              adaptiveScroll.reset();
+              expand();
             }}
             selected={direction === 'received'}
           />
@@ -292,31 +272,14 @@ export default function MessagesScreen() {
             label="Sent"
             onPress={() => {
               setDirection('sent');
-              adaptiveScroll.reset();
+              expand();
             }}
             selected={direction === 'sent'}
           />
         </View>
       ) : null}
 
-      <ScrollView
-        contentContainerStyle={[
-          styles.content,
-          { paddingBottom: contentBottomInset },
-          (isLoading || error) && styles.contentFill,
-        ]}
-        keyboardDismissMode="on-drag"
-        keyboardShouldPersistTaps="handled"
-        onScroll={adaptiveScroll.onScroll}
-        refreshControl={
-          <RefreshControl
-            onRefresh={() => void load(true)}
-            refreshing={isRefreshing}
-            tintColor={theme.colors.accent}
-          />
-        }
-        scrollEventThrottle={16}
-        showsVerticalScrollIndicator={false}>
+      <View style={(isLoading || error) && styles.contentFill}>
         {isLoading ? <InboxSkeletons /> : null}
 
         {!isLoading && error ? (
@@ -430,7 +393,7 @@ export default function MessagesScreen() {
             />
           )
         ) : null}
-      </ScrollView>
+      </View>
 
       <ComposeMessageSheet
         onClose={() => setComposeOpen(false)}
@@ -439,7 +402,7 @@ export default function MessagesScreen() {
         }
         visible={composeOpen}
       />
-    </View>
+    </Screen>
   );
 }
 
@@ -551,52 +514,26 @@ function mergeById<T extends { id: string }>(current: T[], next: T[]) {
 }
 
 const styles = StyleSheet.create({
-  canvas: {
-    backgroundColor: theme.colors.canvas,
-    flex: 1,
+  screen: {
+    gap: theme.density.contentGap,
   },
-  actionRow: {
+  topRow: {
     alignItems: 'center',
     flexDirection: 'row',
-    justifyContent: 'flex-end',
-    minHeight: 46,
-    paddingHorizontal: theme.layout.screenPadding,
+    gap: theme.spacing.sm,
   },
   compose: {
-    alignItems: 'center',
-    height: 44,
-    justifyContent: 'center',
-    width: 44,
-  },
-  search: {
     alignItems: 'center',
     backgroundColor: theme.colors.surface,
     borderColor: theme.colors.border,
     borderRadius: theme.radii.md,
     borderWidth: 1,
-    flexDirection: 'row',
-    marginHorizontal: theme.layout.screenPadding,
-    minHeight: theme.layout.inputHeight,
-    paddingHorizontal: 12,
-  },
-  searchInput: {
-    color: theme.colors.text,
-    flex: 1,
-    fontSize: theme.typography.body,
-    minHeight: theme.layout.inputHeight,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: 0,
-  },
-  clear: {
-    alignItems: 'center',
-    height: 44,
+    height: theme.layout.inputHeight,
     justifyContent: 'center',
-    width: 44,
+    width: theme.layout.inputHeight,
   },
   sections: {
     flexDirection: 'row',
-    marginHorizontal: theme.layout.screenPadding,
-    marginTop: theme.spacing.sm,
   },
   sectionTab: {
     flex: 1,
@@ -670,11 +607,8 @@ const styles = StyleSheet.create({
   directionLabelSelected: {
     color: theme.colors.text,
   },
-  content: {
-    flexGrow: 1,
-    paddingHorizontal: theme.layout.screenPadding,
-  },
   contentFill: {
+    flex: 1,
     justifyContent: 'center',
   },
   list: {

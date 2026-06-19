@@ -4,10 +4,14 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { theme } from '@/constants/theme';
 
 export function SearchBar({
+  accessibilityLabel = 'Search',
+  clearAccessibilityLabel = 'Clear search',
   onChangeText,
   placeholder,
   value,
 }: {
+  accessibilityLabel?: string;
+  clearAccessibilityLabel?: string;
   onChangeText: (value: string) => void;
   placeholder: string;
   value: string;
@@ -20,7 +24,7 @@ export function SearchBar({
         size={theme.icons.standard}
       />
       <TextInput
-        accessibilityLabel="Search"
+        accessibilityLabel={accessibilityLabel}
         autoCapitalize="none"
         autoCorrect={false}
         onChangeText={onChangeText}
@@ -32,7 +36,7 @@ export function SearchBar({
       />
       {value ? (
         <Pressable
-          accessibilityLabel="Clear search"
+          accessibilityLabel={clearAccessibilityLabel}
           accessibilityRole="button"
           onPress={() => onChangeText('')}
           style={styles.clear}>

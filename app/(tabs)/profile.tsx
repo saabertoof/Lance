@@ -124,7 +124,7 @@ export default function ProfileScreen() {
         },
         {
           badge: unreadCount,
-          icon: 'chatbubble-outline',
+          icon: 'paper-plane-outline',
           label: 'Messages',
           onPress: () => router.push(routes.messages),
         },

@@ -209,7 +209,7 @@ export function ComposeMessageSheet({
                   </View>
                   <Ionicons
                     color={theme.colors.accentStrong}
-                    name="chatbubble-outline"
+                    name="paper-plane-outline"
                     size={21}
                   />
                 </Pressable>

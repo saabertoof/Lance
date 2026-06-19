@@ -1,4 +1,5 @@
 import type { Href } from 'expo-router';
+import type { BusinessType } from '@/types/business';
 
 export const routes = {
   editProfile: '/profile/edit' as Href,
@@ -8,6 +9,11 @@ export const routes = {
   saved: '/profile/saved' as Href,
   businesses: '/business' as Href,
   newBusiness: '/business/new' as Href,
+  newBusinessFor: (businessType: BusinessType) =>
+    ({
+      pathname: '/business/new',
+      params: { businessType },
+    }) as Href,
   business: (id: string) =>
     ({ pathname: '/business/[id]', params: { id } }) as unknown as Href,
   editBusiness: (id: string) =>

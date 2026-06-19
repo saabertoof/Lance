@@ -1,146 +1,175 @@
-import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { router } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
-import { Card, Screen } from '@/components/ui';
+import {
+  CreatePathGrid,
+  CreateStudioSkeleton,
+  DraftContinuation,
+  YourCreations,
+} from '@/components/create';
+import { Screen } from '@/components/ui';
 import { theme } from '@/constants/theme';
+import { useAuth } from '@/context/AuthContext';
+import { useAdaptiveTabBar } from '@/context/AdaptiveTabBarContext';
+import {
+  loadCreateStudioSummary,
+  type CreateStudioSummary,
+} from '@/lib/createStudio';
 import { routes } from '@/lib/routes';
 
+const emptySummary: CreateStudioSummary = {
+  businesses: [],
+  drafts: [],
+  failedSections: [],
+  opportunities: [],
+};
+
 export default function CreateScreen() {
+  const { user } = useAuth();
+  const { reduceMotion } = useAdaptiveTabBar();
+  const [summary, setSummary] = useState<CreateStudioSummary>(emptySummary);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    if (!user) return;
+    setIsLoading(true);
+    const result = await loadCreateStudioSummary(user.id);
+    setSummary(result);
+    setIsLoading(false);
+  }, [user]);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      if (!user) return undefined;
+
+      setIsLoading(true);
+      loadCreateStudioSummary(user.id)
+        .then((result) => {
+          if (active) setSummary(result);
+        })
+        .finally(() => {
+          if (active) setIsLoading(false);
+        });
+
+      return () => {
+        active = false;
+      };
+    }, [user]),
+  );
+
   return (
     <Screen compact scroll contentStyle={styles.screen}>
-      <View style={styles.intro}>
-        <Text style={styles.sectionLabel}>What are you creating?</Text>
+      <Animated.View
+        entering={reduceMotion ? undefined : FadeInDown.duration(280)}
+        style={styles.intro}>
+        <Text style={styles.eyebrow}>CREATE STUDIO</Text>
+        <Text style={styles.title}>What are you building?</Text>
         <Text style={styles.subtitle}>
-          Choose a job to publish or a business identity to manage.
+          Post a role, launch a project, or create a home for your business.
         </Text>
-      </View>
+      </Animated.View>
 
-      <ActionCard
-        body="Post personally or as a business. Draft or publish when ready."
-        icon="briefcase-outline"
-        onPress={() => router.push(routes.newOpportunity())}
-        title="Post an opportunity"
-      />
-      <ActionCard
-        body="Create a home for a startup, agency, project, or community."
-        icon="business-outline"
-        onPress={() => router.push(routes.newBusiness)}
-        title="Create a business or project"
+      <CreatePathGrid
+        onBusiness={() => router.push(routes.newBusinessFor('startup'))}
+        onJob={() => router.push(routes.newOpportunity())}
+        onProject={() => router.push(routes.newBusinessFor('project'))}
+        reduceMotion={reduceMotion}
       />
 
-      <View style={styles.secondary}>
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => router.push(routes.opportunities)}
-          style={({ pressed }) => [styles.secondaryAction, pressed && styles.pressed]}>
-          <Text style={styles.secondaryLabel}>Manage my opportunities</Text>
-          <Ionicons color={theme.colors.muted} name="chevron-forward" size={20} />
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => router.push(routes.businesses)}
-          style={({ pressed }) => [styles.secondaryAction, pressed && styles.pressed]}>
-          <Text style={styles.secondaryLabel}>Manage my businesses</Text>
-          <Ionicons color={theme.colors.muted} name="chevron-forward" size={20} />
-        </Pressable>
-      </View>
+      {isLoading ? <CreateStudioSkeleton /> : null}
+
+      {!isLoading ? (
+        <>
+          <DraftContinuation
+            drafts={summary.drafts}
+            onOpen={(id) => router.push(routes.editOpportunity(id))}
+          />
+          <YourCreations
+            businesses={summary.businesses}
+            onBusiness={(id) => router.push(routes.business(id))}
+            onJob={(id) => router.push(routes.opportunity(id))}
+            onManageBusinesses={() => router.push(routes.businesses)}
+            onManageJobs={() => router.push(routes.opportunities)}
+            opportunities={summary.opportunities}
+          />
+        </>
+      ) : null}
+
+      {summary.failedSections.length > 0 && !isLoading ? (
+        <View style={styles.loadError}>
+          <Text style={styles.loadErrorText}>
+            Some recent creations could not be loaded. Your creation tools are
+            still available.
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => void load()}
+            style={({ pressed }) => [
+              styles.retry,
+              pressed && styles.pressed,
+            ]}>
+            <Text style={styles.retryLabel}>Retry</Text>
+          </Pressable>
+        </View>
+      ) : null}
     </Screen>
-  );
-}
-
-function ActionCard({
-  body,
-  icon,
-  onPress,
-  title,
-}: {
-  body: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  onPress: () => void;
-  title: string;
-}) {
-  return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={onPress}
-      style={({ pressed }) => pressed && styles.pressed}>
-      <Card style={styles.card}>
-        <View style={styles.icon}>
-          <Ionicons color={theme.colors.accentStrong} name={icon} size={25} />
-        </View>
-        <View style={styles.cardCopy}>
-          <Text style={styles.cardTitle}>{title}</Text>
-          <Text style={styles.cardBody}>{body}</Text>
-        </View>
-        <Ionicons color={theme.colors.muted} name="arrow-forward" size={21} />
-      </Card>
-    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   screen: {
-    gap: theme.density.contentGap,
+    gap: theme.spacing.xl,
   },
   intro: {
     gap: theme.spacing.xs,
   },
-  sectionLabel: {
+  eyebrow: {
+    color: theme.colors.accentStrong,
+    fontSize: theme.typography.caption,
+    fontWeight: '800',
+  },
+  title: {
     color: theme.colors.text,
-    fontSize: theme.typography.sectionHeading,
-    fontWeight: '900',
+    fontSize: theme.typography.screenHeading,
+    fontWeight: '800',
+    lineHeight: 29,
   },
   subtitle: {
     color: theme.colors.muted,
     fontSize: theme.typography.bodySmall,
     lineHeight: 20,
+    maxWidth: 440,
   },
-  card: {
+  loadError: {
     alignItems: 'center',
+    backgroundColor: theme.colors.surfaceMuted,
+    borderRadius: theme.radii.md,
     flexDirection: 'row',
     gap: theme.spacing.md,
+    padding: theme.spacing.md,
   },
-  icon: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.accentSoft,
-    borderRadius: theme.radii.md,
-    height: 44,
-    justifyContent: 'center',
-    width: 44,
-  },
-  cardCopy: {
-    flex: 1,
-    gap: theme.spacing.xs,
-  },
-  cardTitle: {
-    color: theme.colors.text,
-    fontSize: theme.typography.cardTitle,
-    fontWeight: '900',
-  },
-  cardBody: {
+  loadErrorText: {
     color: theme.colors.muted,
-    fontSize: theme.typography.small,
-    lineHeight: 19,
+    flex: 1,
+    fontSize: theme.typography.label,
+    lineHeight: 17,
   },
-  secondary: {
-    borderTopColor: theme.colors.border,
-    borderTopWidth: 1,
-    marginTop: theme.spacing.xs,
-    paddingTop: theme.spacing.sm,
-  },
-  secondaryAction: {
+  retry: {
     alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    minHeight: theme.controls.standard,
+    justifyContent: 'center',
+    minHeight: theme.layout.minTouchTarget,
+    paddingHorizontal: theme.spacing.sm,
   },
-  secondaryLabel: {
-    color: theme.colors.text,
-    fontSize: 15,
-    fontWeight: '700',
+  retryLabel: {
+    color: theme.colors.accentStrong,
+    fontSize: theme.typography.small,
+    fontWeight: '800',
   },
   pressed: {
-    opacity: 0.7,
+    opacity: 0.65,
   },
 });

@@ -22,6 +22,7 @@ import {
 const tabDefinitions: Record<
   string,
   {
+    activeIcon?: keyof typeof Ionicons.glyphMap;
     icon: keyof typeof Ionicons.glyphMap;
     label: string;
   }
@@ -29,7 +30,11 @@ const tabDefinitions: Record<
   discover: { icon: 'compass-outline', label: 'Discover' },
   search: { icon: 'search-outline', label: 'Search' },
   create: { icon: 'add', label: 'Create' },
-  messages: { icon: 'chatbubble-outline', label: 'Messages' },
+  messages: {
+    activeIcon: 'paper-plane',
+    icon: 'paper-plane-outline',
+    label: 'Messages',
+  },
   profile: { icon: 'person-outline', label: 'Profile' },
 };
 
@@ -128,6 +133,15 @@ export function AdaptiveTabBar({
               accessibilityLabel={definition.label}
               accessibilityRole="tab"
               accessibilityState={{ selected }}
+              accessibilityValue={
+                route.name === 'messages'
+                  ? {
+                      text: badge
+                        ? `${badge} unread message${badge === 1 ? '' : 's'}`
+                        : 'No unread messages',
+                    }
+                  : undefined
+              }
               key={route.key}
               onLongPress={() =>
                 navigation.emit({
@@ -176,7 +190,11 @@ export function AdaptiveTabBar({
                       color={
                         selected ? theme.colors.white : 'rgba(255,255,255,0.72)'
                       }
-                      name={definition.icon}
+                      name={
+                        selected
+                          ? definition.activeIcon ?? definition.icon
+                          : definition.icon
+                      }
                       size={route.name === 'create' ? 28 : 25}
                     />
                   )}
@@ -264,8 +282,8 @@ const styles = StyleSheet.create({
     minWidth: 20,
     paddingHorizontal: 4,
     position: 'absolute',
-    right: -3,
-    top: -3,
+    right: -5,
+    top: -4,
   },
   badgeText: {
     color: theme.colors.white,

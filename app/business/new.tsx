@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -10,13 +10,24 @@ import { useAuth } from '@/context/AuthContext';
 import { useFeedback } from '@/context/FeedbackContext';
 import { formatBusinessError, saveBusiness } from '@/lib/business';
 import { routes } from '@/lib/routes';
-import { createEmptyBusinessDraft } from '@/types/business';
+import {
+  businessTypeOptions,
+  createEmptyBusinessDraft,
+  type BusinessType,
+} from '@/types/business';
 
 export default function NewBusinessScreen() {
+  const params = useLocalSearchParams<{ businessType?: string }>();
   const { user } = useAuth();
   const { showSuccess, showWarning } = useFeedback();
   const submissionRef = useRef(false);
-  const [draft, setDraft] = useState(createEmptyBusinessDraft);
+  const initialBusinessType = isBusinessType(params.businessType)
+    ? params.businessType
+    : null;
+  const [draft, setDraft] = useState(() => ({
+    ...createEmptyBusinessDraft(),
+    ...(initialBusinessType ? { businessType: initialBusinessType } : {}),
+  }));
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [urlStatus, setUrlStatus] = useState<BusinessUrlStatus>('idle');
@@ -42,7 +53,11 @@ export default function NewBusinessScreen() {
         showWarning(result.logoWarning);
       } else {
         showSuccess(
-          draft.localLogoBase64 ? 'Business created. Logo uploaded.' : 'Business created.',
+          draft.businessType === 'project'
+            ? 'Project launched.'
+            : draft.localLogoBase64
+              ? 'Business created. Logo uploaded.'
+              : 'Business created.',
         );
       }
 
@@ -65,7 +80,9 @@ export default function NewBusinessScreen() {
           style={styles.iconButton}>
           <Ionicons color={theme.colors.text} name="close" size={24} />
         </Pressable>
-        <Text style={styles.title}>Create business</Text>
+        <Text style={styles.title}>
+          {draft.businessType === 'project' ? 'Launch project' : 'Create business'}
+        </Text>
         <View style={styles.placeholder} />
       </View>
       <BusinessForm
@@ -80,12 +97,18 @@ export default function NewBusinessScreen() {
       ) : null}
       <Button
         disabled={urlStatus !== 'available'}
-        label="Create business or project"
+        label={
+          draft.businessType === 'project' ? 'Launch project' : 'Create business'
+        }
         loading={isSaving}
         onPress={createBusiness}
       />
     </Screen>
   );
+}
+
+function isBusinessType(value: string | undefined): value is BusinessType {
+  return businessTypeOptions.some((option) => option.value === value);
 }
 
 const styles = StyleSheet.create({
