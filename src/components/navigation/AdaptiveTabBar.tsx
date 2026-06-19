@@ -41,10 +41,12 @@ const tabDefinitions: Record<
 export function AdaptiveTabBar({
   avatarUrl,
   navigation,
+  searchAlertCount,
   state,
   unreadCount,
 }: BottomTabBarProps & {
   avatarUrl: string | null;
+  searchAlertCount: number;
   unreadCount: number;
 }) {
   const insets = useSafeAreaInsets();
@@ -126,6 +128,8 @@ export function AdaptiveTabBar({
           const badge =
             route.name === 'messages' && unreadCount > 0
               ? Math.min(unreadCount, 99)
+              : route.name === 'search' && searchAlertCount > 0
+                ? Math.min(searchAlertCount, 99)
               : null;
 
           return (
@@ -134,11 +138,15 @@ export function AdaptiveTabBar({
               accessibilityRole="tab"
               accessibilityState={{ selected }}
               accessibilityValue={
-                route.name === 'messages'
+                route.name === 'messages' || route.name === 'search'
                   ? {
                       text: badge
-                        ? `${badge} unread message${badge === 1 ? '' : 's'}`
-                        : 'No unread messages',
+                        ? route.name === 'messages'
+                          ? `${badge} unread message${badge === 1 ? '' : 's'}`
+                          : `${badge} unread Job alert${badge === 1 ? '' : 's'}`
+                        : route.name === 'messages'
+                          ? 'No unread messages'
+                          : 'No unread Job alerts',
                     }
                   : undefined
               }

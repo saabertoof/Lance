@@ -53,4 +53,6 @@ export const routes = {
   }) as unknown as Href,
   communicationSettings: '/profile/communication' as Href,
   interestedTalentHub: '/profile/interested-talent' as Href,
+  savedSearches: '/search/manage' as Href,
+  searchAlerts: '/search/alerts' as Href,
 };

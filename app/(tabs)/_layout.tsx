@@ -7,11 +7,13 @@ import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { AdaptiveTabBarProvider } from '@/context/AdaptiveTabBarContext';
 import { useMessaging } from '@/context/MessagingContext';
+import { useSearchAlerts } from '@/context/SearchAlertsContext';
 import { supabase } from '@/lib/supabase';
 
 export default function TabLayout() {
   const { isLoading, onboardingStatus, session, user } = useAuth();
   const { unreadCount } = useMessaging();
+  const { unreadCount: searchAlertCount } = useSearchAlerts();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -71,6 +73,7 @@ export default function TabLayout() {
           <AdaptiveTabBar
             {...props}
             avatarUrl={avatarUrl}
+            searchAlertCount={searchAlertCount}
             unreadCount={unreadCount}
           />
         )}

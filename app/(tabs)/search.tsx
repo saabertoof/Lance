@@ -1,6 +1,7 @@
-import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { BusinessCard } from '@/components/business';
 import {
@@ -15,10 +16,18 @@ import {
   SegmentedControl,
 } from '@/components/discovery';
 import { OpportunityCard } from '@/components/opportunity';
+import {
+  AskLanceSheet,
+  MatchReasons,
+  SaveSearchSheet,
+  SearchPlanReview,
+} from '@/components/search';
 import { Button, EmptyState, LoadingState, Screen } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
+import { useFeedback } from '@/context/FeedbackContext';
 import { useSaved } from '@/context/SavedContext';
+import { useSearchAlerts } from '@/context/SearchAlertsContext';
 import {
   formatDiscoveryError,
   loadSkillOptions,
@@ -28,6 +37,21 @@ import {
   searchPeople,
 } from '@/lib/discovery';
 import { routes } from '@/lib/routes';
+import {
+  loadAlertSchedulerStatus,
+  loadSavedSearch,
+  markSavedSearchOpened,
+  saveSearch,
+} from '@/lib/searchPhase6';
+import {
+  getPlanMatchReasons,
+  planToSearchState,
+  removeSearchPlanChip,
+  searchStateToPlan,
+  suggestedSearchName,
+  type SearchExecutionState,
+  type SearchPlanChip,
+} from '@/lib/searchPlan';
 import type { BusinessRecord } from '@/types/business';
 import {
   countBusinessFilters,
@@ -43,21 +67,28 @@ import {
 } from '@/types/discovery';
 import type { OpportunityRecord } from '@/types/opportunity';
 import type { PublicProfile } from '@/types/profile';
+import type { SearchPlanV1 } from '../../supabase/functions/_shared/search-plan';
 
 const searchModes = [
   { label: 'People', value: 'people' },
-  { label: 'Opportunities', value: 'opportunities' },
+  { label: 'Jobs', value: 'opportunities' },
   { label: 'Businesses', value: 'businesses' },
 ] as const;
 
 const placeholders: Record<SearchMode, string> = {
   people: 'Search people, roles, skills, or location',
-  opportunities: 'Search opportunities, skills, or posters',
+  opportunities: 'Search Jobs, skills, or posters',
   businesses: 'Search businesses, projects, or industries',
 };
 
 export default function SearchScreen() {
+  const { savedSearchId, savedSearchRun } = useLocalSearchParams<{
+    savedSearchId?: string;
+    savedSearchRun?: string;
+  }>();
   const { user } = useAuth();
+  const { showSuccess, showWarning } = useFeedback();
+  const { unreadCount: alertUnreadCount } = useSearchAlerts();
   const {
     isOpportunitySaved,
     isProfileSaved,
@@ -83,8 +114,16 @@ export default function SearchScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [askOpen, setAskOpen] = useState(false);
+  const [saveOpen, setSaveOpen] = useState(false);
+  const [activePlan, setActivePlan] = useState<SearchPlanV1 | null>(null);
+  const [originalNaturalQuery, setOriginalNaturalQuery] = useState<
+    string | null
+  >(null);
+  const [schedulerEnabled, setSchedulerEnabled] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const requestId = useRef(0);
+  const openedSavedSearch = useRef<string | null>(null);
 
   useEffect(() => {
     const timeout = setTimeout(() => setDebouncedQuery(query.trim()), 350);
@@ -93,7 +132,28 @@ export default function SearchScreen() {
 
   useEffect(() => {
     loadSkillOptions().then(setSkillOptions).catch(() => undefined);
+    loadAlertSchedulerStatus()
+      .then(setSchedulerEnabled)
+      .catch(() => setSchedulerEnabled(false));
   }, []);
+
+  useEffect(() => {
+    const id = Array.isArray(savedSearchId) ? savedSearchId[0] : savedSearchId;
+    const run = Array.isArray(savedSearchRun)
+      ? savedSearchRun[0]
+      : savedSearchRun;
+    const loadKey = `${id ?? ''}:${run ?? ''}`;
+    if (!id || openedSavedSearch.current === loadKey) return;
+    openedSavedSearch.current = loadKey;
+    loadSavedSearch(id)
+      .then((saved) => {
+        if (!saved) throw new Error('Saved search not found.');
+        applySearchPlan(saved.filterPlan, saved.originalQuery);
+        return markSavedSearchOpened(saved.id);
+      })
+      .then(() => showSuccess('Saved search loaded.'))
+      .catch(() => showWarning('That saved search could not be loaded.'));
+  }, [savedSearchId, savedSearchRun, showSuccess, showWarning]);
 
   const load = useCallback(
     async (reset: boolean, offset: number) => {
@@ -178,26 +238,174 @@ export default function SearchScreen() {
         ? opportunities.length
         : businesses.length;
 
+  function currentSearchState(
+    overrides: Partial<SearchExecutionState> = {},
+  ): SearchExecutionState {
+    return {
+      mode,
+      query,
+      peopleFilters,
+      opportunityFilters,
+      businessFilters,
+      ...overrides,
+    };
+  }
+
+  function applySearchPlan(plan: SearchPlanV1, originalQuery: string | null) {
+    const state = planToSearchState(plan);
+    setMode(state.mode);
+    setQuery(state.query);
+    setPeopleFilters(state.peopleFilters);
+    setOpportunityFilters(state.opportunityFilters);
+    setBusinessFilters(state.businessFilters);
+    setActivePlan(plan);
+    setOriginalNaturalQuery(originalQuery);
+  }
+
+  function updateActivePlan(state: SearchExecutionState) {
+    if (!activePlan) return;
+    setActivePlan(searchStateToPlan(state, originalNaturalQuery));
+  }
+
+  function handleModeChange(nextMode: SearchMode) {
+    setMode(nextMode);
+    setActivePlan(null);
+    setOriginalNaturalQuery(null);
+  }
+
+  function handleQueryChange(nextQuery: string) {
+    setQuery(nextQuery);
+    updateActivePlan(currentSearchState({ query: nextQuery }));
+  }
+
+  function removePlanChip(chip: SearchPlanChip) {
+    if (!activePlan) return;
+    const nextPlan = removeSearchPlanChip(activePlan, chip.id);
+    applySearchPlan(nextPlan, originalNaturalQuery);
+  }
+
   function clearActiveFilters() {
-    if (mode === 'people') setPeopleFilters({ ...emptyPeopleFilters });
-    else if (mode === 'opportunities') {
-      setOpportunityFilters({ ...emptyOpportunityFilters });
-    } else {
-      setBusinessFilters({ ...emptyBusinessFilters });
+    if (mode === 'people') {
+      const next = { ...emptyPeopleFilters };
+      setPeopleFilters(next);
+      updateActivePlan(currentSearchState({ peopleFilters: next }));
     }
+    else if (mode === 'opportunities') {
+      const next = { ...emptyOpportunityFilters };
+      setOpportunityFilters(next);
+      updateActivePlan(currentSearchState({ opportunityFilters: next }));
+    } else {
+      const next = { ...emptyBusinessFilters };
+      setBusinessFilters(next);
+      updateActivePlan(currentSearchState({ businessFilters: next }));
+    }
+  }
+
+  async function handleSaveSearch(
+    name: string,
+    alertFrequency: 'paused' | 'daily' | 'weekly',
+  ) {
+    const state = currentSearchState();
+    const plan =
+      activePlan ?? searchStateToPlan(state, originalNaturalQuery);
+    await saveSearch({
+      alertFrequency,
+      name,
+      originalQuery: originalNaturalQuery,
+      plan,
+      state,
+    });
+    showSuccess(
+      alertFrequency === 'paused'
+        ? 'Search saved.'
+        : `${alertFrequency === 'daily' ? 'Daily' : 'Weekly'} Job alert enabled.`,
+    );
   }
 
   return (
     <Screen compact scroll contentStyle={styles.screen}>
       <View style={styles.controls}>
         <SearchBar
-          onChangeText={setQuery}
+          onChangeText={handleQueryChange}
           placeholder={placeholders[mode]}
           value={query}
         />
-        <FilterButton count={activeCount} onPress={() => setFiltersOpen(true)} />
+        <Pressable
+          accessibilityLabel="Ask Lance"
+          accessibilityRole="button"
+          onPress={() => setAskOpen(true)}
+          style={({ pressed }) => [
+            styles.iconButton,
+            styles.askButton,
+            pressed && styles.pressed,
+          ]}>
+          <Ionicons
+            color={theme.colors.accentStrong}
+            name="sparkles"
+            size={20}
+          />
+        </Pressable>
+        <FilterButton
+          compact
+          count={activeCount}
+          onPress={() => setFiltersOpen(true)}
+        />
       </View>
-      <SegmentedControl onChange={setMode} options={searchModes} value={mode} />
+      <SegmentedControl
+        onChange={handleModeChange}
+        options={searchModes}
+        value={mode}
+      />
+
+      <View style={styles.searchActions}>
+        <Pressable
+          accessibilityLabel="Save this search"
+          accessibilityRole="button"
+          onPress={() => setSaveOpen(true)}
+          style={({ pressed }) => [
+            styles.compactAction,
+            pressed && styles.pressed,
+          ]}>
+          <Ionicons
+            color={theme.colors.text}
+            name="bookmark-outline"
+            size={17}
+          />
+          <Text style={styles.compactActionText}>Save search</Text>
+        </Pressable>
+        <Pressable
+          accessibilityLabel={
+            alertUnreadCount > 0
+              ? `Saved searches and alerts, ${alertUnreadCount} unread Job alerts`
+              : 'Saved searches and alerts'
+          }
+          accessibilityRole="button"
+          onPress={() => router.push(routes.savedSearches)}
+          style={({ pressed }) => [
+            styles.compactAction,
+            pressed && styles.pressed,
+          ]}>
+          <View>
+            <Ionicons
+              color={theme.colors.text}
+              name="notifications-outline"
+              size={17}
+            />
+            {alertUnreadCount > 0 ? (
+              <View style={styles.alertDot}>
+                <Text style={styles.alertDotText}>
+                  {Math.min(alertUnreadCount, 99)}
+                </Text>
+              </View>
+            ) : null}
+          </View>
+          <Text style={styles.compactActionText}>Saved & alerts</Text>
+        </Pressable>
+      </View>
+
+      {activePlan ? (
+        <SearchPlanReview onRemove={removePlanChip} plan={activePlan} />
+      ) : null}
 
       {!isLoading && !error ? (
         <Text style={styles.resultCount}>
@@ -224,6 +432,9 @@ export default function SearchScreen() {
                   void setProfileSaved(profile.id, !isProfileSaved(profile.id))
                 }
                 profile={profile}
+              />
+              <MatchReasons
+                reasons={getPlanMatchReasons(activePlan, profile)}
               />
               <RelationshipAction
                 compact
@@ -254,6 +465,9 @@ export default function SearchScreen() {
                 }
                 opportunity={opportunity}
               />
+              <MatchReasons
+                reasons={getPlanMatchReasons(activePlan, opportunity)}
+              />
               {opportunity.ownerProfileId !== user?.id ? (
                 <OpportunityInterestAction
                   deferLoad
@@ -269,12 +483,16 @@ export default function SearchScreen() {
       {!isLoading && !error && mode === 'businesses' ? (
         <View style={styles.results}>
           {businesses.map((business) => (
-            <BusinessCard
-              business={business}
-              key={business.id}
-              onPress={() => router.push(routes.business(business.id))}
-              showDrafts={false}
-            />
+            <View key={business.id} style={styles.resultGroup}>
+              <BusinessCard
+                business={business}
+                onPress={() => router.push(routes.business(business.id))}
+                showDrafts={false}
+              />
+              <MatchReasons
+                reasons={getPlanMatchReasons(activePlan, business)}
+              />
+            </View>
           ))}
         </View>
       ) : null}
@@ -303,14 +521,39 @@ export default function SearchScreen() {
       <FilterModal
         businessFilters={businessFilters}
         mode={mode}
-        onApplyBusiness={setBusinessFilters}
-        onApplyOpportunity={setOpportunityFilters}
-        onApplyPeople={setPeopleFilters}
+        onApplyBusiness={(next) => {
+          setBusinessFilters(next);
+          updateActivePlan(currentSearchState({ businessFilters: next }));
+        }}
+        onApplyOpportunity={(next) => {
+          setOpportunityFilters(next);
+          updateActivePlan(currentSearchState({ opportunityFilters: next }));
+        }}
+        onApplyPeople={(next) => {
+          setPeopleFilters(next);
+          updateActivePlan(currentSearchState({ peopleFilters: next }));
+        }}
         onClose={() => setFiltersOpen(false)}
         opportunityFilters={opportunityFilters}
         peopleFilters={peopleFilters}
         skillOptions={skillOptions}
         visible={filtersOpen}
+      />
+      <AskLanceSheet
+        mode={mode}
+        onApply={(plan, originalQuery) =>
+          applySearchPlan(plan, originalQuery)
+        }
+        onClose={() => setAskOpen(false)}
+        visible={askOpen}
+      />
+      <SaveSearchSheet
+        canAlert={mode === 'opportunities'}
+        initialName={suggestedSearchName(currentSearchState())}
+        onClose={() => setSaveOpen(false)}
+        onSave={handleSaveSearch}
+        schedulerEnabled={schedulerEnabled}
+        visible={saveOpen}
       />
     </Screen>
   );
@@ -331,6 +574,59 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: theme.spacing.sm,
   },
+  iconButton: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    borderColor: theme.colors.border,
+    borderRadius: 22,
+    borderWidth: 1,
+    height: 44,
+    justifyContent: 'center',
+    width: 44,
+  },
+  askButton: {
+    backgroundColor: theme.colors.accentSoft,
+    borderColor: '#D8CEFF',
+  },
+  searchActions: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
+  compactAction: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radii.pill,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+    minHeight: 40,
+    paddingHorizontal: theme.spacing.md,
+  },
+  compactActionText: {
+    color: theme.colors.text,
+    fontSize: theme.typography.label,
+    fontWeight: '700',
+  },
+  alertDot: {
+    alignItems: 'center',
+    backgroundColor: '#E34949',
+    borderColor: theme.colors.surface,
+    borderRadius: 8,
+    borderWidth: 1,
+    minHeight: 16,
+    minWidth: 16,
+    paddingHorizontal: 3,
+    position: 'absolute',
+    right: -8,
+    top: -7,
+  },
+  alertDotText: {
+    color: theme.colors.white,
+    fontSize: 8,
+    fontWeight: '900',
+  },
   resultCount: {
     color: theme.colors.muted,
     fontSize: theme.typography.label,
@@ -344,5 +640,8 @@ const styles = StyleSheet.create({
   state: {
     gap: theme.spacing.sm,
     paddingVertical: theme.spacing.lg,
+  },
+  pressed: {
+    opacity: 0.72,
   },
 });

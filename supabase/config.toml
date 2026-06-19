@@ -1,0 +1,7 @@
+project_id = "lance"
+
+[functions.ask-lance]
+verify_jwt = true
+
+[functions.process-search-alerts]
+verify_jwt = false

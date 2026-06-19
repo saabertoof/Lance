@@ -8,6 +8,7 @@ import { AuthProvider } from '@/context/AuthContext';
 import { FeedbackProvider } from '@/context/FeedbackContext';
 import { SavedProvider } from '@/context/SavedContext';
 import { MessagingProvider } from '@/context/MessagingContext';
+import { SearchAlertsProvider } from '@/context/SearchAlertsContext';
 
 export default function RootLayout() {
   return (
@@ -15,30 +16,33 @@ export default function RootLayout() {
       <AuthProvider>
         <SavedProvider>
           <MessagingProvider>
-            <ThemeProvider value={lanceNavigationTheme}>
-              <Stack
-                screenOptions={{
-                  contentStyle: {
-                    backgroundColor: lanceNavigationTheme.colors.background,
-                  },
-                  headerShown: false,
-                }}>
-                <Stack.Screen name="index" />
-                <Stack.Screen name="(auth)" />
-                <Stack.Screen name="(onboarding)" />
-                <Stack.Screen name="(tabs)" />
-                <Stack.Screen name="business" />
-                <Stack.Screen name="opportunity" />
-                <Stack.Screen name="profile" />
-                <Stack.Screen name="messages" />
-                <Stack.Screen name="request" />
-              </Stack>
-              <StatusBar
-                backgroundColor="transparent"
-                style="dark"
-                translucent
-              />
-            </ThemeProvider>
+            <SearchAlertsProvider>
+              <ThemeProvider value={lanceNavigationTheme}>
+                <Stack
+                  screenOptions={{
+                    contentStyle: {
+                      backgroundColor: lanceNavigationTheme.colors.background,
+                    },
+                    headerShown: false,
+                  }}>
+                  <Stack.Screen name="index" />
+                  <Stack.Screen name="(auth)" />
+                  <Stack.Screen name="(onboarding)" />
+                  <Stack.Screen name="(tabs)" />
+                  <Stack.Screen name="business" />
+                  <Stack.Screen name="opportunity" />
+                  <Stack.Screen name="profile" />
+                  <Stack.Screen name="messages" />
+                  <Stack.Screen name="request" />
+                  <Stack.Screen name="search" />
+                </Stack>
+                <StatusBar
+                  backgroundColor="transparent"
+                  style="dark"
+                  translucent
+                />
+              </ThemeProvider>
+            </SearchAlertsProvider>
           </MessagingProvider>
         </SavedProvider>
       </AuthProvider>
