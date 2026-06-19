@@ -6,6 +6,7 @@ import { SaveButton } from '@/components/saved';
 import { Chip } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import {
+  availabilityOptions,
   getOptionLabel,
   remotePreferenceOptions,
   type PublicProfile,
@@ -36,56 +37,101 @@ export function PersonCard({
       .join('') || 'L';
 
   if (discover) {
+    const featuredPortfolio = profile.polish.portfolio.find(
+      (item) =>
+        item.itemType === 'image' && (item.thumbnailUrl || item.mediaUrl),
+    );
     const heroImage =
+      featuredPortfolio?.thumbnailUrl ??
+      featuredPortfolio?.mediaUrl ??
       profile.polish.bannerUrl ??
-      profile.polish.portfolio.find((item) => item.mediaUrl || item.thumbnailUrl)
-        ?.thumbnailUrl ??
-      profile.polish.portfolio.find((item) => item.mediaUrl)?.mediaUrl ??
+      profile.avatarUrl ??
       null;
     const prompt = profile.polish.prompts[0];
+    const statement = prompt?.answer || profile.headline || profile.bio;
+    const showSmallAvatar =
+      Boolean(profile.avatarUrl) && heroImage !== profile.avatarUrl;
 
     return (
       <View style={[styles.card, styles.discoverCard]}>
-        <View style={styles.heroMedia}>
-          {heroImage ? (
-            <Image contentFit="cover" source={heroImage} style={styles.image} />
-          ) : (
-            <View style={styles.heroFallback}>
-              <Ionicons color={theme.colors.accentStrong} name="sparkles-outline" size={34} />
-            </View>
-          )}
-          <View style={styles.savedMark}>
-            <Ionicons
-              color={isSaved ? theme.colors.accentStrong : theme.colors.muted}
-              name={isSaved ? 'bookmark' : 'bookmark-outline'}
-              size={23}
-            />
+        {heroImage ? (
+          <Image
+            contentFit="cover"
+            source={heroImage}
+            style={styles.discoverImage}
+            transition={160}
+          />
+        ) : (
+          <View style={styles.heroFallback}>
+            <View style={styles.fallbackAccent} />
+            <Text style={styles.fallbackInitials}>{initials}</Text>
           </View>
-        </View>
+        )}
+        <View style={styles.mediaShade} />
+        <View style={styles.fadeTop} />
+        <View style={styles.fadeMiddle} />
+        <View style={styles.fadeBottom} />
+
         <View style={styles.discoverContent}>
           <View style={styles.discoverIdentity}>
-            <View style={styles.overlapAvatar}>
-              {profile.avatarUrl ? (
-                <Image contentFit="cover" source={profile.avatarUrl} style={styles.image} />
-              ) : (
-                <Text style={styles.discoverInitials}>{initials}</Text>
-              )}
-            </View>
+            {showSmallAvatar ? (
+              <View style={styles.smallAvatar}>
+                <Image
+                  contentFit="cover"
+                  source={profile.avatarUrl}
+                  style={styles.image}
+                />
+              </View>
+            ) : null}
             <View style={styles.identity}>
-              <Text numberOfLines={1} style={styles.discoverName}>{profile.displayName}</Text>
-              <Text numberOfLines={1} style={styles.username}>@{profile.username} · {profile.primaryRole}</Text>
+              <Text numberOfLines={1} style={styles.discoverName}>
+                {profile.displayName}
+              </Text>
+              <Text numberOfLines={1} style={styles.discoverRole}>
+                {profile.primaryRole}
+                {profile.username ? `  @${profile.username}` : ''}
+              </Text>
             </View>
+            {isSaved ? (
+              <View style={styles.savedIndicator}>
+                <Ionicons color={theme.colors.white} name="bookmark" size={15} />
+              </View>
+            ) : null}
           </View>
-          <Text numberOfLines={2} style={styles.headline}>{profile.headline}</Text>
-          <Text numberOfLines={1} style={styles.location}>
-            {[profile.polish.location?.label ?? profile.city, getOptionLabel(remotePreferenceOptions, profile.remotePreference)]
-              .filter(Boolean)
-              .join(' · ')}
-          </Text>
+
+          <View style={styles.metaRow}>
+            <Ionicons
+              color="rgba(255,255,255,0.82)"
+              name="location-outline"
+              size={15}
+            />
+            <Text numberOfLines={1} style={styles.metaText}>
+              {profile.polish.location?.label ?? profile.city}
+            </Text>
+            <View style={styles.metaDot} />
+            <Text numberOfLines={1} style={styles.metaText}>
+              {getOptionLabel(
+                remotePreferenceOptions,
+                profile.remotePreference,
+              )}
+            </Text>
+          </View>
+
+          <View style={styles.metaRow}>
+            <Ionicons
+              color="rgba(255,255,255,0.82)"
+              name="time-outline"
+              size={15}
+            />
+            <Text numberOfLines={1} style={styles.metaText}>
+              {getOptionLabel(availabilityOptions, profile.availability)}
+            </Text>
+          </View>
+
           {profile.polish.currentIntents.length > 0 ? (
-            <View style={styles.chips}>
+            <View style={styles.overlayPills}>
               {profile.polish.currentIntents.slice(0, 2).map((intent) => (
-                <Chip
+                <OverlayPill
                   accent
                   key={intent}
                   label={intentLabels[intent] ?? intent.replace(/_/g, ' ')}
@@ -93,19 +139,26 @@ export function PersonCard({
               ))}
             </View>
           ) : null}
-          <View style={styles.chips}>
-            {profile.skills.slice(0, 4).map((skill) => <Chip key={skill.toLowerCase()} label={skill} />)}
-          </View>
-          {prompt || profile.bio ? (
-            <Text numberOfLines={2} style={styles.excerpt}>
-              {prompt?.answer ?? profile.bio}
+
+          {profile.skills.length > 0 ? (
+            <View style={styles.overlayPills}>
+              {profile.skills.slice(0, 3).map((skill) => (
+                <OverlayPill key={skill.toLowerCase()} label={skill} />
+              ))}
+            </View>
+          ) : null}
+
+          {statement ? (
+            <Text numberOfLines={2} style={styles.discoverStatement}>
+              {statement}
             </Text>
           ) : null}
+
           {reasons.length > 0 ? (
             <View style={styles.reason}>
-              <Ionicons color={theme.colors.accentStrong} name="sparkles-outline" size={16} />
-              <Text numberOfLines={2} style={styles.reasonText}>
-                Why you&apos;re seeing this: {reasons.join(' · ')}
+              <Ionicons color="#C8BEFF" name="sparkles-outline" size={14} />
+              <Text numberOfLines={1} style={styles.reasonText}>
+                {reasons.join(' | ')}
               </Text>
             </View>
           ) : null}
@@ -119,11 +172,13 @@ export function PersonCard({
       <View style={styles.header}>
         <View style={styles.avatar}>
           {profile.avatarUrl ? (
-            <Image contentFit="cover" source={profile.avatarUrl} style={styles.image} />
+            <Image
+              contentFit="cover"
+              source={profile.avatarUrl}
+              style={styles.image}
+            />
           ) : (
-            <Text style={styles.initials}>
-              {initials}
-            </Text>
+            <Text style={styles.initials}>{initials}</Text>
           )}
         </View>
         <View style={styles.identity}>
@@ -148,7 +203,13 @@ export function PersonCard({
           {profile.headline}
         </Text>
         <Text style={styles.location}>
-          {[profile.city, getOptionLabel(remotePreferenceOptions, profile.remotePreference)]
+          {[
+            profile.city,
+            getOptionLabel(
+              remotePreferenceOptions,
+              profile.remotePreference,
+            ),
+          ]
             .filter(Boolean)
             .join(' | ')}
         </Text>
@@ -159,7 +220,6 @@ export function PersonCard({
           <Chip key={skill.toLowerCase()} label={skill} />
         ))}
       </View>
-
     </>
   );
 
@@ -170,6 +230,16 @@ export function PersonCard({
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
       {content}
     </Pressable>
+  );
+}
+
+function OverlayPill({ accent, label }: { accent?: boolean; label: string }) {
+  return (
+    <View style={[styles.overlayPill, accent && styles.overlayPillAccent]}>
+      <Text numberOfLines={1} style={styles.overlayPillText}>
+        {label}
+      </Text>
+    </View>
   );
 }
 
@@ -198,9 +268,10 @@ const styles = StyleSheet.create({
     padding: theme.spacing.lg,
   },
   discoverCard: {
+    backgroundColor: '#20222D',
     flex: 1,
     gap: 0,
-    minHeight: 430,
+    minHeight: 390,
     overflow: 'hidden',
     padding: 0,
   },
@@ -227,23 +298,14 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.subheading,
     fontWeight: '900',
   },
-  discoverInitials: {
-    color: theme.colors.accentStrong,
-    fontSize: theme.typography.subheading,
-    fontWeight: '900',
-  },
   identity: {
     flex: 1,
     gap: 2,
+    minWidth: 0,
   },
   name: {
     color: theme.colors.text,
     fontSize: theme.typography.subheading,
-    fontWeight: '900',
-  },
-  discoverName: {
-    color: theme.colors.text,
-    fontSize: theme.typography.heading,
     fontWeight: '900',
   },
   username: {
@@ -273,15 +335,165 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: theme.spacing.sm,
   },
-  heroMedia: { backgroundColor: theme.colors.surfaceMuted, height: '34%', minHeight: 136, position: 'relative' },
-  heroFallback: { alignItems: 'center', backgroundColor: theme.colors.accentSoft, flex: 1, justifyContent: 'center' },
-  savedMark: { alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.94)', borderRadius: 20, height: 40, justifyContent: 'center', position: 'absolute', right: 14, top: 14, width: 40 },
-  discoverContent: { flex: 1, gap: theme.spacing.sm, padding: theme.spacing.lg, paddingTop: theme.spacing.sm },
-  discoverIdentity: { alignItems: 'flex-end', flexDirection: 'row', gap: theme.spacing.md, minHeight: 50 },
-  overlapAvatar: { alignItems: 'center', backgroundColor: theme.colors.accentSoft, borderColor: theme.colors.surface, borderRadius: 34, borderWidth: 4, height: 68, justifyContent: 'center', marginTop: -28, overflow: 'hidden', width: 68 },
-  excerpt: { color: theme.colors.textSoft, fontSize: theme.typography.small, lineHeight: 20 },
-  reason: { alignItems: 'flex-start', backgroundColor: theme.colors.accentSoft, borderRadius: theme.radii.sm, flexDirection: 'row', gap: theme.spacing.sm, marginTop: 'auto', padding: theme.spacing.sm },
-  reasonText: { color: theme.colors.accentStrong, flex: 1, fontSize: theme.typography.tiny, fontWeight: '700', lineHeight: 17 },
+  discoverImage: {
+    ...StyleSheet.absoluteFillObject,
+    height: undefined,
+    width: undefined,
+  },
+  heroFallback: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    backgroundColor: '#20222D',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  fallbackAccent: {
+    backgroundColor: theme.colors.accent,
+    height: '120%',
+    opacity: 0.22,
+    position: 'absolute',
+    right: '14%',
+    transform: [{ rotate: '18deg' }],
+    width: 72,
+  },
+  fallbackInitials: {
+    color: 'rgba(255,255,255,0.2)',
+    fontSize: 116,
+    fontWeight: '900',
+  },
+  mediaShade: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(4,5,10,0.12)',
+  },
+  fadeTop: {
+    backgroundColor: 'rgba(4,5,10,0.16)',
+    bottom: 0,
+    height: '72%',
+    left: 0,
+    position: 'absolute',
+    right: 0,
+  },
+  fadeMiddle: {
+    backgroundColor: 'rgba(4,5,10,0.22)',
+    bottom: 0,
+    height: '58%',
+    left: 0,
+    position: 'absolute',
+    right: 0,
+  },
+  fadeBottom: {
+    backgroundColor: 'rgba(4,5,10,0.36)',
+    bottom: 0,
+    height: '44%',
+    left: 0,
+    position: 'absolute',
+    right: 0,
+  },
+  discoverContent: {
+    bottom: 0,
+    gap: 7,
+    left: 0,
+    padding: theme.spacing.lg,
+    position: 'absolute',
+    right: 0,
+  },
+  discoverIdentity: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
+  smallAvatar: {
+    backgroundColor: theme.colors.surfaceMuted,
+    borderColor: 'rgba(255,255,255,0.9)',
+    borderRadius: 24,
+    borderWidth: 2,
+    height: 48,
+    overflow: 'hidden',
+    width: 48,
+  },
+  discoverName: {
+    color: theme.colors.white,
+    fontSize: 24,
+    fontWeight: '900',
+    textShadowColor: 'rgba(0,0,0,0.35)',
+    textShadowOffset: { height: 1, width: 0 },
+    textShadowRadius: 4,
+  },
+  discoverRole: {
+    color: 'rgba(255,255,255,0.86)',
+    fontSize: theme.typography.small,
+    fontWeight: '700',
+  },
+  savedIndicator: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(124,92,255,0.86)',
+    borderRadius: 16,
+    height: 32,
+    justifyContent: 'center',
+    width: 32,
+  },
+  metaRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 5,
+    minWidth: 0,
+  },
+  metaText: {
+    color: 'rgba(255,255,255,0.88)',
+    flexShrink: 1,
+    fontSize: theme.typography.tiny,
+    fontWeight: '700',
+  },
+  metaDot: {
+    backgroundColor: 'rgba(255,255,255,0.55)',
+    borderRadius: 2,
+    height: 3,
+    width: 3,
+  },
+  overlayPills: {
+    flexDirection: 'row',
+    gap: 6,
+    overflow: 'hidden',
+  },
+  overlayPill: {
+    backgroundColor: 'rgba(8,10,18,0.54)',
+    borderColor: 'rgba(255,255,255,0.28)',
+    borderRadius: theme.radii.pill,
+    borderWidth: 1,
+    maxWidth: '42%',
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+  },
+  overlayPillAccent: {
+    backgroundColor: 'rgba(104,67,244,0.72)',
+    borderColor: 'rgba(210,201,255,0.55)',
+  },
+  overlayPillText: {
+    color: theme.colors.white,
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  discoverStatement: {
+    color: theme.colors.white,
+    fontSize: theme.typography.small,
+    fontWeight: '600',
+    lineHeight: 20,
+    textShadowColor: 'rgba(0,0,0,0.32)',
+    textShadowOffset: { height: 1, width: 0 },
+    textShadowRadius: 3,
+  },
+  reason: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 1,
+  },
+  reasonText: {
+    color: 'rgba(255,255,255,0.82)',
+    flex: 1,
+    fontSize: 11,
+    fontWeight: '700',
+  },
   pressed: {
     opacity: 0.8,
   },

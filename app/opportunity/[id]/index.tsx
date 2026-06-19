@@ -3,6 +3,10 @@ import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  OpportunityInterestAction,
+  SafetySheet,
+} from '@/components/communication';
+import {
   Alert,
   Linking,
   Pressable,
@@ -34,6 +38,11 @@ import {
 } from '@/lib/opportunity';
 import { routes } from '@/lib/routes';
 import {
+  loadRelationshipStatus,
+  formatCommunicationError,
+} from '@/lib/communication';
+import type { RelationshipStatus } from '@/types/communication';
+import {
   opportunityCategoryOptions,
   OpportunityRecord,
   OpportunityStatus,
@@ -54,6 +63,9 @@ export default function OpportunityDetailScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [safetyOpen, setSafetyOpen] = useState(false);
+  const [ownerRelationship, setOwnerRelationship] =
+    useState<RelationshipStatus | null>(null);
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -71,6 +83,13 @@ export default function OpportunityDetailScreen() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    if (!opportunity || opportunity.ownerProfileId === user?.id) return;
+    loadRelationshipStatus(opportunity.ownerProfileId)
+      .then(setOwnerRelationship)
+      .catch((loadError) => setError(formatCommunicationError(loadError)));
+  }, [opportunity, user?.id]);
 
   async function changeStatus(status: OpportunityStatus) {
     if (!user || updateRef.current) return;
@@ -164,17 +183,27 @@ export default function OpportunityDetailScreen() {
           style={styles.iconButton}>
           <Ionicons color={theme.colors.text} name="arrow-back" size={22} />
         </Pressable>
-        <Pressable
-          accessibilityLabel="Share opportunity"
-          accessibilityRole="button"
-          onPress={() =>
-            Share.share({
-              message: `View ${opportunity.title} on Lance: https://lance.app/o/${opportunity.slug}`,
-            })
-          }
-          style={styles.iconButton}>
-          <Ionicons color={theme.colors.text} name="share-outline" size={22} />
-        </Pressable>
+        <View style={styles.topActions}>
+          {!isOwner ? (
+            <Pressable
+              accessibilityLabel="Opportunity safety options"
+              onPress={() => setSafetyOpen(true)}
+              style={styles.iconButton}>
+              <Ionicons color={theme.colors.text} name="ellipsis-horizontal" size={22} />
+            </Pressable>
+          ) : null}
+          <Pressable
+            accessibilityLabel="Share opportunity"
+            accessibilityRole="button"
+            onPress={() =>
+              Share.share({
+                message: `View ${opportunity.title} on Lance: https://lance.app/o/${opportunity.slug}`,
+              })
+            }
+            style={styles.iconButton}>
+            <Ionicons color={theme.colors.text} name="share-outline" size={22} />
+          </Pressable>
+        </View>
       </View>
 
       <View style={styles.posterRow}>
@@ -216,6 +245,7 @@ export default function OpportunityDetailScreen() {
 
       {!isOwner ? (
         <View style={styles.saveArea}>
+          <OpportunityInterestAction onError={setError} opportunity={opportunity} />
           <SaveButton
             isSaved={isSaved}
             onPress={() => void setOpportunitySaved(opportunity.id, !isSaved)}
@@ -320,31 +350,51 @@ export default function OpportunityDetailScreen() {
       </Section>
 
       {isOwner ? (
-        <OwnerControls
-          isUpdating={isUpdating}
-          onArchive={() =>
-            confirmStatus(
-              'archived',
-              'Archive',
-              'This opportunity will remain visible only to you.',
+        <>
+          <Button
+            label="Interested talent"
+            onPress={() => router.push(routes.opportunityTalent(id))}
+            variant="secondary"
+          />
+          <OwnerControls
+            isUpdating={isUpdating}
+            onArchive={() =>
+              confirmStatus(
+                'archived',
+                'Archive',
+                'This opportunity will remain visible only to you.',
+              )
+            }
+            onClose={() =>
+              confirmStatus('closed', 'Close', 'This opportunity will stop accepting future activity.')
+            }
+            onDeleteDraft={confirmDeleteDraft}
+            onEdit={() => router.push(routes.editOpportunity(id))}
+            onPause={() =>
+              confirmStatus('paused', 'Pause', 'This opportunity will be hidden until resumed.')
+            }
+            onPublish={confirmPublish}
+            onResume={() => void changeStatus('published')}
+            status={opportunity.status}
+          />
+        </>
+      ) : null}
+      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {!isOwner ? (
+        <SafetySheet
+          blockedByMe={Boolean(ownerRelationship?.blockedByMe)}
+          onClose={() => setSafetyOpen(false)}
+          onStateChange={() =>
+            void loadRelationshipStatus(opportunity.ownerProfileId).then(
+              setOwnerRelationship,
             )
           }
-          onClose={() =>
-            confirmStatus('closed', 'Close', 'This opportunity will stop accepting future activity.')
-          }
-          onDeleteDraft={confirmDeleteDraft}
-          onEdit={() => router.push(routes.editOpportunity(id))}
-          onPause={() =>
-            confirmStatus('paused', 'Pause', 'This opportunity will be hidden until resumed.')
-          }
-          onPublish={confirmPublish}
-          onResume={() => void changeStatus('published')}
-          status={opportunity.status}
+          profileId={opportunity.ownerProfileId}
+          targetId={opportunity.id}
+          targetKind="opportunity"
+          visible={safetyOpen}
         />
-      ) : (
-        <Button disabled label="Opportunity actions coming soon" onPress={() => undefined} />
-      )}
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      ) : null}
     </Screen>
   );
 }
@@ -458,6 +508,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
+  topActions: { flexDirection: 'row', gap: theme.spacing.sm },
   iconButton: {
     alignItems: 'center',
     backgroundColor: theme.colors.surfaceMuted,

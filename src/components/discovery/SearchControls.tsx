@@ -40,26 +40,39 @@ export function SearchBar({
 }
 
 export function FilterButton({
+  compact,
   count,
   onPress,
 }: {
+  compact?: boolean;
   count: number;
   onPress: () => void;
 }) {
   return (
     <Pressable
-      accessibilityLabel={count ? `Filters, ${count} active` : 'Filters'}
+      accessibilityLabel={
+        count ? `Open filters, ${count} active` : 'Open filters'
+      }
       accessibilityRole="button"
       onPress={onPress}
-      style={({ pressed }) => [styles.filter, count > 0 && styles.active, pressed && styles.pressed]}>
+      style={({ pressed }) => [
+        styles.filter,
+        compact && styles.compactFilter,
+        count > 0 && styles.active,
+        pressed && styles.pressed,
+      ]}>
       <Ionicons
         color={count > 0 ? theme.colors.accentStrong : theme.colors.text}
         name="options-outline"
         size={21}
       />
-      <Text style={[styles.filterLabel, count > 0 && styles.activeLabel]}>Filters</Text>
+      {!compact ? (
+        <Text style={[styles.filterLabel, count > 0 && styles.activeLabel]}>
+          Filters
+        </Text>
+      ) : null}
       {count > 0 ? (
-        <View style={styles.count}>
+        <View style={[styles.count, compact && styles.compactCount]}>
           <Text style={styles.countLabel}>{count}</Text>
         </View>
       ) : null}
@@ -109,6 +122,15 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.accentSoft,
     borderColor: '#D8CEFF',
   },
+  compactFilter: {
+    alignSelf: 'center',
+    borderRadius: 22,
+    height: 44,
+    justifyContent: 'center',
+    minHeight: 44,
+    paddingHorizontal: 0,
+    width: 44,
+  },
   filterLabel: {
     color: theme.colors.text,
     fontSize: theme.typography.small,
@@ -125,6 +147,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minWidth: 22,
     paddingHorizontal: 6,
+  },
+  compactCount: {
+    borderColor: theme.colors.surface,
+    borderWidth: 2,
+    height: 20,
+    minWidth: 20,
+    position: 'absolute',
+    right: -5,
+    top: -5,
   },
   countLabel: {
     color: theme.colors.white,

@@ -2,9 +2,9 @@
 
 Lance is a mobile-first platform for discovering people and opportunities, structured search, and direct communication. Lance does not employ users, process payments, hold escrow, manage contracts, or guarantee compensation.
 
-## Phase 4.5
+## Phase 5
 
-Phase 4 preserves the Phase 1-3.5 product and adds:
+Lance preserves the completed Phase 1-4.5 product and now adds:
 
 - Supabase authentication, onboarding, profiles, profile editing, and avatars.
 - Optional business and project profiles.
@@ -18,7 +18,7 @@ Phase 4 preserves the Phase 1-3.5 product and adds:
 - Draft, preview, publish, edit, pause, resume, close, archive, and draft-delete flows.
 - My Businesses and My Opportunities management screens.
 - Clickable profile social icons and consistent success feedback.
-- An owner-only Interested talent placeholder.
+- Owner-only Interested Talent response lists.
 - Reusable native business and opportunity cards.
 - Structured fields and indexes for future Discover, Search, filters, and AI-assisted search.
 - Tinder-style Discover for real people and published opportunities.
@@ -27,22 +27,31 @@ Phase 4 preserves the Phase 1-3.5 product and adds:
 - Real paginated People, Opportunity, and Business search.
 - Structured filters using normalized profile and opportunity data.
 - Private saved People and Opportunities with a Saved screen under Profile.
-- Nearly full-screen Discover cards with Pass, Save, upward detail navigation,
+- Nearly full-screen Discover cards with Pass, private Save, upward Connect or
+  Express Interest review,
   recommendation reasons, haptics, next-card presence, and session Undo.
 - Curated skills, industries, and structured locations with normalized custom values.
 - Current intents, prompts, banners, controlled themes, portfolio media, and custom links.
 - A creator/founder-style public profile with top social icons and a snapping carousel.
 
-Messages remains a placeholder. Phase 4.5 does not implement likes, expressions of interest,
-matches, applications, interested-talent records, message requests, direct messages, AI,
-payments, contracts, reviews, verification, notifications, or premium features.
+- Intentional Connect requests with reasons, notes, portfolio references, review,
+  acceptance, decline, withdrawal, reciprocal acceptance, cooldowns, and expiry.
+- Accepted Connections with one direct conversation per connection.
+- Express Interest responses with skills, portfolio context, compensation acknowledgement,
+  review, withdrawal, decline, and discussion states.
+- Direct and opportunity-linked one-to-one messaging with optimistic send, retry,
+  pagination, unread state, and secure Supabase Realtime delivery.
+- Blocking, private reporting, and Everyone / No new requests communication preferences.
+
+Phase 5 does not implement generic likes, applications, push notifications, AI, payments,
+contracts, reviews, verification, premium features, group chats, attachments, or calls.
 
 ## Requirements
 
 - Node.js LTS
 - npm
 - Expo Go
-- A Supabase project with migrations `0001` through `0006` already applied
+- A Supabase project with migrations `0001` through `0007` already applied
 
 On this Windows machine, use `npm.cmd` if PowerShell blocks `npm`.
 
@@ -144,6 +153,36 @@ Migration `0007`:
 
 No manual bucket creation is required if `0007` succeeds. Verify in **Storage** that
 `profile-media` is private, accepts only JPEG/PNG/WebP, and has owner-folder policies.
+
+## Apply Migration 0008
+
+Apply this migration once after `0007`. Do not modify or rerun migrations `0001`
+through `0007`.
+
+1. Confirm migration `0007` has already succeeded in the same Supabase project.
+2. Open **SQL Editor** in Supabase.
+3. Open `supabase/migrations/0008_phase_5_connections_messaging.sql` locally.
+4. Paste the entire file into a new SQL query.
+5. Run it once.
+6. Confirm the query completes without an error.
+7. Do not run it a second time.
+
+Migration `0008`:
+
+- Reuses `opportunity_interests`, `matches`, `conversations`,
+  `conversation_members`, `messages`, `blocks`, and `reports`.
+- Adds `connection_requests`, `opportunity_interest_skills`, and
+  `communication_preferences`.
+- Adds canonical request, response, connection, conversation, nonce, unread,
+  block, report, and activity indexes.
+- Uses authenticated RPCs for atomic transitions and server-enforced ownership,
+  cooldown, duplicate, block, length, and rate-limit checks.
+- Removes direct client writes to connections, requests, responses, conversations,
+  participants, messages, blocks, and reports.
+- Keeps participant/reporter-scoped RLS reads.
+- Adds `messages` to Supabase Postgres Changes for RLS-filtered realtime delivery.
+
+No Storage bucket or service-role key is required for Phase 5.
 
 ## Posting Identity Model
 
@@ -297,6 +336,27 @@ Use two real Supabase accounts:
 
 The final five denial checks are best performed with a second test client or Supabase API request using Account B's access token.
 
+## Phase 5 Phone Test
+
+Use two real accounts, ideally on two devices or one device plus an emulator.
+
+1. Apply `0008`, restart Expo with a cleared cache, and sign in as Account A.
+2. Swipe right on a person and confirm it privately saves without sending a request.
+3. Swipe up, review the Connect sheet, and send a reason to Account B.
+4. Confirm A shows Requested and B sees the incoming request under Messages.
+5. Accept as B and confirm exactly one Connection and one direct chat exist.
+6. Exchange messages; verify realtime delivery, unread badge, read clearing, Copy,
+   failed-send retry, history, and older-message pagination.
+7. Publish an opportunity as A. Express Interest as B and confirm no chat starts yet.
+8. Review Interested Talent as A, start a discussion, and confirm the linked context.
+9. Test decline, withdrawal, communication preferences, block, unblock, and report.
+10. Confirm blocked users disappear from Discover/Search and cannot request, respond,
+    or send messages.
+
+Database denials should also be tested with Account B's session: unrelated users must not
+read requests, responses, conversations, messages, blocks, or reports, and cannot invoke an
+RPC for a resource they do not own or participate in.
+
 ## Checks
 
 ```powershell
@@ -315,5 +375,6 @@ Storage, and cross-user RLS flows require migrations `0004` through `0007` plus 
 - Phase 3: `8d7639d`
 - Phase 3.5: `1bfe862`
 - Phase 4: `eeae16d`
+- Phase 4.5: `1e08944`
 
-No OpenAI API key or external search service is used. Phase 5 has not started.
+No OpenAI API key, service-role key, or external search service is used.

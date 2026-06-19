@@ -1,27 +1,30 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { OpportunityResponseRow } from '@/components/communication';
 import { Button, EmptyState, LoadingState, Screen } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
-import { formatBusinessError, loadBusiness } from '@/lib/business';
 import {
   formatCommunicationError,
   COMMUNICATION_PAGE_SIZE,
   loadOpportunityResponses,
   markOpportunityResponsesViewed,
 } from '@/lib/communication';
+import {
+  formatOpportunityError,
+  loadOpportunity,
+} from '@/lib/opportunity';
 import { routes } from '@/lib/routes';
-import type { BusinessRecord } from '@/types/business';
 import type { OpportunityResponseRecord } from '@/types/communication';
+import type { OpportunityRecord } from '@/types/opportunity';
 
-export default function InterestedTalentScreen() {
+export default function OpportunityResponsesScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
-  const [business, setBusiness] = useState<BusinessRecord | null>(null);
+  const [opportunity, setOpportunity] = useState<OpportunityRecord | null>(null);
   const [responses, setResponses] = useState<OpportunityResponseRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -32,19 +35,19 @@ export default function InterestedTalentScreen() {
     setIsLoading(true);
     setError(null);
     try {
-      const businessResult = await loadBusiness(id);
-      setBusiness(businessResult);
-      if (businessResult.ownerProfileId !== user?.id) return;
+      const opportunityResult = await loadOpportunity(id);
+      setOpportunity(opportunityResult);
+      if (opportunityResult.ownerProfileId !== user?.id) return;
       const responseResult = await loadOpportunityResponses({
         direction: 'received',
-        businessId: id,
+        opportunityId: id,
       });
       setResponses(responseResult);
       setHasMore(responseResult.length === COMMUNICATION_PAGE_SIZE);
-      await markOpportunityResponsesViewed({ businessId: id });
+      await markOpportunityResponsesViewed({ opportunityId: id });
     } catch (loadError) {
       setError(
-        formatCommunicationError(loadError) || formatBusinessError(loadError),
+        formatCommunicationError(loadError) || formatOpportunityError(loadError),
       );
     } finally {
       setIsLoading(false);
@@ -61,7 +64,7 @@ export default function InterestedTalentScreen() {
     try {
       const result = await loadOpportunityResponses({
         direction: 'received',
-        businessId: id,
+        opportunityId: id,
         offset: responses.length,
       });
       setResponses((current) => [...current, ...result]);
@@ -73,18 +76,8 @@ export default function InterestedTalentScreen() {
     }
   }
 
-  const grouped = useMemo(() => {
-    const groups = new Map<string, OpportunityResponseRecord[]>();
-    for (const response of responses) {
-      const current = groups.get(response.opportunityId) ?? [];
-      current.push(response);
-      groups.set(response.opportunityId, current);
-    }
-    return [...groups.entries()];
-  }, [responses]);
-
   if (isLoading) return <LoadingState message="Loading interested talent" />;
-  const isOwner = business?.ownerProfileId === user?.id;
+  const isOwner = opportunity?.ownerProfileId === user?.id;
 
   return (
     <Screen
@@ -92,7 +85,7 @@ export default function InterestedTalentScreen() {
       refreshing={isLoading}
       scroll
       contentStyle={styles.screen}>
-      <View style={styles.topBar}>
+      <View style={styles.header}>
         <Pressable
           accessibilityLabel="Go back"
           onPress={() => router.back()}
@@ -102,72 +95,56 @@ export default function InterestedTalentScreen() {
         <Text style={styles.title}>Interested talent</Text>
         <View style={styles.iconButton} />
       </View>
-      {business ? (
+      {opportunity ? (
         <View style={styles.context}>
-          <Text style={styles.contextLabel}>Business or project</Text>
-          <Text style={styles.contextTitle}>{business.name}</Text>
+          <Text style={styles.contextLabel}>Opportunity</Text>
+          <Text style={styles.contextTitle}>{opportunity.title}</Text>
         </View>
       ) : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {!isOwner ? (
         <EmptyState
           title="Owner access only"
-          body="Only the business owner can review these responses."
+          body="Only the opportunity owner can review these responses."
         />
-      ) : grouped.length > 0 ? (
-        grouped.map(([opportunityId, items]) => (
-          <View key={opportunityId} style={styles.group}>
-            <Pressable
-              onPress={() => router.push(routes.opportunity(opportunityId))}
-              style={styles.groupHeader}>
-              <Text style={styles.groupTitle}>{items[0].opportunityTitle}</Text>
-              <View style={styles.count}>
-                <Text style={styles.countText}>{items.length}</Text>
-              </View>
-              <Ionicons color={theme.colors.muted} name="chevron-forward" size={18} />
-            </Pressable>
-            {items.map((response) => (
-              <OpportunityResponseRow
-                direction="received"
-                key={response.id}
-                onPress={() =>
-                  router.push(routes.opportunityResponse(response.id))
-                }
-                response={response}
-              />
-            ))}
-          </View>
-        ))
+      ) : responses.length > 0 ? (
+        <View>
+          {responses.map((response) => (
+            <OpportunityResponseRow
+              direction="received"
+              key={response.id}
+              onPress={() =>
+                router.push(routes.opportunityResponse(response.id))
+              }
+              response={response}
+            />
+          ))}
+          {hasMore ? (
+            <Button
+              label="Load more responses"
+              loading={isLoadingMore}
+              onPress={() => void loadMore()}
+              variant="ghost"
+            />
+          ) : null}
+        </View>
       ) : (
         <EmptyState
           title="No responses yet"
-          body="People who explicitly Express Interest in this business's opportunities will appear here."
+          body="People who explicitly Express Interest will appear here. Private saves never appear."
         />
       )}
-      {isOwner && hasMore ? (
-        <Button
-          label="Load more responses"
-          loading={isLoadingMore}
-          onPress={() => void loadMore()}
-          variant="ghost"
-        />
-      ) : null}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { gap: theme.spacing.xl, paddingBottom: theme.spacing.xxxl },
-  topBar: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
+  header: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
   iconButton: { alignItems: 'center', height: 44, justifyContent: 'center', width: 44 },
   title: { color: theme.colors.text, fontSize: theme.typography.subheading, fontWeight: '900' },
   context: { backgroundColor: theme.colors.accentSoft, borderRadius: theme.radii.md, gap: 3, padding: theme.spacing.md },
   contextLabel: { color: theme.colors.accentStrong, fontSize: theme.typography.tiny, fontWeight: '800', textTransform: 'uppercase' },
   contextTitle: { color: theme.colors.text, fontSize: theme.typography.body, fontWeight: '900' },
-  group: { marginBottom: theme.spacing.lg },
-  groupHeader: { alignItems: 'center', flexDirection: 'row', gap: theme.spacing.sm, minHeight: 44 },
-  groupTitle: { color: theme.colors.text, flex: 1, fontSize: theme.typography.subheading, fontWeight: '900' },
-  count: { alignItems: 'center', backgroundColor: theme.colors.accentSoft, borderRadius: theme.radii.pill, justifyContent: 'center', minHeight: 24, minWidth: 24, paddingHorizontal: 7 },
-  countText: { color: theme.colors.accentStrong, fontSize: theme.typography.tiny, fontWeight: '900' },
   error: { color: theme.colors.danger, fontSize: theme.typography.small, lineHeight: 20 },
 });

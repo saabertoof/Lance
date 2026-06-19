@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 
 import { OpportunityCard } from '@/components/opportunity';
+import { SafetySheet } from '@/components/communication';
 import { Button, Chip, LoadingState, Screen } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
@@ -21,12 +22,17 @@ import { archiveBusiness, formatBusinessError, loadBusiness } from '@/lib/busine
 import { loadBusinessOpportunities } from '@/lib/opportunity';
 import { routes } from '@/lib/routes';
 import {
+  formatCommunicationError,
+  loadRelationshipStatus,
+} from '@/lib/communication';
+import {
   businessRemoteOptions,
   businessSizeOptions,
   businessTypeOptions,
   BusinessRecord,
 } from '@/types/business';
 import type { OpportunityRecord } from '@/types/opportunity';
+import type { RelationshipStatus } from '@/types/communication';
 import { getOptionLabel } from '@/types/profile';
 
 export default function BusinessDetailScreen() {
@@ -38,6 +44,9 @@ export default function BusinessDetailScreen() {
   const [opportunities, setOpportunities] = useState<OpportunityRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isArchiving, setIsArchiving] = useState(false);
+  const [safetyOpen, setSafetyOpen] = useState(false);
+  const [ownerRelationship, setOwnerRelationship] =
+    useState<RelationshipStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -61,6 +70,13 @@ export default function BusinessDetailScreen() {
       active = false;
     };
   }, [id]);
+
+  useEffect(() => {
+    if (!business || business.ownerProfileId === user?.id) return;
+    loadRelationshipStatus(business.ownerProfileId)
+      .then(setOwnerRelationship)
+      .catch((loadError) => setError(formatCommunicationError(loadError)));
+  }, [business, user?.id]);
 
   if (isLoading) return <LoadingState message="Loading business" />;
   if (!business) {
@@ -121,17 +137,31 @@ export default function BusinessDetailScreen() {
           style={styles.iconButton}>
           <Ionicons color={theme.colors.text} name="arrow-back" size={22} />
         </Pressable>
-        <Pressable
-          accessibilityLabel="Share business"
-          accessibilityRole="button"
-          onPress={() =>
-            Share.share({
-              message: `View ${business.name} on Lance: https://lance.app/b/${business.slug}`,
-            })
-          }
-          style={styles.iconButton}>
-          <Ionicons color={theme.colors.text} name="share-outline" size={22} />
-        </Pressable>
+        <View style={styles.topActions}>
+          {!isOwner ? (
+            <Pressable
+              accessibilityLabel="Business safety options"
+              onPress={() => setSafetyOpen(true)}
+              style={styles.iconButton}>
+              <Ionicons
+                color={theme.colors.text}
+                name="ellipsis-horizontal"
+                size={22}
+              />
+            </Pressable>
+          ) : null}
+          <Pressable
+            accessibilityLabel="Share business"
+            accessibilityRole="button"
+            onPress={() =>
+              Share.share({
+                message: `View ${business.name} on Lance: https://lance.app/b/${business.slug}`,
+              })
+            }
+            style={styles.iconButton}>
+            <Ionicons color={theme.colors.text} name="share-outline" size={22} />
+          </Pressable>
+        </View>
       </View>
 
       <View style={styles.hero}>
@@ -249,6 +279,21 @@ export default function BusinessDetailScreen() {
         </View>
       ) : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}
+      {!isOwner ? (
+        <SafetySheet
+          blockedByMe={Boolean(ownerRelationship?.blockedByMe)}
+          onClose={() => setSafetyOpen(false)}
+          onStateChange={() =>
+            void loadRelationshipStatus(business.ownerProfileId).then(
+              setOwnerRelationship,
+            )
+          }
+          profileId={business.ownerProfileId}
+          targetId={business.id}
+          targetKind="business"
+          visible={safetyOpen}
+        />
+      ) : null}
     </Screen>
   );
 }
@@ -279,6 +324,10 @@ const styles = StyleSheet.create({
   topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+  },
+  topActions: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
   },
   iconButton: {
     alignItems: 'center',

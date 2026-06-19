@@ -21,6 +21,11 @@ export default function ProfileLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="edit" />
+      <Stack.Screen name="connections" />
+      <Stack.Screen name="requests" />
+      <Stack.Screen name="communication" />
+      <Stack.Screen name="interested-talent" />
+      <Stack.Screen name="settings" />
     </Stack>
   );
 }

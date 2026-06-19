@@ -7,6 +7,8 @@ export * from './LocationSelector';
 export * from './ProfileFormFields';
 export * from './ProfilePreviewCard';
 export * from './ProfilePolishEditor';
+export * from './ProfilePresentation';
+export * from './ProfileOwnerHub';
 export * from './ProfileSocialLinks';
 export * from './SearchPlaceholder';
 export * from './SelectableOption';

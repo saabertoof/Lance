@@ -4,6 +4,10 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { BusinessCard } from '@/components/business';
 import {
+  OpportunityInterestAction,
+  RelationshipAction,
+} from '@/components/communication';
+import {
   FilterButton,
   FilterModal,
   PersonCard,
@@ -214,15 +218,22 @@ export default function SearchScreen() {
       {!isLoading && !error && mode === 'people' ? (
         <View style={styles.results}>
           {people.map((profile) => (
-            <PersonCard
-              isSaved={isProfileSaved(profile.id)}
-              key={profile.id}
-              onPress={() => router.push(routes.profile(profile.id))}
-              onSave={() =>
-                void setProfileSaved(profile.id, !isProfileSaved(profile.id))
-              }
-              profile={profile}
-            />
+            <View key={profile.id} style={styles.resultGroup}>
+              <PersonCard
+                isSaved={isProfileSaved(profile.id)}
+                onPress={() => router.push(routes.profile(profile.id))}
+                onSave={() =>
+                  void setProfileSaved(profile.id, !isProfileSaved(profile.id))
+                }
+                profile={profile}
+              />
+              <RelationshipAction
+                compact
+                deferLoad
+                onError={setError}
+                profile={profile}
+              />
+            </View>
           ))}
         </View>
       ) : null}
@@ -230,21 +241,29 @@ export default function SearchScreen() {
       {!isLoading && !error && mode === 'opportunities' ? (
         <View style={styles.results}>
           {opportunities.map((opportunity) => (
-            <OpportunityCard
-              isSaved={isOpportunitySaved(opportunity.id)}
-              key={opportunity.id}
-              onPress={() => router.push(routes.opportunity(opportunity.id))}
-              onSavePress={
-                opportunity.ownerProfileId === user?.id
-                  ? undefined
-                  : () =>
-                      void setOpportunitySaved(
-                        opportunity.id,
-                        !isOpportunitySaved(opportunity.id),
-                      )
-              }
-              opportunity={opportunity}
-            />
+            <View key={opportunity.id} style={styles.resultGroup}>
+              <OpportunityCard
+                isSaved={isOpportunitySaved(opportunity.id)}
+                onPress={() => router.push(routes.opportunity(opportunity.id))}
+                onSavePress={
+                  opportunity.ownerProfileId === user?.id
+                    ? undefined
+                    : () =>
+                        void setOpportunitySaved(
+                          opportunity.id,
+                          !isOpportunitySaved(opportunity.id),
+                        )
+                }
+                opportunity={opportunity}
+              />
+              {opportunity.ownerProfileId !== user?.id ? (
+                <OpportunityInterestAction
+                  deferLoad
+                  onError={setError}
+                  opportunity={opportunity}
+                />
+              ) : null}
+            </View>
           ))}
         </View>
       ) : null}
@@ -326,6 +345,9 @@ const styles = StyleSheet.create({
   },
   results: {
     gap: theme.spacing.md,
+  },
+  resultGroup: {
+    gap: theme.spacing.sm,
   },
   state: {
     gap: theme.spacing.sm,

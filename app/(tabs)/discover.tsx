@@ -1,8 +1,12 @@
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Share, StyleSheet, Text, View } from 'react-native';
 
+import {
+  ConnectSheet,
+  ExpressInterestSheet,
+} from '@/components/communication';
 import {
   DiscoverDeck,
   FilterButton,
@@ -15,6 +19,7 @@ import {
 import { Button, EmptyState, Screen } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
+import { useFeedback } from '@/context/FeedbackContext';
 import { useSaved } from '@/context/SavedContext';
 import {
   DISCOVER_BATCH_SIZE,
@@ -46,7 +51,7 @@ import type { ProfilePolish } from '@/types/profilePolish';
 
 const discoverModes = [
   { label: 'People', value: 'people' },
-  { label: 'Opportunities', value: 'opportunities' },
+  { label: 'Jobs', value: 'opportunities' },
 ] as const;
 
 type LastPass =
@@ -55,6 +60,7 @@ type LastPass =
 
 export default function DiscoverScreen() {
   const { user } = useAuth();
+  const { showWarning } = useFeedback();
   const { isOpportunitySaved, isProfileSaved, setOpportunitySaved, setProfileSaved } =
     useSaved();
   const [mode, setMode] = useState<DiscoverMode>('people');
@@ -71,10 +77,13 @@ export default function DiscoverScreen() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [connectTarget, setConnectTarget] = useState<PublicProfile | null>(null);
+  const [interestTarget, setInterestTarget] = useState<OpportunityRecord | null>(null);
   const offsets = useRef({ people: 0, opportunities: 0 });
   const totals = useRef({ people: 0, opportunities: 0 });
   const seen = useRef({ people: new Set<string>(), opportunities: new Set<string>() });
   const requestId = useRef(0);
+  const jiggledModes = useRef(new Set<DiscoverMode>());
 
   useEffect(() => {
     loadSkillOptions().then(setSkillOptions).catch(() => undefined);
@@ -153,13 +162,25 @@ export default function DiscoverScreen() {
   useEffect(() => {
     const next =
       mode === 'people'
-        ? people[1]?.polish.bannerUrl ??
-          people[1]?.polish.portfolio[0]?.thumbnailUrl ??
-          people[1]?.polish.portfolio[0]?.mediaUrl ??
+        ? people[1]?.polish.portfolio.find(
+            (item) =>
+              item.itemType === 'image' &&
+              (item.thumbnailUrl || item.mediaUrl),
+          )?.thumbnailUrl ??
+          people[1]?.polish.portfolio.find(
+            (item) => item.itemType === 'image' && item.mediaUrl,
+          )?.mediaUrl ??
+          people[1]?.polish.bannerUrl ??
           people[1]?.avatarUrl
         : opportunities[1]?.poster.imageUrl;
     if (next) void Image.prefetch(next);
   }, [mode, opportunities, people]);
+
+  useEffect(() => {
+    if (!lastPass) return;
+    const timeout = setTimeout(() => setLastPass(null), 4600);
+    return () => clearTimeout(timeout);
+  }, [lastPass]);
 
   function advance() {
     if (mode === 'people') {
@@ -193,6 +214,27 @@ export default function DiscoverScreen() {
         router.push(routes.profile(current.id));
         return true;
       }
+      if (action === 'primaryAction') {
+        setConnectTarget(current);
+        return true;
+      }
+      if (action === 'share') {
+        try {
+          await Share.share({
+            message: [
+              `Meet ${current.displayName} on Lance.`,
+              current.username ? `@${current.username}` : '',
+              current.headline,
+            ]
+              .filter(Boolean)
+              .join(' '),
+          });
+          return true;
+        } catch {
+          showWarning('This profile could not be shared. Try again.');
+          return false;
+        }
+      }
       if (action === 'pass') {
         setLastPass({ mode: 'people', item: current });
         return true;
@@ -205,6 +247,30 @@ export default function DiscoverScreen() {
     if (action === 'openDetail') {
       router.push(routes.opportunity(current.id));
       return true;
+    }
+    if (action === 'primaryAction') {
+      setInterestTarget(current);
+      return true;
+    }
+    if (action === 'share') {
+      try {
+        const link = current.slug
+          ? `https://lance.app/o/${current.slug}`
+          : null;
+        await Share.share({
+          message: [
+            `${current.title} at ${current.poster.name}.`,
+            current.shortSummary,
+            link,
+          ]
+            .filter(Boolean)
+            .join(' '),
+        });
+        return true;
+      } catch {
+        showWarning('This job could not be shared. Try again.');
+        return false;
+      }
     }
     if (action === 'pass') {
       setLastPass({ mode: 'opportunities', item: current });
@@ -243,16 +309,22 @@ export default function DiscoverScreen() {
   return (
     <Screen contentStyle={styles.screen}>
       <View style={styles.header}>
-        <Image
-          accessibilityLabel="Lance"
-          contentFit="contain"
-          source={require('../../assets/images/lance_wordmark_transparent.png')}
-          style={styles.wordmark}
-        />
+        <View style={styles.markSlot}>
+          <Image
+            accessibilityLabel="Lance"
+            contentFit="contain"
+            source={require('../../assets/images/lance_icon_transparent.png')}
+            style={styles.mark}
+          />
+        </View>
         <View style={styles.mode}>
           <SegmentedControl onChange={setMode} options={discoverModes} value={mode} />
         </View>
-        <FilterButton count={filterCount} onPress={() => setFiltersOpen(true)} />
+        <FilterButton
+          compact
+          count={filterCount}
+          onPress={() => setFiltersOpen(true)}
+        />
       </View>
 
       <View style={styles.deckArea}>
@@ -265,9 +337,14 @@ export default function DiscoverScreen() {
         ) : null}
         {!isLoading && !error && mode === 'people' && currentPerson ? (
           <DiscoverDeck
+            key="people-discover"
             canUndo={lastPass?.mode === 'people'}
             cardKey={currentPerson.id}
-            detailLabel="view profile"
+            detailLabel="profile details"
+            isSaved={isProfileSaved(currentPerson.id)}
+            onJiggleComplete={() => jiggledModes.current.add('people')}
+            primaryActionLabel="Connect"
+            shouldJiggle={!jiggledModes.current.has('people')}
             nextCard={
               nextPerson ? (
                 <PersonCard
@@ -294,9 +371,14 @@ export default function DiscoverScreen() {
         ) : null}
         {!isLoading && !error && mode === 'opportunities' && currentOpportunity ? (
           <DiscoverDeck
+            key="jobs-discover"
             canUndo={lastPass?.mode === 'opportunities'}
             cardKey={currentOpportunity.id}
-            detailLabel="view opportunity"
+            detailLabel="job details"
+            isSaved={isOpportunitySaved(currentOpportunity.id)}
+            onJiggleComplete={() => jiggledModes.current.add('opportunities')}
+            primaryActionLabel="Apply"
+            shouldJiggle={!jiggledModes.current.has('opportunities')}
             nextCard={
               nextOpportunity ? (
                 <OpportunityDiscoverCard
@@ -325,12 +407,14 @@ export default function DiscoverScreen() {
           (mode === 'opportunities' && !currentOpportunity)) ? (
           <View style={styles.state}>
             <EmptyState
-              body={`There are no more ${mode} in this session with the current filters.`}
+              body={`There are no more ${
+                mode === 'people' ? 'people' : 'jobs'
+              } in this session with the current filters.`}
               title="You are caught up"
             />
             <Button label="Adjust filters" onPress={() => setFiltersOpen(true)} variant="secondary" />
             <Button
-              label={`Switch to ${mode === 'people' ? 'opportunities' : 'people'}`}
+              label={`Switch to ${mode === 'people' ? 'jobs' : 'people'}`}
               onPress={() => setMode(mode === 'people' ? 'opportunities' : 'people')}
               variant="ghost"
             />
@@ -350,6 +434,24 @@ export default function DiscoverScreen() {
         peopleFilters={peopleFilters}
         skillOptions={skillOptions}
         visible={filtersOpen}
+      />
+      <ConnectSheet
+        onClose={() => setConnectTarget(null)}
+        onSuccess={() => {
+          setConnectTarget(null);
+          advance();
+        }}
+        profile={connectTarget}
+        visible={Boolean(connectTarget)}
+      />
+      <ExpressInterestSheet
+        onClose={() => setInterestTarget(null)}
+        onSuccess={() => {
+          setInterestTarget(null);
+          advance();
+        }}
+        opportunity={interestTarget}
+        visible={Boolean(interestTarget)}
       />
     </Screen>
   );
@@ -371,16 +473,40 @@ function DiscoverSkeleton() {
 }
 
 const styles = StyleSheet.create({
-  screen: { gap: theme.spacing.md, paddingBottom: theme.spacing.sm, paddingTop: theme.spacing.md },
-  header: { alignItems: 'center', flexDirection: 'row', gap: theme.spacing.sm },
-  wordmark: { height: 28, width: 94 },
-  mode: { flex: 1 },
-  deckArea: { flex: 1, minHeight: 520 },
+  screen: {
+    gap: theme.spacing.sm,
+    paddingBottom: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
+    paddingTop: theme.spacing.sm,
+  },
+  header: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+    minHeight: 46,
+  },
+  mark: {
+    height: 32,
+    width: 32,
+  },
+  markSlot: {
+    alignItems: 'center',
+    height: 44,
+    justifyContent: 'center',
+    width: 44,
+  },
+  mode: {
+    flex: 1,
+  },
+  deckArea: {
+    flex: 1,
+    minHeight: 480,
+  },
   state: { flex: 1, gap: theme.spacing.sm, justifyContent: 'center' },
-  skeleton: { backgroundColor: theme.colors.surface, borderColor: theme.colors.border, borderRadius: theme.radii.lg, borderWidth: 1, flex: 1, overflow: 'hidden' },
-  skeletonMedia: { backgroundColor: theme.colors.surfaceMuted, height: '34%' },
-  skeletonBody: { gap: theme.spacing.md, padding: theme.spacing.lg },
-  skeletonLine: { backgroundColor: theme.colors.chip, borderRadius: 6, height: 16 },
-  skeletonFill: { backgroundColor: theme.colors.surfaceMuted, borderRadius: theme.radii.sm, height: 72, marginTop: theme.spacing.sm },
+  skeleton: { backgroundColor: '#252630', borderColor: theme.colors.border, borderRadius: theme.radii.lg, borderWidth: 1, flex: 1, overflow: 'hidden' },
+  skeletonMedia: { backgroundColor: '#30313B', flex: 1 },
+  skeletonBody: { bottom: 56, gap: theme.spacing.md, left: 0, padding: theme.spacing.lg, position: 'absolute', right: 0 },
+  skeletonLine: { backgroundColor: 'rgba(255,255,255,0.18)', borderRadius: 6, height: 16 },
+  skeletonFill: { backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: theme.radii.sm, height: 56, marginTop: theme.spacing.sm },
   loadingText: { bottom: theme.spacing.lg, color: theme.colors.muted, fontSize: theme.typography.tiny, position: 'absolute', textAlign: 'center', width: '100%' },
 });

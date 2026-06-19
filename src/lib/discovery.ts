@@ -2,6 +2,10 @@ import { loadPublicBusinessesByIds } from '@/lib/business';
 import { loadPublicOpportunitiesByIds } from '@/lib/opportunity';
 import { supabase } from '@/lib/supabase';
 import { signProfileMedia } from '@/lib/profilePolish';
+import {
+  filterBlockedOpportunityIds,
+  filterBlockedProfileIds,
+} from '@/lib/communication';
 import { locationCatalog, skillCatalog } from '@/constants/catalogs';
 import type { BusinessRecord } from '@/types/business';
 import type {
@@ -196,8 +200,9 @@ export async function searchPeople(
   if (error) throw error;
 
   const rows = (data ?? []) as { profile_id: string; total_count: number }[];
+  const visibleIds = await filterBlockedProfileIds(rows.map((row) => row.profile_id));
   return {
-    items: await loadPublicProfilesByIds(rows.map((row) => row.profile_id)),
+    items: await loadPublicProfilesByIds(visibleIds),
     total: Number(rows[0]?.total_count ?? 0),
   };
 }
@@ -229,8 +234,11 @@ export async function searchOpportunities(
   if (error) throw error;
 
   const rows = (data ?? []) as { opportunity_id: string; total_count: number }[];
+  const visibleIds = await filterBlockedOpportunityIds(
+    rows.map((row) => row.opportunity_id),
+  );
   return {
-    items: await loadPublicOpportunitiesByIds(rows.map((row) => row.opportunity_id)),
+    items: await loadPublicOpportunitiesByIds(visibleIds),
     total: Number(rows[0]?.total_count ?? 0),
   };
 }

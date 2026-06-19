@@ -7,13 +7,15 @@ import { lanceNavigationTheme } from '@/constants/theme';
 import { AuthProvider } from '@/context/AuthContext';
 import { FeedbackProvider } from '@/context/FeedbackContext';
 import { SavedProvider } from '@/context/SavedContext';
+import { MessagingProvider } from '@/context/MessagingContext';
 
 export default function RootLayout() {
   return (
     <FeedbackProvider>
       <AuthProvider>
         <SavedProvider>
-          <ThemeProvider value={lanceNavigationTheme}>
+          <MessagingProvider>
+            <ThemeProvider value={lanceNavigationTheme}>
             <Stack screenOptions={{ headerShown: false }}>
               <Stack.Screen name="index" />
               <Stack.Screen name="(auth)" />
@@ -22,9 +24,12 @@ export default function RootLayout() {
               <Stack.Screen name="business" />
               <Stack.Screen name="opportunity" />
               <Stack.Screen name="profile" />
+              <Stack.Screen name="messages" />
+              <Stack.Screen name="request" />
             </Stack>
             <StatusBar style="dark" />
-          </ThemeProvider>
+            </ThemeProvider>
+          </MessagingProvider>
         </SavedProvider>
       </AuthProvider>
     </FeedbackProvider>

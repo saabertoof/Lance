@@ -4,9 +4,11 @@ import { Redirect, Tabs } from 'expo-router';
 import { LoadingState } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
+import { useMessaging } from '@/context/MessagingContext';
 
 export default function TabLayout() {
   const { isLoading, onboardingStatus, session } = useAuth();
+  const { unreadCount } = useMessaging();
 
   if (isLoading) {
     return <LoadingState message="Loading your space" />;
@@ -69,6 +71,7 @@ export default function TabLayout() {
         name="messages"
         options={{
           title: 'Messages',
+          tabBarBadge: unreadCount > 0 ? Math.min(unreadCount, 99) : undefined,
           tabBarIcon: ({ color, size }) => <Ionicons color={color} name="chatbubble-outline" size={size} />,
         }}
       />
