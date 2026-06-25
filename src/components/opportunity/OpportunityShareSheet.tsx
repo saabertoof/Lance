@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { Image } from 'expo-image';
-import { Modal, Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import { Modal, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui';
@@ -38,7 +38,7 @@ export function OpportunityShareSheet({
         <View style={styles.header}>
           <View>
             <Text style={styles.eyebrow}>Share opportunity</Text>
-            <Text style={styles.title}>Post it anywhere.</Text>
+            <Text style={styles.title}>Your link is ready.</Text>
           </View>
           <Pressable
             accessibilityLabel="Close share panel"
@@ -49,80 +49,91 @@ export function OpportunityShareSheet({
           </Pressable>
         </View>
 
-        <View style={styles.card}>
-          <View style={styles.posterImage}>
-            {opportunity.poster.imageUrl ? (
-              <Image
-                contentFit="cover"
-                source={opportunity.poster.imageUrl}
-                style={styles.image}
-              />
-            ) : (
-              <Text style={styles.mark}>{mark}</Text>
-            )}
+        <ScrollView
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}>
+          <View style={styles.card}>
+            <View style={styles.posterImage}>
+              {opportunity.poster.imageUrl ? (
+                <Image
+                  contentFit="cover"
+                  source={opportunity.poster.imageUrl}
+                  style={styles.image}
+                />
+              ) : (
+                <Text style={styles.mark}>{mark}</Text>
+              )}
+            </View>
+            <View style={styles.cardCopy}>
+              <Text numberOfLines={1} style={styles.posterName}>
+                {opportunity.poster.name}
+              </Text>
+              <Text numberOfLines={2} style={styles.opportunityTitle}>
+                {opportunity.title}
+              </Text>
+              <Text numberOfLines={1} style={styles.previewUrl}>
+                {share.url}
+              </Text>
+            </View>
           </View>
-          <View style={styles.cardCopy}>
-            <Text numberOfLines={1} style={styles.posterName}>
-              {opportunity.poster.name}
-            </Text>
-            <Text numberOfLines={2} style={styles.opportunityTitle}>
-              {opportunity.title}
-            </Text>
-          </View>
-        </View>
 
-        <Pressable
-          accessibilityLabel="Copy public opportunity link"
-          accessibilityRole="button"
-          onPress={() => void copy('Link', share.url)}
-          style={({ pressed }) => [styles.linkBox, pressed && styles.pressed]}>
-          <View style={styles.linkIcon}>
-            <Ionicons color={theme.colors.accentStrong} name="link-outline" size={20} />
-          </View>
-          <Text numberOfLines={1} style={styles.linkText}>
-            {share.url}
-          </Text>
-          <Ionicons color={theme.colors.muted} name="copy-outline" size={19} />
-        </Pressable>
-
-        <View style={styles.actions}>
-          <Button
-            label="Copy link"
+          <Pressable
+            accessibilityLabel="Copy public opportunity link"
+            accessibilityRole="button"
             onPress={() => void copy('Link', share.url)}
-            style={styles.actionButton}
-            variant="secondary"
-          />
-          <Button
-            label="Share"
-            onPress={() => void Share.share({ message: share.nativeMessage })}
-            style={styles.actionButton}
-          />
-        </View>
+            style={({ pressed }) => [styles.linkBox, pressed && styles.pressed]}>
+            <View style={styles.linkIcon}>
+              <Ionicons color={theme.colors.accentStrong} name="link-outline" size={20} />
+            </View>
+            <View style={styles.linkCopy}>
+              <Text style={styles.linkLabel}>Public Lance link</Text>
+              <Text numberOfLines={1} style={styles.linkText}>
+                {share.url}
+              </Text>
+            </View>
+            <Ionicons color={theme.colors.muted} name="copy-outline" size={19} />
+          </Pressable>
 
-        <View style={styles.suggestions}>
-          <ShareCopyRow
-            icon="leaf-outline"
-            label="Linktree button"
-            onCopy={() => void copy('Linktree text', share.linktreeText)}
-            value={share.linktreeText}
-          />
-          <ShareCopyRow
-            icon="camera-outline"
-            label="Story text"
-            onCopy={() => void copy('Story text', share.storyText)}
-            value={share.storyText}
-          />
-          <ShareCopyRow
-            icon="chatbubble-ellipses-outline"
-            label="Discord / X caption"
-            onCopy={() => void copy('Caption', share.socialCaption)}
-            value={share.socialCaption}
-          />
-        </View>
+          <View style={styles.actions}>
+            <Button
+              label="Copy link"
+              onPress={() => void copy('Link', share.url)}
+              style={styles.actionButton}
+              variant="secondary"
+            />
+            <Button
+              label="Share"
+              onPress={() => void Share.share({ message: share.nativeMessage })}
+              style={styles.actionButton}
+            />
+          </View>
 
-        <Text style={styles.note}>
-          Applicants can read the page first, then apply with a reusable Lance profile.
-        </Text>
+          <View style={styles.suggestions}>
+            <ShareCopyRow
+              icon="leaf-outline"
+              label="Linktree title"
+              onCopy={() => void copy('Linktree title', share.linktreeText)}
+              value={share.linktreeText}
+            />
+            <ShareCopyRow
+              icon="camera-outline"
+              label="Bio or story line"
+              onCopy={() => void copy('Bio line', share.storyText)}
+              value={share.storyText}
+            />
+            <ShareCopyRow
+              icon="chatbubble-ellipses-outline"
+              label="Discord / X caption"
+              onCopy={() => void copy('Caption', share.socialCaption)}
+              value={share.socialCaption}
+            />
+          </View>
+
+          <Text style={styles.note}>
+            Applicants can read the page first, then apply with a reusable Lance profile.
+          </Text>
+        </ScrollView>
       </SafeAreaView>
     </Modal>
   );
@@ -163,13 +174,13 @@ const styles = StyleSheet.create({
   safe: {
     backgroundColor: theme.colors.background,
     flex: 1,
-    gap: theme.spacing.lg,
     padding: theme.layout.screenPadding,
   },
   header: {
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginBottom: theme.spacing.lg,
   },
   eyebrow: {
     color: theme.colors.accentStrong,
@@ -191,6 +202,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: 44,
   },
+  content: {
+    gap: theme.spacing.lg,
+    paddingBottom: theme.spacing.xl,
+  },
   card: {
     alignItems: 'center',
     backgroundColor: theme.colors.surface,
@@ -200,6 +215,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: theme.spacing.md,
     padding: theme.spacing.md,
+    ...theme.shadows.card,
   },
   posterImage: {
     alignItems: 'center',
@@ -235,6 +251,11 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     lineHeight: 22,
   },
+  previewUrl: {
+    color: theme.colors.accentStrong,
+    fontSize: theme.typography.tiny,
+    fontWeight: '800',
+  },
   linkBox: {
     alignItems: 'center',
     backgroundColor: theme.colors.surfaceMuted,
@@ -254,9 +275,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: 34,
   },
+  linkCopy: {
+    flex: 1,
+    gap: 2,
+    minWidth: 0,
+  },
+  linkLabel: {
+    color: theme.colors.muted,
+    fontSize: theme.typography.caption,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
   linkText: {
     color: theme.colors.text,
-    flex: 1,
     fontSize: theme.typography.small,
     fontWeight: '800',
   },

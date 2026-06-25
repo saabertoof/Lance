@@ -69,6 +69,7 @@ export default function PublicOpportunityScreen() {
         <Text style={styles.emptyBody}>
           It may have been closed, paused, archived, or moved by the creator.
         </Text>
+        <Button label="Open Lance" onPress={() => router.replace('/')} />
         {error ? <Text style={styles.error}>{error}</Text> : null}
       </Screen>
     );
@@ -76,11 +77,17 @@ export default function PublicOpportunityScreen() {
 
   const mark = opportunity.poster.name.charAt(0).toUpperCase() || 'L';
   const warning = needsCompensationWarning(opportunity.compensationType);
-  const details = [
-    getOptionLabel(workTypeOptions, opportunity.workType),
-    getOptionLabel(timeCommitmentOptions, opportunity.timeCommitment),
-    getOptionLabel(opportunityExperienceOptions, opportunity.experienceLevel),
-  ];
+  const workTypeLabel = getOptionLabel(workTypeOptions, opportunity.workType);
+  const commitmentLabel = getOptionLabel(timeCommitmentOptions, opportunity.timeCommitment);
+  const experienceLabel = getOptionLabel(
+    opportunityExperienceOptions,
+    opportunity.experienceLevel,
+  );
+  const arrangementLabel = getOptionLabel(workArrangementOptions, opportunity.workplace);
+  const locationLabel = [opportunity.location, arrangementLabel].filter(Boolean).join(' / ');
+  const deadlineLabel = opportunity.expirationDate
+    ? formatDateLabel(opportunity.expirationDate)
+    : 'Open until filled';
 
   return (
     <Screen scroll contentStyle={styles.screen}>
@@ -123,17 +130,36 @@ export default function PublicOpportunityScreen() {
         </View>
 
         <View style={styles.heroCopy}>
-          <View style={styles.posterRow}>
-            <Text numberOfLines={1} style={styles.posterName}>
-              {opportunity.poster.name}
-            </Text>
-            <Text style={styles.posterType}>
-              {opportunity.poster.identityType === 'business'
-                ? 'Creator business or project'
-                : 'Creator profile'}
-            </Text>
+          <View style={styles.heroTopline}>
+            <View style={styles.openPill}>
+              <View style={styles.openDot} />
+              <Text style={styles.openPillText}>Open opportunity</Text>
+            </View>
+            <Text style={styles.deadlineText}>{deadlineLabel}</Text>
           </View>
-          <Text style={styles.eyebrow}>Opportunity</Text>
+          <View style={styles.posterRow}>
+            <View style={styles.posterMini}>
+              {opportunity.poster.imageUrl ? (
+                <Image
+                  contentFit="cover"
+                  source={opportunity.poster.imageUrl}
+                  style={styles.image}
+                />
+              ) : (
+                <Text style={styles.posterMiniInitial}>{mark}</Text>
+              )}
+            </View>
+            <View style={styles.posterText}>
+              <Text numberOfLines={1} style={styles.posterName}>
+                {opportunity.poster.name}
+              </Text>
+              <Text style={styles.posterType}>
+                {opportunity.poster.identityType === 'business'
+                  ? 'Creator business or project'
+                  : 'Creator profile'}
+              </Text>
+            </View>
+          </View>
           <Text style={styles.title}>{opportunity.title}</Text>
           <Text style={styles.summary}>{opportunity.shortSummary}</Text>
           <View style={styles.badges}>
@@ -144,6 +170,11 @@ export default function PublicOpportunityScreen() {
             <WorkArrangementBadge
               label={getOptionLabel(workArrangementOptions, opportunity.workplace)}
             />
+          </View>
+          <View style={styles.heroMeta}>
+            <HeroMeta icon="briefcase-outline" label={workTypeLabel} />
+            <HeroMeta icon="time-outline" label={commitmentLabel} />
+            <HeroMeta icon="location-outline" label={locationLabel || arrangementLabel} />
           </View>
         </View>
       </View>
@@ -176,12 +207,12 @@ export default function PublicOpportunityScreen() {
         </View>
       ) : null}
 
-      <Section title="What you will do">
+      <Section title="What you'll do">
         <Text style={styles.body}>{opportunity.fullDescription}</Text>
       </Section>
 
       {opportunity.additionalRequirements ? (
-        <Section title="What they are looking for">
+        <Section title="Who this is for">
           <Text style={styles.body}>{opportunity.additionalRequirements}</Text>
         </Section>
       ) : null}
@@ -194,19 +225,17 @@ export default function PublicOpportunityScreen() {
         </View>
       </Section>
 
-      <Section title="Fast details">
+      <Section title="Details">
         <View style={styles.detailGrid}>
           <Detail icon="cash-outline" label="Compensation" value={formatCompensation(opportunity)} />
           <Detail
             icon="location-outline"
             label="Location"
-            value={[opportunity.location, getOptionLabel(workArrangementOptions, opportunity.workplace)]
-              .filter(Boolean)
-              .join(' / ')}
+            value={locationLabel}
           />
-          <Detail icon="time-outline" label="Commitment" value={details[1]} />
-          <Detail icon="briefcase-outline" label="Type" value={details[0]} />
-          <Detail icon="sparkles-outline" label="Experience" value={details[2]} />
+          <Detail icon="time-outline" label="Commitment" value={commitmentLabel} />
+          <Detail icon="briefcase-outline" label="Type" value={workTypeLabel} />
+          <Detail icon="sparkles-outline" label="Experience" value={experienceLabel} />
           <Detail
             icon="people-outline"
             label="People needed"
@@ -224,11 +253,7 @@ export default function PublicOpportunityScreen() {
           />
           <DateDetail
             label="Deadline"
-            value={
-              opportunity.expirationDate
-                ? formatDateLabel(opportunity.expirationDate)
-                : 'Open until filled'
-            }
+            value={deadlineLabel}
           />
         </View>
       </Section>
@@ -245,7 +270,8 @@ export default function PublicOpportunityScreen() {
           <Text style={styles.creatorLabel}>Posted by</Text>
           <Text style={styles.creatorName}>{opportunity.poster.name}</Text>
           <Text style={styles.creatorBody}>
-            Lance keeps applicants in one place so creators do not have to sort through DMs.
+            Lance keeps the opportunity page polished and the applications together, so
+            creators do not have to sort through scattered DMs.
           </Text>
         </View>
       </View>
@@ -260,6 +286,22 @@ export default function PublicOpportunityScreen() {
         </Pressable>
       ) : null}
 
+      <View style={styles.finalApplyCard}>
+        <Text style={styles.finalApplyTitle}>Interested?</Text>
+        <Text style={styles.finalApplyBody}>
+          Apply with a reusable Lance profile so the creator can review your work,
+          skills, and links in one place.
+        </Text>
+        <ApplyAction
+          authLoading={authLoading}
+          onError={setError}
+          onboardingStatus={onboardingStatus}
+          opportunity={opportunity}
+          sessionExists={Boolean(session)}
+          userId={user?.id ?? null}
+        />
+      </View>
+
       <Text style={styles.publicUrl}>{getOpportunityPublicUrl(opportunity)}</Text>
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -270,6 +312,25 @@ export default function PublicOpportunityScreen() {
         visible={shareOpen}
       />
     </Screen>
+  );
+}
+
+function HeroMeta({
+  icon,
+  label,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+}) {
+  if (!label) return null;
+
+  return (
+    <View style={styles.heroMetaPill}>
+      <Ionicons color={theme.colors.textSoft} name={icon} size={14} />
+      <Text numberOfLines={1} style={styles.heroMetaText}>
+        {label}
+      </Text>
+    </View>
   );
 }
 
@@ -467,11 +528,66 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   heroCopy: {
-    gap: theme.spacing.sm,
+    gap: theme.spacing.md,
     padding: theme.spacing.lg,
   },
+  heroTopline: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+    justifyContent: 'space-between',
+  },
+  openPill: {
+    alignItems: 'center',
+    backgroundColor: '#EAF8EF',
+    borderRadius: theme.radii.pill,
+    flexDirection: 'row',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  openDot: {
+    backgroundColor: theme.colors.success,
+    borderRadius: 4,
+    height: 8,
+    width: 8,
+  },
+  openPillText: {
+    color: '#13733A',
+    fontSize: theme.typography.caption,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  deadlineText: {
+    color: theme.colors.muted,
+    flex: 1,
+    fontSize: theme.typography.caption,
+    fontWeight: '800',
+    textAlign: 'right',
+  },
   posterRow: {
-    gap: 2,
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
+  posterMini: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.accentSoft,
+    borderRadius: 18,
+    height: 36,
+    justifyContent: 'center',
+    overflow: 'hidden',
+    width: 36,
+  },
+  posterMiniInitial: {
+    color: theme.colors.accentStrong,
+    fontSize: theme.typography.small,
+    fontWeight: '900',
+  },
+  posterText: {
+    flex: 1,
+    gap: 1,
+    minWidth: 0,
   },
   posterName: {
     color: theme.colors.text,
@@ -482,12 +598,6 @@ const styles = StyleSheet.create({
     color: theme.colors.muted,
     fontSize: theme.typography.tiny,
     fontWeight: '700',
-  },
-  eyebrow: {
-    color: theme.colors.accentStrong,
-    fontSize: theme.typography.caption,
-    fontWeight: '900',
-    textTransform: 'uppercase',
   },
   title: {
     color: theme.colors.text,
@@ -504,6 +614,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: theme.spacing.sm,
+  },
+  heroMeta: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: theme.spacing.sm,
+  },
+  heroMetaPill: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.surfaceMuted,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radii.pill,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 5,
+    maxWidth: '100%',
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+  },
+  heroMetaText: {
+    color: theme.colors.textSoft,
+    flexShrink: 1,
+    fontSize: theme.typography.caption,
+    fontWeight: '800',
   },
   applyCard: {
     backgroundColor: '#17151F',
@@ -677,6 +810,25 @@ const styles = StyleSheet.create({
     color: theme.colors.accentStrong,
     fontSize: theme.typography.small,
     fontWeight: '900',
+  },
+  finalApplyCard: {
+    backgroundColor: theme.colors.surface,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radii.lg,
+    borderWidth: 1,
+    gap: theme.spacing.md,
+    padding: theme.spacing.lg,
+    ...theme.shadows.card,
+  },
+  finalApplyTitle: {
+    color: theme.colors.text,
+    fontSize: theme.typography.cardTitle,
+    fontWeight: '900',
+  },
+  finalApplyBody: {
+    color: theme.colors.textSoft,
+    fontSize: theme.typography.small,
+    lineHeight: 20,
   },
   publicUrl: {
     color: theme.colors.muted,

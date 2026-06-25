@@ -106,7 +106,7 @@ export default function NewOpportunityScreen() {
           style={styles.iconButton}>
           <Ionicons color={theme.colors.text} name="close" size={24} />
         </Pressable>
-        <Text style={styles.title}>Post opportunity</Text>
+        <Text style={styles.title}>Post an opportunity</Text>
         <View style={styles.placeholder} />
       </View>
       <OpportunityEditor

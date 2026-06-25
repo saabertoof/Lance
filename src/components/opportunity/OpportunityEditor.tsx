@@ -120,7 +120,7 @@ export function OpportunityEditor({
             step < TOTAL_STEPS - 1
               ? 'Continue'
               : primaryStatus === 'published' && initialDraft.status === 'draft'
-                ? 'Publish'
+                ? 'Publish and get link'
                 : 'Save changes'
           }
           loading={isSaving}
@@ -165,14 +165,14 @@ export function OpportunityEditor({
       return (
         <>
           <StepHeader
-            title="Role and category"
-            subtitle="Give people a clear first read on the work."
+            title="Opportunity and category"
+            subtitle="Give people a clear first read on what you need."
           />
           <TextField
-            label="Title"
+            label="Opportunity title"
             maxLength={120}
             onChangeText={(title) => set('title', title)}
-            placeholder="React developer for a mobile MVP"
+            placeholder="Short-form editor for launch content"
             value={draft.title}
           />
           <FormSection title="Category">
@@ -197,37 +197,37 @@ export function OpportunityEditor({
       return (
         <>
           <StepHeader
-            title="Description and requirements"
-            subtitle="Explain the work plainly. Keep the summary compact and the detail useful."
+            title="The pitch"
+            subtitle="Tell people what you need, make it clear, and keep it easy to skim."
           />
           <TextField
-            label="Short summary"
+            label="One-line hook"
             maxLength={180}
             multiline
             onChangeText={(shortSummary) => set('shortSummary', shortSummary)}
-            placeholder="A concise overview shown on opportunity cards."
+            placeholder="A compact summary people can understand in one glance."
             style={styles.shortArea}
             textAlignVertical="top"
             value={draft.shortSummary}
           />
           <TextField
-            label="Full description"
+            label="What they'll do"
             maxLength={5000}
             multiline
             onChangeText={(fullDescription) => set('fullDescription', fullDescription)}
-            placeholder="Describe the goal, responsibilities, deliverables, and useful context."
+            placeholder="Describe the goal, deliverables, and useful context."
             style={styles.longArea}
             textAlignVertical="top"
             value={draft.fullDescription}
           />
           <TextField
-            label="Additional requirements (optional)"
+            label="Who this is for (optional)"
             maxLength={1200}
             multiline
             onChangeText={(additionalRequirements) =>
               set('additionalRequirements', additionalRequirements)
             }
-            placeholder="Any tools, schedule needs, or other requirements."
+            placeholder="Any tools, schedule needs, taste, or experience that would help."
             style={styles.shortArea}
             textAlignVertical="top"
             value={draft.additionalRequirements}
@@ -248,7 +248,7 @@ export function OpportunityEditor({
         <>
           <StepHeader
             title="Compensation and time"
-            subtitle="Keep compensation visible and specific whenever possible."
+            subtitle="Set clear expectations before anyone applies."
           />
           <FormSection title="Compensation type">
             <SingleSelectChips
@@ -331,7 +331,7 @@ export function OpportunityEditor({
         <>
           <StepHeader
             title="Location and work arrangement"
-            subtitle="Help people understand where and when the work happens."
+            subtitle="Help people understand where the work happens and how flexible it is."
           />
           <FormSection title="Work arrangement">
             <SingleSelectChips
@@ -428,8 +428,8 @@ export function OpportunityEditor({
     return (
       <>
         <StepHeader
-          title="Preview and publish"
-          subtitle="Review the opportunity exactly as a future result card will present it."
+          title="Review and publish"
+          subtitle="Publishing creates a clean Lance link you can share anywhere."
         />
         <OpportunityCard onPress={() => undefined} opportunity={preview} />
         <Checkbox

@@ -187,10 +187,10 @@ export function getOpportunityShareCopy(opportunity: OpportunityRecord) {
 
   return {
     url,
-    nativeMessage: `Apply to ${title} on Lance: ${url}`,
-    linktreeText: title.length > 42 ? 'Apply to work with me' : title,
-    storyText: `I'm looking for someone for ${title}. Apply here: ${url}`,
-    socialCaption: `${title} - apply through Lance: ${url}`,
+    nativeMessage: `${title}\nApply with Lance: ${url}`,
+    linktreeText: title.length > 46 ? 'Apply to work with me on Lance' : title,
+    storyText: `Apply to work with me on Lance: ${url}`,
+    socialCaption: `Looking for someone to help with this opportunity. Details and application: ${url}`,
   };
 }
 

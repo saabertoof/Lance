@@ -69,7 +69,7 @@ export default function CreateScreen() {
         <Text style={styles.eyebrow}>CREATE STUDIO</Text>
         <Text style={styles.title}>What are you building?</Text>
         <Text style={styles.subtitle}>
-          Post a role, launch a project, or create a home for your business.
+          Post an opportunity, launch a project, or create a home for your business.
         </Text>
       </Animated.View>
 

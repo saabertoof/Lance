@@ -131,7 +131,7 @@ export default function OpportunityResponsesScreen() {
       ) : (
         <EmptyState
           title="No responses yet"
-          body="People who explicitly Express Interest will appear here. Private saves never appear."
+          body="Applications will appear here after people apply with their Lance profile. Private saves never appear."
         />
       )}
     </Screen>

@@ -44,7 +44,7 @@ export function CreatePathGrid({
       <CreatePathCard
         accessibilityHint="Opens the existing guided opportunity creation flow."
         delay={40}
-        description="Post the role, share the link, and review applicants in one place."
+        description="Post the opportunity, share the link, and review applicants in one place."
         icon="briefcase-outline"
         metadata="Freelance, internship, cofounder, and more"
         onPress={onJob}
