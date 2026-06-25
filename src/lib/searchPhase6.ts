@@ -235,7 +235,7 @@ function mapAlertEvent(row: RawAlertEvent): SearchAlertEventRecord {
     id: row.id,
     userId: row.user_id,
     savedSearchId: row.saved_search_id,
-    savedSearchName: savedSearch?.name ?? 'Job alert',
+    savedSearchName: savedSearch?.name ?? 'Opportunity alert',
     opportunityId: row.opportunity_id,
     opportunityTitle: row.opportunity_title_snapshot,
     posterName: row.poster_name_snapshot,

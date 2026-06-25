@@ -310,13 +310,13 @@ export default function MessagesScreen() {
             </View>
           ) : debouncedQuery ? (
             <EmptyState
-              body="Try another name, username, job, business, or message phrase."
+              body="Try another name, username, opportunity, business, or message phrase."
               title="No conversations found."
             />
           ) : (
             <View style={styles.state}>
               <EmptyState
-                body="Connect with someone or apply to a job to start talking."
+                body="Connect with someone or apply to an opportunity to start talking."
                 title="No conversations yet"
               />
               <View style={styles.emptyActions}>
@@ -325,7 +325,7 @@ export default function MessagesScreen() {
                   onPress={() => router.push('/discover')}
                 />
                 <Button
-                  label="Browse jobs"
+                  label="Browse opportunities"
                   onPress={() => router.push('/search')}
                   variant="secondary"
                 />
@@ -360,7 +360,7 @@ export default function MessagesScreen() {
                 </RequestSection>
               ) : null}
               {opportunityResponses.length > 0 ? (
-                <RequestSection title="Job applications">
+                <RequestSection title="Opportunity applications">
                   {opportunityResponses.map((response) => (
                     <OpportunityResponseRow
                       direction={direction}
@@ -373,7 +373,7 @@ export default function MessagesScreen() {
                   ))}
                   {hasMoreResponses ? (
                     <Button
-                      label="Load more job applications"
+                      label="Load more opportunity applications"
                       loading={isLoadingMore}
                       onPress={() => void loadMoreResponses()}
                       variant="ghost"
@@ -386,8 +386,8 @@ export default function MessagesScreen() {
             <EmptyState
               body={
                 direction === 'received'
-                  ? 'New Connect requests and job applications will appear here.'
-                  : 'Connect requests and job applications you send will appear here.'
+                  ? 'New Connect requests and opportunity applications will appear here.'
+                  : 'Connect requests and opportunity applications you send will appear here.'
               }
               title={`No ${direction} requests`}
             />

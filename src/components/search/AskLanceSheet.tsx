@@ -26,8 +26,8 @@ const examples: Record<SearchMode, string[]> = {
     'Cofounders with fundraising experience',
   ],
   opportunities: [
-    'Paid entry-level React jobs',
-    'Remote video editing jobs',
+    'Paid entry-level React opportunities',
+    'Remote video editing opportunities',
     'Marketing internships',
   ],
   businesses: [
@@ -135,7 +135,7 @@ export function AskLanceSheet({
           keyboardShouldPersistTaps="handled">
           <View style={styles.promptBlock}>
             <Text style={styles.prompt}>
-              Describe who, what job, or what business you&apos;re looking for.
+              Describe who, what opportunity, or what business you&apos;re looking for.
             </Text>
             <TextInput
               accessibilityLabel="Ask Lance search request"
@@ -198,7 +198,7 @@ export function AskLanceSheet({
 
           <Text style={styles.privacy}>
             Ask Lance turns your request into search filters. Results come
-            from real Lance profiles, jobs, and businesses.
+            from real Lance profiles, opportunities, and businesses.
           </Text>
           <Button
             disabled={Boolean(clarificationQuestion && !clarification.trim())}

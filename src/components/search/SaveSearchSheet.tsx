@@ -101,7 +101,7 @@ export function SaveSearchSheet({
 
           {canAlert ? (
             <View style={styles.alerts}>
-              <Text style={styles.label}>New Job alerts</Text>
+              <Text style={styles.label}>New opportunity alerts</Text>
               <View style={styles.frequencyRow}>
                 {frequencies.map((option) => {
                   const unavailable =
@@ -135,11 +135,11 @@ export function SaveSearchSheet({
               </View>
               {!schedulerEnabled ? (
                 <Text style={styles.note}>
-                  Job alerts can be enabled after the scheduler is configured.
+                  Opportunity alerts can be enabled after the scheduler is configured.
                 </Text>
               ) : (
                 <Text style={styles.note}>
-                  Alerts include only newly published matching Jobs.
+                  Alerts include only newly published matching opportunities.
                 </Text>
               )}
             </View>

@@ -28,8 +28,11 @@ export const routes = {
           params: { businessId },
         }) as Href)
       : ('/opportunity/new' as Href),
-  opportunity: (id: string) =>
-    ({ pathname: '/opportunity/[id]', params: { id } }) as unknown as Href,
+  opportunity: (id: string, options?: { share?: boolean }) =>
+    ({
+      pathname: '/opportunity/[id]',
+      params: { id, ...(options?.share ? { share: '1' } : {}) },
+    }) as unknown as Href,
   editOpportunity: (id: string) =>
     ({ pathname: '/opportunity/[id]/edit', params: { id } }) as Href,
   opportunityTalent: (id: string) =>

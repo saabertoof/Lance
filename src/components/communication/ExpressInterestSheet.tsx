@@ -136,8 +136,8 @@ export function ExpressInterestSheet({
               {opportunity ? `Apply to ${opportunity.title}` : 'Apply'}
             </Text>
             <Text style={styles.subtitle}>
-              Review your application before sending. A conversation starts only
-              if the poster responds.
+              Your Lance profile carries your skills, portfolio, and links. Add
+              a short note, then review before sending.
             </Text>
           </View>
           <Pressable accessibilityRole="button" onPress={onClose}>
@@ -242,7 +242,7 @@ export function ExpressInterestSheet({
             maxLength={500}
             multiline
             onChangeText={setNote}
-            placeholder="Why this job fits your work"
+            placeholder="Why this opportunity fits your work"
             style={styles.note}
             value={note}
           />

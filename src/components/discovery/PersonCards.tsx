@@ -249,7 +249,7 @@ const intentLabels: Record<string, string> = {
   looking_for_collaborators: 'Looking for collaborators',
   open_to_freelance: 'Open to freelance',
   looking_for_internships: 'Looking for internships',
-  looking_for_job: 'Looking for a job',
+  looking_for_job: 'Looking for opportunities',
   hiring: 'Hiring',
   looking_for_projects: 'Looking for projects',
   offering_skills: 'Offering my skills',

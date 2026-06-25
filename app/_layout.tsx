@@ -33,6 +33,7 @@ export default function RootLayout() {
                   <Stack.Screen name="opportunity" />
                   <Stack.Screen name="profile" />
                   <Stack.Screen name="messages" />
+                  <Stack.Screen name="o" />
                   <Stack.Screen name="request" />
                   <Stack.Screen name="search" />
                 </Stack>

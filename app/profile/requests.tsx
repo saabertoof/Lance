@@ -102,8 +102,8 @@ export default function SentRequestsScreen() {
       </View>
       <Text style={styles.subtitle}>
         {applicationsOnly
-          ? 'Track job applications and active opportunity discussions.'
-          : 'Track Connect requests and job applications you have sent.'}
+          ? 'Track opportunity applications and active discussions.'
+          : 'Track Connect requests and opportunity applications you have sent.'}
       </Text>
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {requests.length + responses.length === 0 ? (
@@ -111,8 +111,8 @@ export default function SentRequestsScreen() {
           title="Nothing sent yet"
           body={
             applicationsOnly
-              ? 'Jobs you apply to will appear here.'
-              : 'Connect requests and job applications will appear here.'
+              ? 'Opportunities you apply to will appear here.'
+              : 'Connect requests and opportunity applications will appear here.'
           }
         />
       ) : (

@@ -81,7 +81,7 @@ export default function InterestedTalentScreen() {
         <View style={styles.iconButton} />
       </View>
       <Text style={styles.subtitle}>
-        People who applied to jobs posted by you or your businesses.
+        People who applied to opportunities posted by you or your businesses.
       </Text>
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {responses.length > 0 ? (
@@ -107,7 +107,7 @@ export default function InterestedTalentScreen() {
         </View>
       ) : (
         <EmptyState
-          body="New applications will appear here while your jobs are accepting responses."
+          body="New applications will appear here while your opportunities are accepting responses."
           title="No interested talent yet"
         />
       )}

@@ -42,15 +42,15 @@ export function CreatePathGrid({
   return (
     <View style={styles.pathGrid}>
       <CreatePathCard
-        accessibilityHint="Opens the existing guided job creation flow."
+        accessibilityHint="Opens the existing guided opportunity creation flow."
         delay={40}
-        description="Find the right person for a role, project, or collaboration."
+        description="Post the role, share the link, and review applicants in one place."
         icon="briefcase-outline"
         metadata="Freelance, internship, cofounder, and more"
         onPress={onJob}
         primary
         reduceMotion={reduceMotion}
-        title="Post a job"
+        title="Post an opportunity"
         tone="job"
       />
       <View
@@ -191,7 +191,7 @@ export function DraftContinuation({
         showsHorizontalScrollIndicator={false}>
         {drafts.map((draft) => (
           <Pressable
-            accessibilityHint="Continues editing this saved job draft."
+            accessibilityHint="Continues editing this saved opportunity draft."
             accessibilityLabel={`${draft.title}, draft`}
             accessibilityRole="button"
             key={draft.id}
@@ -254,7 +254,7 @@ export function YourCreations({
       id: item.id,
       imageUrl: null,
       kind: 'job' as const,
-      label: 'Job',
+      label: 'Opportunity',
       status: item.status,
       title: item.title,
       updatedAt: item.updatedAt,
@@ -300,13 +300,13 @@ export function YourCreations({
         </View>
       ) : (
         <Text style={styles.emptyCreations}>
-          Your jobs, projects, and businesses will appear here.
+          Your opportunities, projects, and businesses will appear here.
         </Text>
       )}
       <View style={styles.manageRow}>
         <ManageButton
           icon="briefcase-outline"
-          label="All jobs"
+          label="Opportunities"
           onPress={onManageJobs}
         />
         <ManageButton

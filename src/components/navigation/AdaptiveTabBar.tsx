@@ -143,10 +143,10 @@ export function AdaptiveTabBar({
                       text: badge
                         ? route.name === 'messages'
                           ? `${badge} unread message${badge === 1 ? '' : 's'}`
-                          : `${badge} unread Job alert${badge === 1 ? '' : 's'}`
+                          : `${badge} unread opportunity alert${badge === 1 ? '' : 's'}`
                         : route.name === 'messages'
                           ? 'No unread messages'
-                          : 'No unread Job alerts',
+                          : 'No unread opportunity alerts',
                     }
                   : undefined
               }

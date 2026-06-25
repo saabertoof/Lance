@@ -167,7 +167,7 @@ export function suggestedSearchName(state: SearchExecutionState) {
     state.mode === 'people'
       ? 'People search'
       : state.mode === 'opportunities'
-        ? 'Job search'
+        ? 'Opportunity search'
         : 'Business search';
   return labels.join(' - ').slice(0, 72) || fallback;
 }

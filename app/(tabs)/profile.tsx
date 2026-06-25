@@ -142,7 +142,7 @@ export default function ProfileScreen() {
         {
           count: summary?.jobs ?? null,
           icon: 'briefcase-outline',
-          label: 'My jobs',
+          label: 'My opportunities',
           onPress: () => router.push(routes.opportunities),
         },
         {
@@ -175,7 +175,7 @@ export default function ProfileScreen() {
         {
           count: summary?.saved ?? null,
           icon: 'bookmark-outline',
-          label: 'Saved people & jobs',
+          label: 'Saved people & opportunities',
           onPress: () => router.push(routes.saved),
         },
       ],

@@ -34,6 +34,7 @@ import {
   getOpportunityRecommendationReasons,
   getPersonRecommendationReasons,
 } from '@/lib/recommendations';
+import { getOpportunityShareCopy } from '@/lib/opportunity';
 import { routes } from '@/lib/routes';
 import {
   countOpportunityFilters,
@@ -51,7 +52,7 @@ import type { ProfilePolish } from '@/types/profilePolish';
 
 const discoverModes = [
   { label: 'People', value: 'people' },
-  { label: 'Jobs', value: 'opportunities' },
+  { label: 'Opportunities', value: 'opportunities' },
 ] as const;
 
 type LastPass =
@@ -254,21 +255,13 @@ export default function DiscoverScreen() {
     }
     if (action === 'share') {
       try {
-        const link = current.slug
-          ? `https://lance.app/o/${current.slug}`
-          : null;
+        const share = getOpportunityShareCopy(current);
         await Share.share({
-          message: [
-            `${current.title} at ${current.poster.name}.`,
-            current.shortSummary,
-            link,
-          ]
-            .filter(Boolean)
-            .join(' '),
+          message: share.nativeMessage,
         });
         return true;
       } catch {
-        showWarning('This job could not be shared. Try again.');
+        showWarning('This opportunity could not be shared. Try again.');
         return false;
       }
     }
@@ -371,10 +364,10 @@ export default function DiscoverScreen() {
         ) : null}
         {!isLoading && !error && mode === 'opportunities' && currentOpportunity ? (
           <DiscoverDeck
-            key="jobs-discover"
+            key="opportunities-discover"
             canUndo={lastPass?.mode === 'opportunities'}
             cardKey={currentOpportunity.id}
-            detailLabel="job details"
+            detailLabel="opportunity details"
             isSaved={isOpportunitySaved(currentOpportunity.id)}
             onJiggleComplete={() => jiggledModes.current.add('opportunities')}
             primaryActionLabel="Apply"
@@ -408,13 +401,13 @@ export default function DiscoverScreen() {
           <View style={styles.state}>
             <EmptyState
               body={`There are no more ${
-                mode === 'people' ? 'people' : 'jobs'
+                mode === 'people' ? 'people' : 'opportunities'
               } in this session with the current filters.`}
               title="You are caught up"
             />
             <Button label="Adjust filters" onPress={() => setFiltersOpen(true)} variant="secondary" />
             <Button
-              label={`Switch to ${mode === 'people' ? 'jobs' : 'people'}`}
+              label={`Switch to ${mode === 'people' ? 'opportunities' : 'people'}`}
               onPress={() => setMode(mode === 'people' ? 'opportunities' : 'people')}
               variant="ghost"
             />

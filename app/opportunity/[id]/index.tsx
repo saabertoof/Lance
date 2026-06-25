@@ -10,7 +10,6 @@ import {
   Alert,
   Linking,
   Pressable,
-  Share,
   StyleSheet,
   Text,
   View,
@@ -19,6 +18,7 @@ import {
 import {
   CompensationBadge,
   OpportunityStatusBadge,
+  OpportunityShareSheet,
   WorkArrangementBadge,
 } from '@/components/opportunity';
 import { SaveButton } from '@/components/saved';
@@ -32,6 +32,7 @@ import {
   deleteDraftOpportunity,
   formatCompensation,
   formatOpportunityError,
+  getOpportunityPublicUrl,
   loadOpportunity,
   needsCompensationWarning,
   updateOpportunityStatus,
@@ -54,15 +55,17 @@ import {
 import { getOptionLabel } from '@/types/profile';
 
 export default function OpportunityDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, share } = useLocalSearchParams<{ id: string; share?: string }>();
   const { user } = useAuth();
   const { showSuccess } = useFeedback();
   const { isOpportunitySaved, setOpportunitySaved } = useSaved();
   const updateRef = useRef(false);
+  const sharePromptRef = useRef(false);
   const [opportunity, setOpportunity] = useState<OpportunityRecord | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [shareOpen, setShareOpen] = useState(false);
   const [safetyOpen, setSafetyOpen] = useState(false);
   const [ownerRelationship, setOwnerRelationship] =
     useState<RelationshipStatus | null>(null);
@@ -91,6 +94,22 @@ export default function OpportunityDetailScreen() {
       .catch((loadError) => setError(formatCommunicationError(loadError)));
   }, [opportunity, user?.id]);
 
+  useEffect(() => {
+    if (
+      share !== '1' ||
+      !opportunity ||
+      opportunity.ownerProfileId !== user?.id ||
+      opportunity.status !== 'published' ||
+      sharePromptRef.current
+    ) {
+      return;
+    }
+
+    sharePromptRef.current = true;
+    setShareOpen(true);
+    router.setParams({ share: '0' });
+  }, [opportunity, share, user?.id]);
+
   async function changeStatus(status: OpportunityStatus) {
     if (!user || updateRef.current) return;
     updateRef.current = true;
@@ -98,9 +117,13 @@ export default function OpportunityDetailScreen() {
     setError(null);
 
     try {
+      const previousStatus = opportunity?.status;
       await updateOpportunityStatus(id, user.id, status);
       await load();
       showSuccess(getStatusSuccessMessage(status, opportunity?.status));
+      if (status === 'published' && previousStatus === 'draft') {
+        setShareOpen(true);
+      }
     } catch (updateError) {
       setError(formatOpportunityError(updateError));
     } finally {
@@ -195,11 +218,7 @@ export default function OpportunityDetailScreen() {
           <Pressable
             accessibilityLabel="Share opportunity"
             accessibilityRole="button"
-            onPress={() =>
-              Share.share({
-                message: `View ${opportunity.title} on Lance: https://lance.app/o/${opportunity.slug}`,
-              })
-            }
+            onPress={() => setShareOpen(true)}
             style={styles.iconButton}>
             <Ionicons color={theme.colors.text} name="share-outline" size={22} />
           </Pressable>
@@ -338,6 +357,9 @@ export default function OpportunityDetailScreen() {
           label="Published"
           value={opportunity.publishedAt?.slice(0, 10) ?? 'Not published'}
         />
+        {opportunity.status === 'published' ? (
+          <Detail label="Public link" value={getOpportunityPublicUrl(opportunity)} />
+        ) : null}
         {opportunity.externalUrl ? (
           <Pressable
             accessibilityRole="link"
@@ -351,6 +373,30 @@ export default function OpportunityDetailScreen() {
 
       {isOwner ? (
         <>
+          {opportunity.status === 'published' ? (
+            <View style={styles.sharePrompt}>
+              <View style={styles.shareIcon}>
+                <Ionicons
+                  color={theme.colors.accentStrong}
+                  name="paper-plane-outline"
+                  size={21}
+                />
+              </View>
+              <View style={styles.shareCopy}>
+                <Text style={styles.shareTitle}>Share this opportunity</Text>
+                <Text style={styles.shareBody}>
+                  Copy a clean Lance link and captions for your bio, story, Discord, or X.
+                </Text>
+              </View>
+              <Pressable
+                accessibilityLabel="Open share panel"
+                accessibilityRole="button"
+                onPress={() => setShareOpen(true)}
+                style={styles.shareButton}>
+                <Ionicons color={theme.colors.white} name="arrow-forward" size={19} />
+              </Pressable>
+            </View>
+          ) : null}
           <Button
             label="Interested talent"
             onPress={() => router.push(routes.opportunityTalent(id))}
@@ -395,6 +441,11 @@ export default function OpportunityDetailScreen() {
           visible={safetyOpen}
         />
       ) : null}
+      <OpportunityShareSheet
+        onClose={() => setShareOpen(false)}
+        opportunity={opportunity}
+        visible={shareOpen}
+      />
     </Screen>
   );
 }
@@ -646,6 +697,46 @@ const styles = StyleSheet.create({
     color: theme.colors.accentStrong,
     fontSize: theme.typography.body,
     fontWeight: '700',
+  },
+  sharePrompt: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.accentSoft,
+    borderColor: '#DCD5FF',
+    borderRadius: theme.radii.lg,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: theme.spacing.md,
+    padding: theme.spacing.md,
+  },
+  shareIcon: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radii.md,
+    height: 44,
+    justifyContent: 'center',
+    width: 44,
+  },
+  shareCopy: {
+    flex: 1,
+    gap: 3,
+  },
+  shareTitle: {
+    color: theme.colors.text,
+    fontSize: theme.typography.small,
+    fontWeight: '900',
+  },
+  shareBody: {
+    color: theme.colors.textSoft,
+    fontSize: theme.typography.tiny,
+    lineHeight: 18,
+  },
+  shareButton: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.accent,
+    borderRadius: theme.radii.pill,
+    height: 40,
+    justifyContent: 'center',
+    width: 40,
   },
   ownerControls: {
     gap: theme.spacing.md,

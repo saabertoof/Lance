@@ -6,7 +6,7 @@ export const currentIntentOptions = [
   { label: 'Looking for collaborators', value: 'looking_for_collaborators' },
   { label: 'Open to freelance work', value: 'open_to_freelance' },
   { label: 'Looking for internships', value: 'looking_for_internships' },
-  { label: 'Looking for a job', value: 'looking_for_job' },
+  { label: 'Looking for opportunities', value: 'looking_for_job' },
   { label: 'Hiring', value: 'hiring' },
   { label: 'Looking for projects', value: 'looking_for_projects' },
   { label: 'Offering my skills', value: 'offering_skills' },

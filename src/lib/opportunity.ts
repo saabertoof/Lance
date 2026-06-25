@@ -55,6 +55,21 @@ const clearlyPaidCompensationTypes = new Set([
   'mixed',
 ]);
 
+const publicOpportunityBaseUrl = 'https://lance.app/o';
+
+type PublicOpportunityPayload = Omit<
+  OpportunityRecord,
+  'businessId' | 'ownerProfileId' | 'poster'
+> & {
+  businessId: string | null;
+  ownerProfileId: string | null;
+  poster: {
+    identityType: OpportunityRecord['poster']['identityType'];
+    imageUrl: string | null;
+    name: string;
+  };
+};
+
 type RawOpportunity = {
   id: string;
   owner_profile_id: string;
@@ -142,23 +157,41 @@ export function formatCompensation(opportunity: OpportunityDraft) {
 
   if (minimum && maximum) {
     return `${opportunity.currency} ${minimum.toLocaleString()}-${maximum.toLocaleString()}${
-      periodLabel ? ` · ${periodLabel}` : ''
+      periodLabel ? ` / ${periodLabel}` : ''
     }`;
   }
 
   if (minimum) {
     return `From ${opportunity.currency} ${minimum.toLocaleString()}${
-      periodLabel ? ` · ${periodLabel}` : ''
+      periodLabel ? ` / ${periodLabel}` : ''
     }`;
   }
 
   if (maximum) {
     return `Up to ${opportunity.currency} ${maximum.toLocaleString()}${
-      periodLabel ? ` · ${periodLabel}` : ''
+      periodLabel ? ` / ${periodLabel}` : ''
     }`;
   }
 
   return typeLabel;
+}
+
+export function getOpportunityPublicUrl(opportunity: Pick<OpportunityRecord, 'id' | 'slug'>) {
+  const slug = opportunity.slug?.trim();
+  return `${publicOpportunityBaseUrl}/${slug || opportunity.id}`;
+}
+
+export function getOpportunityShareCopy(opportunity: OpportunityRecord) {
+  const url = getOpportunityPublicUrl(opportunity);
+  const title = opportunity.title.trim() || 'this opportunity';
+
+  return {
+    url,
+    nativeMessage: `Apply to ${title} on Lance: ${url}`,
+    linktreeText: title.length > 42 ? 'Apply to work with me' : title,
+    storyText: `I'm looking for someone for ${title}. Apply here: ${url}`,
+    socialCaption: `${title} - apply through Lance: ${url}`,
+  };
 }
 
 export function validateOpportunityDraft(draft: OpportunityDraft, publishing: boolean) {
@@ -257,9 +290,10 @@ function opportunityPayload(
   ownerId: string,
   status: OpportunityStatus,
 ) {
+  const slugBase = slugify(draft.title).slice(0, 70) || 'opportunity';
   const slug =
     draft.slug ||
-    `${slugify(draft.title).slice(0, 70)}-${Date.now().toString(36).slice(-6)}`;
+    `${slugBase}-${Date.now().toString(36).slice(-6)}`;
 
   return {
     owner_profile_id: ownerId,
@@ -462,6 +496,28 @@ export async function loadOpportunity(opportunityId: string) {
   return mapOpportunity(data as RawOpportunity);
 }
 
+export async function loadPublicOpportunityBySlug(slug: string) {
+  const normalizedSlug = slug.trim().toLowerCase();
+
+  if (!/^[a-z0-9-]{3,80}$/.test(normalizedSlug)) {
+    throw new Error('This opportunity link is not valid.');
+  }
+
+  const { data, error } = await supabase.rpc('get_public_opportunity_by_slug', {
+    target_slug: normalizedSlug,
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data) {
+    throw new Error('This opportunity is no longer available.');
+  }
+
+  return mapPublicOpportunity(data as PublicOpportunityPayload);
+}
+
 export async function loadPublicOpportunitiesByIds(opportunityIds: string[]) {
   if (opportunityIds.length === 0) return [];
 
@@ -580,6 +636,10 @@ export function formatOpportunityError(error: unknown) {
   if (error && typeof error === 'object') {
     const possibleError = error as { code?: string; message?: string; name?: string };
 
+    if (possibleError.code === 'PGRST202') {
+      return 'Public opportunity links need the latest Supabase migration before they can load.';
+    }
+
     if (possibleError.code === '23505') {
       return 'This opportunity link already exists. Save again to generate a new one.';
     }
@@ -616,6 +676,23 @@ export function groupOpportunities(opportunities: OpportunityRecord[]) {
     closed: opportunities.filter(
       (item) => item.status === 'closed' || item.status === 'archived',
     ),
+  };
+}
+
+function mapPublicOpportunity(payload: PublicOpportunityPayload): OpportunityRecord {
+  return {
+    ...payload,
+    businessId: payload.businessId ?? null,
+    ownerProfileId: payload.ownerProfileId ?? '',
+    expectedStartDate: payload.expectedStartDate ?? '',
+    expirationDate: payload.expirationDate ?? '',
+    skills: Array.isArray(payload.skills) ? payload.skills : [],
+    poster: {
+      business: null,
+      identityType: payload.poster.identityType,
+      imageUrl: payload.poster.imageUrl ?? null,
+      name: payload.poster.name || 'Lance member',
+    },
   };
 }
 

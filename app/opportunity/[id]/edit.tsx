@@ -87,7 +87,11 @@ export default function EditOpportunityScreen() {
             ? 'Opportunity draft updated.'
             : 'Opportunity updated.',
       );
-      router.replace(routes.opportunity(id));
+      router.replace(
+        routes.opportunity(id, {
+          share: draft.status === 'draft' && status === 'published',
+        }),
+      );
     } catch (saveError) {
       setError(formatOpportunityError(saveError));
     } finally {

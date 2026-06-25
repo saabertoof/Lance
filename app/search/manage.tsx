@@ -75,8 +75,8 @@ export default function SavedSearchManagementScreen() {
       );
       showSuccess(
         frequency === 'paused'
-          ? 'Job alert paused.'
-          : `${frequency === 'daily' ? 'Daily' : 'Weekly'} Job alert enabled.`,
+          ? 'Opportunity alert paused.'
+          : `${frequency === 'daily' ? 'Daily' : 'Weekly'} opportunity alert enabled.`,
       );
     } catch {
       showWarning('That alert setting could not be updated.');
@@ -86,7 +86,7 @@ export default function SavedSearchManagementScreen() {
   function chooseFrequency(search: SavedSearchRecord) {
     if (!schedulerEnabled) {
       Alert.alert(
-        'Job alerts are not active yet',
+        'Opportunity alerts are not active yet',
         'The scheduler must be configured before Daily or Weekly alerts can be enabled.',
         [
           {
@@ -98,7 +98,7 @@ export default function SavedSearchManagementScreen() {
       );
       return;
     }
-    Alert.alert('Job alert frequency', search.name, [
+    Alert.alert('Opportunity alert frequency', search.name, [
       { text: 'Daily', onPress: () => void setFrequency(search, 'daily') },
       { text: 'Weekly', onPress: () => void setFrequency(search, 'weekly') },
       { text: 'Paused', onPress: () => void setFrequency(search, 'paused') },
@@ -109,7 +109,7 @@ export default function SavedSearchManagementScreen() {
   function confirmDelete(search: SavedSearchRecord) {
     Alert.alert(
       'Delete saved search?',
-      'Its Job alert history will also be removed.',
+      'Its opportunity alert history will also be removed.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -146,8 +146,8 @@ export default function SavedSearchManagementScreen() {
       <Pressable
         accessibilityLabel={
           unreadCount
-            ? `Open ${unreadCount} unread Job alerts`
-            : 'Open Job alert inbox'
+            ? `Open ${unreadCount} unread opportunity alerts`
+            : 'Open opportunity alert inbox'
         }
         accessibilityRole="button"
         onPress={() => router.push(routes.searchAlerts)}
@@ -173,8 +173,8 @@ export default function SavedSearchManagementScreen() {
           <Text style={styles.sectionTitle}>New matches</Text>
           <Text style={styles.meta}>
             {unreadCount
-              ? `${unreadCount} unread Job match${unreadCount === 1 ? '' : 'es'}`
-              : 'No new Job matches yet'}
+              ? `${unreadCount} unread opportunity match${unreadCount === 1 ? '' : 'es'}`
+              : 'No new opportunity matches yet'}
           </Text>
         </View>
         <Ionicons
@@ -195,7 +195,7 @@ export default function SavedSearchManagementScreen() {
       {!loading && !error ? (
         <>
           <SectionHeading
-            body="People, Jobs, and Businesses you can run again."
+            body="People, opportunities, and businesses you can run again."
             title="Saved searches"
           />
           {searches.length === 0 ? (
@@ -228,14 +228,14 @@ export default function SavedSearchManagementScreen() {
           <SectionHeading
             body={
               schedulerEnabled
-                ? 'Daily or weekly alerts for newly published matching Jobs.'
+                ? 'Daily or weekly alerts for newly published matching opportunities.'
                 : 'Configure the scheduler before activating Daily or Weekly alerts.'
             }
-            title="Job alerts"
+            title="Opportunity alerts"
           />
           {jobSearches.length === 0 ? (
             <Text style={styles.emptyLine}>
-              Save a Job search to create an alert.
+              Save an opportunity search to create an alert.
             </Text>
           ) : (
             <View style={styles.list}>
@@ -442,7 +442,7 @@ function RenameSearchModal({
 
 function targetLabel(target: SavedSearchRecord['targetType']) {
   return target === 'jobs'
-    ? 'Job search'
+    ? 'Opportunity search'
     : target === 'people'
       ? 'People search'
       : 'Business search';

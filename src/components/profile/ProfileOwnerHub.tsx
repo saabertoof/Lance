@@ -70,7 +70,7 @@ export function ProfileStatsRow({
       />
       <Stat
         badge={summary?.newApplicants}
-        label="Jobs"
+        label="Opportunities"
         onPress={onJobs}
         value={summary?.jobs ?? null}
       />

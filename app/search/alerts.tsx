@@ -65,7 +65,7 @@ export default function SearchAlertInboxScreen() {
       setHasMore(nextEvents.length === SEARCH_ALERT_PAGE_SIZE);
     } catch {
       setError(
-        'Job alerts are not available yet. Apply the Phase 6 migration, then try again.',
+        'Opportunity alerts are not available yet. Apply the Phase 6 migration, then try again.',
       );
     } finally {
       setLoading(false);
@@ -139,13 +139,13 @@ export default function SearchAlertInboxScreen() {
           <Ionicons color={theme.colors.text} name="arrow-back" size={22} />
         </Pressable>
         <View style={styles.headerCopy}>
-          <Text style={styles.title}>New Job matches</Text>
-          <Text style={styles.subtitle}>In-app alerts from saved Job searches</Text>
+          <Text style={styles.title}>New opportunity matches</Text>
+          <Text style={styles.subtitle}>In-app alerts from saved opportunity searches</Text>
         </View>
         <View style={styles.headerButton} />
       </View>
 
-      {loading ? <LoadingState message="Loading Job alerts" /> : null}
+      {loading ? <LoadingState message="Loading opportunity alerts" /> : null}
       {!loading && error ? (
         <View style={styles.state}>
           <EmptyState body={error} title="Alerts unavailable" />
@@ -154,8 +154,8 @@ export default function SearchAlertInboxScreen() {
       ) : null}
       {!loading && !error && events.length === 0 ? (
         <EmptyState
-          body="Newly published Jobs matching an active alert will appear here."
-          title="No new Job matches yet"
+          body="Newly published opportunities matching an active alert will appear here."
+          title="No new opportunity matches yet"
         />
       ) : null}
 
@@ -237,7 +237,7 @@ export default function SearchAlertInboxScreen() {
                       {event.posterName}
                     </Text>
                     <Text style={styles.unavailableBody}>
-                      This Job is no longer available.
+                      This opportunity is no longer available.
                     </Text>
                     {!event.readAt ? (
                       <Button

@@ -78,7 +78,7 @@ export default function NewOpportunityScreen() {
     try {
       const id = await saveOpportunity(draft, user.id, status);
       showSuccess(status === 'draft' ? 'Opportunity draft saved.' : 'Opportunity published.');
-      router.replace(routes.opportunity(id));
+      router.replace(routes.opportunity(id, { share: status === 'published' }));
     } catch (saveError) {
       setError(formatOpportunityError(saveError));
     } finally {

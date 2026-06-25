@@ -71,13 +71,13 @@ import type { SearchPlanV1 } from '../../supabase/functions/_shared/search-plan'
 
 const searchModes = [
   { label: 'People', value: 'people' },
-  { label: 'Jobs', value: 'opportunities' },
+  { label: 'Opportunities', value: 'opportunities' },
   { label: 'Businesses', value: 'businesses' },
 ] as const;
 
 const placeholders: Record<SearchMode, string> = {
   people: 'Search people, roles, skills, or location',
-  opportunities: 'Search Jobs, skills, or posters',
+  opportunities: 'Search opportunities, skills, or creators',
   businesses: 'Search businesses, projects, or industries',
 };
 
@@ -318,7 +318,7 @@ export default function SearchScreen() {
     showSuccess(
       alertFrequency === 'paused'
         ? 'Search saved.'
-        : `${alertFrequency === 'daily' ? 'Daily' : 'Weekly'} Job alert enabled.`,
+        : `${alertFrequency === 'daily' ? 'Daily' : 'Weekly'} opportunity alert enabled.`,
     );
   }
 
@@ -376,7 +376,7 @@ export default function SearchScreen() {
         <Pressable
           accessibilityLabel={
             alertUnreadCount > 0
-              ? `Saved searches and alerts, ${alertUnreadCount} unread Job alerts`
+              ? `Saved searches and alerts, ${alertUnreadCount} unread opportunity alerts`
               : 'Saved searches and alerts'
           }
           accessibilityRole="button"
