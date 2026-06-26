@@ -159,13 +159,13 @@ export default function OnboardingScreen() {
         {step > 0 ? (
           <Button
             disabled={isSaving}
-            label={step === 5 ? 'Edit' : 'Back'}
+            label={step === 5 ? 'Edit basics' : 'Back'}
             onPress={() => setStep((current) => (current === 5 ? 2 : current - 1))}
             variant="ghost"
           />
         ) : null}
         <Button
-          label={step === 5 ? 'Complete profile' : 'Continue'}
+          label={step === 5 ? 'Start using Lance' : 'Continue'}
           loading={isSaving}
           onPress={step === 5 ? completeProfile : continueToNextStep}
           style={styles.primaryAction}
@@ -186,8 +186,8 @@ export default function OnboardingScreen() {
           />
           <Text style={styles.display}>Find people worth building with.</Text>
           <Text style={styles.subtitle}>
-            Discover people, freelance opportunities, businesses, and projects worth connecting
-            with.
+            Tell Lance what you do. We will use it to match you with people and
+            opportunities worth your time.
           </Text>
         </View>
       );
@@ -197,8 +197,8 @@ export default function OnboardingScreen() {
       return (
         <>
           <StepHeader
-            title="What are you here to do?"
-            subtitle="Choose one primary intent for now. You will be able to explore everything."
+            title="What are you here for?"
+            subtitle="Pick the main reason you are here today. You can still explore everything."
           />
           <View style={styles.optionList}>
             {intentOptions.map((option) => (
@@ -218,8 +218,8 @@ export default function OnboardingScreen() {
       return (
         <>
           <StepHeader
-            title="The basics"
-            subtitle="Create the identity people will recognize across Lance."
+            title="Who are you?"
+            subtitle="A simple identity people can recognize when you apply, connect, or post."
           />
           <BasicProfileFields draft={draft} onChange={setDraft} onError={showError} />
         </>
@@ -230,8 +230,8 @@ export default function OnboardingScreen() {
       return (
         <>
           <StepHeader
-            title="Your professional identity"
-            subtitle="Keep it concise. These structured details will power discovery and search later."
+            title="What can you do?"
+            subtitle="Add the skills and open-to signals Lance should use for discovery."
           />
           <ProfessionalProfileFields draft={draft} onChange={setDraft} onError={showError} />
         </>
@@ -242,8 +242,8 @@ export default function OnboardingScreen() {
       return (
         <>
           <StepHeader
-            title="Add your links"
-            subtitle="Optional. Use the places that help someone understand your work or reach you."
+            title="Add links"
+            subtitle="Optional. Add only the places that help someone understand your work."
           />
           <ProfileLinksFields draft={draft} onChange={setDraft} onError={showError} />
         </>
@@ -253,8 +253,8 @@ export default function OnboardingScreen() {
     return (
       <>
         <StepHeader
-          title="Your profile preview"
-          subtitle="This is the concise view people will use to understand who you are."
+          title="Looks good for now"
+          subtitle="You can keep improving this later from your Profile tab."
         />
         <ProfilePreviewCard profile={draft} />
         {isSaving ? <Text style={styles.uploading}>Saving your profile and photo...</Text> : null}

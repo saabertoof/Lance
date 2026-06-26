@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     minHeight: theme.layout.inputHeight,
     paddingHorizontal: theme.spacing.md,
   },
-  input: { color: theme.colors.text, flex: 1, fontSize: theme.typography.body },
+  input: { color: theme.colors.text, flex: 1, fontSize: theme.typography.small },
   clear: {
     alignItems: 'center',
     height: theme.layout.minTouchTarget,
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.md,
   },
   optionSelected: { backgroundColor: theme.colors.accentSoft, borderColor: theme.colors.accent },
-  optionText: { color: theme.colors.textSoft, fontSize: theme.typography.small, fontWeight: '700' },
+  optionText: { color: theme.colors.textSoft, fontSize: theme.typography.label, fontWeight: '800' },
   optionTextSelected: { color: theme.colors.accentStrong },
   addCustom: {
     alignItems: 'center',

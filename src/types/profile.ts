@@ -2,11 +2,11 @@ import type { ProfilePolish } from './profilePolish';
 
 export const intentOptions = [
   { label: 'Find opportunities', value: 'find_opportunities' },
-  { label: 'Find people', value: 'find_people' },
-  { label: 'Hire or find help', value: 'hire_or_find_help' },
-  { label: 'Promote my services', value: 'promote_services' },
-  { label: 'Build a team', value: 'build_team' },
-  { label: 'Explore everything', value: 'explore_everything' },
+  { label: 'Post opportunities', value: 'hire_or_find_help' },
+  { label: 'Meet collaborators', value: 'find_people' },
+  { label: 'Hire talent', value: 'build_team' },
+  { label: 'Build my profile', value: 'promote_services' },
+  { label: 'Explore Lance', value: 'explore_everything' },
 ] as const;
 
 export const remotePreferenceOptions = [
@@ -18,8 +18,10 @@ export const remotePreferenceOptions = [
 
 export const roleOptions = [
   'Founder',
+  'Creator',
   'Developer',
   'Designer',
+  'Editor',
   'Video editor',
   'Photographer',
   'Content creator',
@@ -28,7 +30,13 @@ export const roleOptions = [
   'Sales',
   'Copywriter',
   'Virtual assistant',
+  'Operator',
   'Community manager',
+  'Student',
+  'Investor',
+  'Freelancer',
+  'AI builder',
+  'Streamer',
   'Operations',
   'Consultant',
   'Other',
@@ -50,12 +58,12 @@ export const availabilityOptions = [
 ] as const;
 
 export const opportunityInterestOptions = [
-  { label: 'Paid freelance', value: 'paid_freelance' },
+  { label: 'Paid gigs', value: 'paid_freelance' },
   { label: 'Ongoing part-time', value: 'ongoing_part_time' },
   { label: 'One-time project', value: 'one_time_project' },
   { label: 'Retainer work', value: 'retainer_work' },
-  { label: 'Cofounder', value: 'cofounder' },
-  { label: 'Project collaboration', value: 'project_collaboration' },
+  { label: 'Cofounder opportunities', value: 'cofounder' },
+  { label: 'Collabs', value: 'project_collaboration' },
   { label: 'Commission', value: 'commission' },
   { label: 'Revenue share', value: 'revenue_share' },
   { label: 'Equity', value: 'equity' },

@@ -45,7 +45,7 @@ export function ProfileHero({
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.banner, { height: 190 + insets.top }]}>
+    <View style={[styles.banner, { height: 176 + insets.top }]}>
       {profile.polish.bannerUrl ? (
         <Image
           accessibilityLabel={`${profile.displayName} profile banner`}
@@ -302,13 +302,17 @@ export function ProfileProfessionalSections({
 
   return (
     <>
-      {profile.bio ? (
-        <ProfileSection
-          action={
-            onEdit ? <SectionEditButton label="Edit about" onPress={onEdit} /> : undefined
-          }
-          title="About">
-          <Text style={styles.bodyText}>{profile.bio}</Text>
+      {profile.opportunityInterests.length > 0 ? (
+        <ProfileSection title="Open to">
+          <View style={styles.chips}>
+            {profile.opportunityInterests.slice(0, 8).map((interest) => (
+              <Chip
+                accent
+                key={interest}
+                label={getOptionLabel(opportunityInterestOptions, interest)}
+              />
+            ))}
+          </View>
         </ProfileSection>
       ) : null}
 
@@ -326,37 +330,13 @@ export function ProfileProfessionalSections({
         </ProfileSection>
       ) : null}
 
-      <ProfileSection title="Experience">
-        <View style={styles.experienceLine}>
-          <Ionicons
-            color={accent}
-            name="ribbon-outline"
-            size={19}
-          />
-          <Text style={styles.experienceText}>
-            {getOptionLabel(experienceOptions, profile.experienceLevel)}
-          </Text>
-        </View>
-        {profile.industryExperience.length > 0 ? (
-          <View style={styles.chips}>
-            {profile.industryExperience.slice(0, 8).map((industry) => (
-              <Chip key={industry.toLowerCase()} label={industry} />
-            ))}
-          </View>
-        ) : null}
-      </ProfileSection>
-
-      {profile.opportunityInterests.length > 0 ? (
-        <ProfileSection title="Open to">
-          <View style={styles.chips}>
-            {profile.opportunityInterests.slice(0, 8).map((interest) => (
-              <Chip
-                accent
-                key={interest}
-                label={getOptionLabel(opportunityInterestOptions, interest)}
-              />
-            ))}
-          </View>
+      {profile.bio ? (
+        <ProfileSection
+          action={
+            onEdit ? <SectionEditButton label="Edit about" onPress={onEdit} /> : undefined
+          }
+          title="About">
+          <Text style={styles.bodyText}>{profile.bio}</Text>
         </ProfileSection>
       ) : null}
 
@@ -395,6 +375,26 @@ export function ProfileProfessionalSections({
           </View>
         </ProfileSection>
       ) : null}
+
+      <ProfileSection title="Background">
+        <View style={styles.experienceLine}>
+          <Ionicons
+            color={accent}
+            name="ribbon-outline"
+            size={19}
+          />
+          <Text style={styles.experienceText}>
+            {getOptionLabel(experienceOptions, profile.experienceLevel)}
+          </Text>
+        </View>
+        {profile.industryExperience.length > 0 ? (
+          <View style={styles.chips}>
+            {profile.industryExperience.slice(0, 8).map((industry) => (
+              <Chip key={industry.toLowerCase()} label={industry} />
+            ))}
+          </View>
+        ) : null}
+      </ProfileSection>
     </>
   );
 }
@@ -495,7 +495,7 @@ export const profileAccentColors = {
 
 const styles = StyleSheet.create({
   banner: {
-    height: 190,
+    height: 176,
     overflow: 'hidden',
     position: 'relative',
   },
@@ -548,13 +548,13 @@ const styles = StyleSheet.create({
   avatar: {
     alignItems: 'center',
     backgroundColor: theme.colors.accentSoft,
-    borderRadius: 56,
-    borderWidth: 5,
-    height: 112,
+    borderRadius: 50,
+    borderWidth: 4,
+    height: 100,
     justifyContent: 'center',
-    marginTop: -58,
+    marginTop: -52,
     overflow: 'hidden',
-    width: 112,
+    width: 100,
   },
   avatarEdit: {
     alignItems: 'center',
@@ -573,12 +573,12 @@ const styles = StyleSheet.create({
   },
   name: {
     color: theme.colors.text,
-    fontSize: theme.typography.title,
+    fontSize: theme.typography.screenHeading,
     fontWeight: '900',
     maxWidth: '100%',
   },
   boldName: {
-    fontSize: 32,
+    fontSize: 28,
   },
   centerText: {
     textAlign: 'center',
@@ -589,9 +589,9 @@ const styles = StyleSheet.create({
   },
   headline: {
     color: theme.colors.textSoft,
-    fontSize: theme.typography.body,
+    fontSize: 15,
     fontWeight: '600',
-    lineHeight: 24,
+    lineHeight: 22,
     maxWidth: 430,
   },
   meta: {
@@ -639,7 +639,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     color: theme.colors.text,
-    fontSize: theme.typography.sectionHeading,
+    fontSize: theme.typography.subheading,
     fontWeight: '900',
   },
   sectionEdit: {
@@ -679,7 +679,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
     borderWidth: 1,
     gap: theme.spacing.sm,
-    padding: theme.spacing.lg,
+    padding: theme.spacing.md,
   },
   promptLabel: {
     fontSize: theme.typography.small,
@@ -687,13 +687,13 @@ const styles = StyleSheet.create({
   },
   promptAnswer: {
     color: theme.colors.textSoft,
-    fontSize: theme.typography.body,
-    lineHeight: 24,
+    fontSize: theme.typography.small,
+    lineHeight: 21,
   },
   bodyText: {
     color: theme.colors.textSoft,
-    fontSize: theme.typography.body,
-    lineHeight: 25,
+    fontSize: theme.typography.small,
+    lineHeight: 21,
   },
   experienceLine: {
     alignItems: 'center',

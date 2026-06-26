@@ -120,13 +120,13 @@ export function DiscoverDeck({
     jiggleDelay.current = setTimeout(() => {
       const sequence = Animated.sequence([
         Animated.timing(jiggleX, {
-          duration: 190,
-          toValue: 11,
+          duration: 180,
+          toValue: 9,
           useNativeDriver: true,
         }),
         Animated.timing(jiggleX, {
-          duration: 260,
-          toValue: -9,
+          duration: 240,
+          toValue: -7,
           useNativeDriver: true,
         }),
         Animated.spring(jiggleX, {
@@ -142,7 +142,7 @@ export function DiscoverDeck({
         jiggleX.setValue(0);
         if (finished) finishJiggle();
       });
-    }, 550);
+    }, 5000 + Math.round(Math.random() * 1800));
 
     return () => {
       if (jiggleDelay.current) clearTimeout(jiggleDelay.current);
@@ -175,6 +175,11 @@ export function DiscoverDeck({
   const saveOpacity = position.x.interpolate({
     inputRange: [0, 35, 120],
     outputRange: [0, 0.2, 1],
+    extrapolate: 'clamp',
+  });
+  const primaryOpacity = position.y.interpolate({
+    inputRange: [-130, -48, 0],
+    outputRange: [1, 0.28, 0],
     extrapolate: 'clamp',
   });
 
@@ -275,7 +280,11 @@ export function DiscoverDeck({
   return (
     <View style={styles.wrapper}>
       <View style={styles.stack}>
-        {nextCard ? <View style={styles.nextCard}>{nextCard}</View> : null}
+        {nextCard ? (
+          <View pointerEvents="none" style={styles.nextCard}>
+            {nextCard}
+          </View>
+        ) : null}
         <Animated.View
           style={[
             styles.jiggleLayer,
@@ -298,6 +307,10 @@ export function DiscoverDeck({
             </Animated.View>
             <Animated.View style={[styles.saveOverlay, { opacity: saveOpacity }]}>
               <Text style={styles.saveOverlayText}>SAVE</Text>
+            </Animated.View>
+            <Animated.View style={[styles.primaryOverlay, { opacity: primaryOpacity }]}>
+              <Ionicons color={theme.colors.white} name="arrow-up" size={16} />
+              <Text style={styles.primaryOverlayText}>{primaryActionLabel}</Text>
             </Animated.View>
             <Pressable
               accessibilityHint={`Opens ${detailLabel}`}
@@ -415,15 +428,17 @@ const styles = StyleSheet.create({
   },
   nextCard: {
     bottom: 0,
-    left: 7,
-    opacity: 0.48,
+    left: 5,
+    opacity: 0.24,
     position: 'absolute',
-    right: 7,
-    top: 12,
-    transform: [{ scale: 0.975 }],
+    right: 5,
+    top: 8,
+    transform: [{ scale: 0.985 }],
+    zIndex: 0,
   },
   jiggleLayer: {
     flex: 1,
+    zIndex: 2,
   },
   card: {
     flex: 1,
@@ -465,6 +480,24 @@ const styles = StyleSheet.create({
   saveOverlayText: {
     color: theme.colors.accentStrong,
     fontSize: theme.typography.subheading,
+    fontWeight: '900',
+  },
+  primaryOverlay: {
+    alignItems: 'center',
+    alignSelf: 'center',
+    backgroundColor: 'rgba(8,10,18,0.86)',
+    borderRadius: theme.radii.pill,
+    flexDirection: 'row',
+    gap: 5,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: 8,
+    position: 'absolute',
+    top: theme.spacing.md,
+    zIndex: 6,
+  },
+  primaryOverlayText: {
+    color: theme.colors.white,
+    fontSize: theme.typography.small,
     fontWeight: '900',
   },
   actions: {

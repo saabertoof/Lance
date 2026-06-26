@@ -252,17 +252,17 @@ export default function ProfileScreen() {
           summary={summary}
         />
 
-        <ProfileFeaturedSection
+        <ProfilePromptSection
           accent={accent}
           onEdit={editProfile}
-          onError={setError}
           profile={profile}
           radius={radius}
         />
 
-        <ProfilePromptSection
+        <ProfileFeaturedSection
           accent={accent}
           onEdit={editProfile}
+          onError={setError}
           profile={profile}
           radius={radius}
         />

@@ -50,8 +50,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     minHeight: theme.layout.minTouchTarget,
     justifyContent: 'center',
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: 7,
   },
   selectedChip: {
     backgroundColor: theme.colors.accentSoft,
@@ -62,8 +62,8 @@ const styles = StyleSheet.create({
   },
   label: {
     color: theme.colors.textSoft,
-    fontSize: theme.typography.small,
-    fontWeight: '700',
+    fontSize: theme.typography.label,
+    fontWeight: '800',
   },
   selectedLabel: {
     color: theme.colors.accentStrong,

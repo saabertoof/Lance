@@ -132,7 +132,7 @@ export function ProfessionalProfileFields({ draft, onChange }: ProfileFieldsProp
         multiline
         numberOfLines={5}
         onChangeText={(bio) => onChange({ ...draft, bio })}
-        placeholder="Share what you do, what you care about, and the kind of work you enjoy."
+        placeholder="Share what you do, what you are building, and the kind of people you want to meet."
         style={styles.multiline}
         textAlignVertical="top"
         value={draft.bio}
@@ -154,14 +154,14 @@ export function ProfessionalProfileFields({ draft, onChange }: ProfileFieldsProp
       <CatalogSelector
         catalog={skillCatalog}
         catalogType="skills"
-        label="Skills"
+        label="What are you good at?"
         onChange={(skills) => onChange({ ...draft, skills })}
         placeholder="Add a skill"
         values={draft.skills}
       />
       <FormSection
-        description="Choose every kind of opportunity you would consider."
-        title="Opportunity interests">
+        description="Choose the kinds of opportunities you would actually consider."
+        title="What are you open to?">
         <MultiSelectChips
           onChange={(opportunityInterests) => onChange({ ...draft, opportunityInterests })}
           options={opportunityInterestOptions}
