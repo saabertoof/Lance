@@ -37,8 +37,8 @@ export function ProfileOwnerActions({
         onPress={onEdit}
         primary
       />
-      <OwnerAction icon="share-outline" label="Share" onPress={onShare} />
       <OwnerAction icon="eye-outline" label="Preview" onPress={onPreview} />
+      <OwnerAction icon="share-outline" label="Share" onPress={onShare} />
     </View>
   );
 }
@@ -55,7 +55,7 @@ export function ProfileStatsRow({
   summary: OwnerProfileSummary | null;
 }) {
   return (
-    <View style={styles.stats}>
+    <View style={styles.statsPanel}>
       <Stat
         badge={summary?.pendingRequests}
         emphasized
@@ -84,14 +84,19 @@ export function ProfileOwnerDashboard({
   groups: ProfileDashboardGroup[];
 }) {
   return (
-    <View style={styles.dashboard}>
-      <Text style={styles.dashboardTitle}>Your Lance</Text>
+    <View style={styles.dashboardPanel}>
+      <View style={styles.dashboardHeader}>
+        <Text style={styles.dashboardTitle}>Your Lance</Text>
+        <Text style={styles.dashboardSubtitle}>
+          Manage the pieces behind your profile.
+        </Text>
+      </View>
       {groups.map((group) => (
         <View key={group.title} style={styles.dashboardGroup}>
           <Text style={styles.groupTitle}>{group.title}</Text>
-          <View style={styles.tiles}>
+          <View style={styles.rows}>
             {group.items.map((item) => (
-              <DashboardTile item={item} key={item.label} />
+              <DashboardRow item={item} key={item.label} />
             ))}
           </View>
         </View>
@@ -240,31 +245,32 @@ function Stat({
   );
 }
 
-function DashboardTile({ item }: { item: ProfileDashboardItem }) {
+function DashboardRow({ item }: { item: ProfileDashboardItem }) {
+  const hasBadge = Boolean(item.badge);
+  const accessory =
+    hasBadge ? (
+      <View style={styles.rowBadge}>
+        <Text style={styles.rowBadgeText}>{Math.min(item.badge ?? 0, 99)}</Text>
+      </View>
+    ) : item.count != null ? (
+      <Text style={styles.rowCount}>{item.count}</Text>
+    ) : null;
+
   return (
     <Pressable
       accessibilityLabel={item.label}
       accessibilityRole="button"
       onPress={item.onPress}
       style={({ pressed }) => [
-        styles.tile,
+        styles.dashboardRow,
         pressed && styles.pressed,
       ]}>
-      <View style={styles.tileTop}>
-        <View style={styles.tileIcon}>
-          <Ionicons color={theme.colors.accentStrong} name={item.icon} size={20} />
-        </View>
-        {item.badge ? (
-          <View style={styles.tileBadge}>
-            <Text style={styles.tileBadgeText}>{Math.min(item.badge, 99)}</Text>
-          </View>
-        ) : item.count != null ? (
-          <Text style={styles.tileCount}>{item.count}</Text>
-        ) : null}
+      <View style={styles.rowIcon}>
+        <Ionicons color={theme.colors.accentStrong} name={item.icon} size={18} />
       </View>
-      <Text numberOfLines={2} style={styles.tileLabel}>
-        {item.label}
-      </Text>
+      <Text numberOfLines={1} style={styles.rowLabel}>{item.label}</Text>
+      {accessory}
+      <Ionicons color={theme.colors.mutedLight} name="chevron-forward" size={18} />
     </Pressable>
   );
 }
@@ -273,39 +279,38 @@ const styles = StyleSheet.create({
   ownerActions: {
     flexDirection: 'row',
     gap: theme.spacing.sm,
-    marginTop: theme.spacing.sm,
     width: '100%',
   },
   ownerAction: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surfaceMuted,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radii.md,
+    backgroundColor: theme.colors.surface,
+    borderColor: 'rgba(8,10,18,0.13)',
+    borderRadius: theme.radii.pill,
     borderWidth: 1,
     flex: 1,
     flexDirection: 'row',
-    gap: 4,
+    gap: 5,
     justifyContent: 'center',
-    minHeight: 44,
-    paddingHorizontal: 4,
+    minHeight: 42,
+    paddingHorizontal: theme.spacing.sm,
   },
   ownerActionPrimary: {
     backgroundColor: theme.colors.text,
     borderColor: theme.colors.text,
-    flex: 1.25,
+    flex: 1.35,
   },
   ownerActionLabel: {
     color: theme.colors.text,
-    fontSize: theme.typography.tiny,
+    fontSize: theme.typography.caption,
     fontWeight: '800',
   },
   ownerActionLabelPrimary: {
     color: theme.colors.white,
   },
-  stats: {
+  statsPanel: {
     backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radii.md,
+    borderColor: 'rgba(8,10,18,0.08)',
+    borderRadius: 18,
     borderWidth: 1,
     flexDirection: 'row',
     overflow: 'hidden',
@@ -313,18 +318,18 @@ const styles = StyleSheet.create({
   stat: {
     alignItems: 'center',
     flex: 1,
-    gap: 3,
+    gap: 2,
     justifyContent: 'center',
-    minHeight: 76,
+    minHeight: 62,
     paddingHorizontal: 4,
     position: 'relative',
   },
   statEmphasized: {
-    backgroundColor: theme.colors.accentSoft,
+    backgroundColor: 'rgba(124,92,255,0.08)',
   },
   statValue: {
     color: theme.colors.text,
-    fontSize: theme.typography.heading,
+    fontSize: 19,
     fontWeight: '900',
   },
   statValueEmphasized: {
@@ -332,7 +337,7 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     color: theme.colors.muted,
-    fontSize: 11,
+    fontSize: theme.typography.caption,
     fontWeight: '700',
   },
   statLabelEmphasized: {
@@ -355,83 +360,87 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '900',
   },
-  dashboard: {
-    gap: theme.density.contentGap,
+  dashboardPanel: {
+    backgroundColor: theme.colors.surface,
+    borderColor: 'rgba(8,10,18,0.08)',
+    borderRadius: 18,
+    borderWidth: 1,
+    gap: theme.spacing.lg,
+    padding: theme.spacing.lg,
+  },
+  dashboardHeader: {
+    gap: 3,
   },
   dashboardTitle: {
     color: theme.colors.text,
-    fontSize: theme.typography.sectionHeading,
+    fontSize: theme.typography.cardTitle,
     fontWeight: '900',
   },
+  dashboardSubtitle: {
+    color: theme.colors.muted,
+    fontSize: theme.typography.caption,
+    lineHeight: 16,
+  },
   dashboardGroup: {
-    gap: theme.spacing.sm,
+    gap: theme.spacing.xs,
   },
   groupTitle: {
     color: theme.colors.muted,
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '900',
     textTransform: 'uppercase',
   },
-  tiles: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: theme.spacing.sm,
+  rows: {
+    borderTopColor: theme.colors.border,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
-  tile: {
-    backgroundColor: theme.colors.surfaceMuted,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radii.md,
-    borderWidth: 1,
-    gap: theme.spacing.sm,
-    minHeight: 94,
-    padding: theme.spacing.md,
-    width: '48.5%',
-  },
-  tileTop: {
+  dashboardRow: {
     alignItems: 'center',
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: theme.spacing.md,
+    minHeight: 52,
+    paddingVertical: theme.spacing.sm,
   },
-  tileIcon: {
+  rowIcon: {
     alignItems: 'center',
     backgroundColor: theme.colors.accentSoft,
     borderRadius: theme.radii.md,
-    height: 36,
+    height: 34,
     justifyContent: 'center',
-    width: 36,
+    width: 34,
   },
-  tileCount: {
+  rowLabel: {
     color: theme.colors.text,
-    fontSize: theme.typography.subheading,
+    flex: 1,
+    fontSize: theme.typography.small,
+    fontWeight: '800',
+  },
+  rowCount: {
+    color: theme.colors.text,
+    fontSize: theme.typography.small,
     fontWeight: '900',
   },
-  tileBadge: {
+  rowBadge: {
     alignItems: 'center',
     backgroundColor: theme.colors.danger,
     borderRadius: theme.radii.pill,
     justifyContent: 'center',
-    minHeight: 22,
-    minWidth: 22,
+    minHeight: 21,
+    minWidth: 21,
     paddingHorizontal: 6,
   },
-  tileBadgeText: {
+  rowBadgeText: {
     color: theme.colors.white,
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '900',
-  },
-  tileLabel: {
-    color: theme.colors.text,
-    fontSize: theme.typography.small,
-    fontWeight: '800',
-    lineHeight: 18,
   },
   completion: {
     backgroundColor: theme.colors.accentSoft,
     borderColor: '#D9D0FF',
-    borderRadius: theme.radii.lg,
+    borderRadius: 18,
     borderWidth: 1,
-    gap: theme.spacing.md,
-    padding: theme.spacing.lg,
+    gap: theme.spacing.sm,
+    padding: theme.spacing.md,
   },
   completionHeader: {
     alignItems: 'center',
@@ -444,7 +453,7 @@ const styles = StyleSheet.create({
   },
   completionTitle: {
     color: theme.colors.text,
-    fontSize: theme.typography.body,
+    fontSize: theme.typography.small,
     fontWeight: '900',
   },
   completionValue: {

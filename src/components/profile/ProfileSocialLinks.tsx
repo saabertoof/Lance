@@ -46,7 +46,7 @@ export function ProfileSocialLinks({
           <Ionicons
             color={theme.colors.accentStrong}
             name={profileLinkIcons[link.linkType]}
-            size={23}
+            size={20}
           />
         </Pressable>
       ))}
@@ -60,7 +60,7 @@ export function ProfileSocialLinks({
           <Ionicons
             color={theme.colors.accentStrong}
             name={link.platform === 'youtube' ? 'logo-youtube' : 'globe-outline'}
-            size={23}
+            size={20}
           />
         </Pressable>
       ))}
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
   links: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: theme.spacing.md,
+    gap: theme.spacing.sm,
   },
   link: {
     alignItems: 'center',
@@ -106,9 +106,9 @@ const styles = StyleSheet.create({
     borderColor: '#DDD4FF',
     borderRadius: theme.radii.pill,
     borderWidth: 1,
-    height: 50,
+    height: 42,
     justifyContent: 'center',
-    width: 50,
+    width: 42,
   },
   pressed: {
     opacity: 0.65,

@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import type { ReactNode } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
 import {
   Linking,
   Pressable,
@@ -31,6 +31,8 @@ import {
   recognizedSocialPlatform,
 } from './ProfileSocialLinks';
 
+type IconName = ComponentProps<typeof Ionicons>['name'];
+
 export function ProfileHero({
   accent,
   onEditBanner,
@@ -45,7 +47,7 @@ export function ProfileHero({
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.banner, { height: 176 + insets.top }]}>
+    <View style={[styles.banner, { height: 168 + insets.top }]}>
       {profile.polish.bannerUrl ? (
         <Image
           accessibilityLabel={`${profile.displayName} profile banner`}
@@ -55,8 +57,9 @@ export function ProfileHero({
           transition={180}
         />
       ) : (
-        <View style={[styles.defaultBanner, { backgroundColor: `${accent}18` }]}>
+        <View style={[styles.defaultBanner, { backgroundColor: `${accent}12` }]}>
           <View style={[styles.bannerPanel, { backgroundColor: `${accent}28` }]} />
+          <View style={[styles.bannerOrb, { backgroundColor: `${accent}1C` }]} />
           <View style={[styles.bannerLine, { backgroundColor: accent }]} />
         </View>
       )}
@@ -92,6 +95,8 @@ export function ProfileIdentityBlock({
 }) {
   const centered = profile.polish.theme.headerAlignment === 'center';
   const initials = initialsFor(profile.displayName);
+  const location = profile.polish.location?.label ?? profile.city;
+  const metaItems = [profile.primaryRole, location].filter(Boolean);
   const hasSocial =
     profile.links.length > 0 ||
     profile.polish.customLinks.some((link) =>
@@ -119,75 +124,94 @@ export function ProfileIdentityBlock({
   );
 
   return (
-    <View style={[styles.identity, centered && styles.centered]}>
-      {onEditAvatar ? (
-        <Pressable
-          accessibilityLabel="Edit profile photo"
-          accessibilityRole="button"
-          onPress={onEditAvatar}
-          style={({ pressed }) => pressed && styles.pressed}>
-          {avatar}
-        </Pressable>
-      ) : (
-        avatar
-      )}
-      <Text
-        numberOfLines={1}
-        style={[
-          styles.name,
-          profile.polish.theme.template === 'bold' && styles.boldName,
-          centered && styles.centerText,
-        ]}>
-        {profile.displayName}
-      </Text>
-      <Text numberOfLines={1} style={styles.username}>
-        @{profile.username}
-      </Text>
-      <Text
-        numberOfLines={2}
-        style={[styles.headline, centered && styles.centerText]}>
-        {profile.headline}
-      </Text>
-      <View style={[styles.meta, centered && styles.centerWrap]}>
-        {[profile.primaryRole, profile.polish.location?.label ?? profile.city]
-          .filter(Boolean)
-          .map((value) => (
-            <Text key={value} numberOfLines={1} style={styles.metaText}>
-              {value}
-            </Text>
-          ))}
-      </View>
-      <View style={[styles.meta, centered && styles.centerWrap]}>
-        <Text style={styles.metaText}>
-          {getOptionLabel(availabilityOptions, profile.availability)}
-        </Text>
-        <Text style={styles.metaDot}>|</Text>
-        <Text style={styles.metaText}>
-          {getOptionLabel(remotePreferenceOptions, profile.remotePreference)}
-        </Text>
-      </View>
-      {profile.polish.currentIntents.length > 0 ? (
-        <View style={[styles.chips, centered && styles.centerWrap]}>
-          {profile.polish.currentIntents.slice(0, 3).map((intent) => (
-            <View
-              key={intent}
-              style={[styles.intent, { borderColor: `${accent}55` }]}>
-              <Text style={[styles.intentText, { color: accent }]}>
-                {currentIntentOptions.find((option) => option.value === intent)
-                  ?.label ?? intent}
-              </Text>
-            </View>
-          ))}
+    <View style={[styles.identityCard, centered && styles.centeredCard]}>
+      <View style={[styles.avatarHeader, centered && styles.avatarHeaderCentered]}>
+        {onEditAvatar ? (
+          <Pressable
+            accessibilityLabel="Edit profile photo"
+            accessibilityRole="button"
+            onPress={onEditAvatar}
+            style={({ pressed }) => pressed && styles.pressed}>
+            {avatar}
+          </Pressable>
+        ) : (
+          avatar
+        )}
+        <View style={[styles.profileSignal, { borderColor: `${accent}3D` }]}>
+          <View style={[styles.signalDot, { backgroundColor: accent }]} />
+          <Text numberOfLines={1} style={styles.profileSignalText}>
+            {getOptionLabel(availabilityOptions, profile.availability)}
+          </Text>
         </View>
-      ) : null}
-      {hasSocial ? (
-        <ProfileSocialLinks
-          customLinks={profile.polish.customLinks}
-          links={profile.links}
-          onError={onError}
-        />
-      ) : null}
-      {action}
+      </View>
+
+      <View style={[styles.identityCopy, centered && styles.centered]}>
+        <Text
+          numberOfLines={1}
+          style={[
+            styles.name,
+            profile.polish.theme.template === 'bold' && styles.boldName,
+            centered && styles.centerText,
+          ]}>
+          {profile.displayName}
+        </Text>
+        <Text numberOfLines={1} style={styles.username}>
+          @{profile.username}
+        </Text>
+        <Text
+          numberOfLines={2}
+          style={[styles.headline, centered && styles.centerText]}>
+          {profile.headline}
+        </Text>
+        {metaItems.length > 0 ? (
+          <Text numberOfLines={2} style={[styles.metaLine, centered && styles.centerText]}>
+            {metaItems.join('  |  ')}
+          </Text>
+        ) : null}
+        <View style={[styles.factRow, centered && styles.centerWrap]}>
+          <ProfileFact
+            icon="navigate-outline"
+            label={getOptionLabel(remotePreferenceOptions, profile.remotePreference)}
+          />
+          <ProfileFact
+            icon="ribbon-outline"
+            label={getOptionLabel(experienceOptions, profile.experienceLevel)}
+          />
+        </View>
+        {profile.polish.currentIntents.length > 0 ? (
+          <View style={[styles.intentRail, centered && styles.centerWrap]}>
+            {profile.polish.currentIntents.slice(0, 3).map((intent) => (
+              <View
+                key={intent}
+                style={[styles.intent, { backgroundColor: `${accent}10` }]}>
+                <Text style={[styles.intentText, { color: accent }]}>
+                  {currentIntentOptions.find((option) => option.value === intent)
+                    ?.label ?? intent}
+                </Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
+        {hasSocial ? (
+          <ProfileSocialLinks
+            customLinks={profile.polish.customLinks}
+            links={profile.links}
+            onError={onError}
+          />
+        ) : null}
+        {action ? <View style={styles.identityActions}>{action}</View> : null}
+      </View>
+    </View>
+  );
+}
+
+function ProfileFact({ icon, label }: { icon: IconName; label: string }) {
+  return (
+    <View style={styles.fact}>
+      <Ionicons color={theme.colors.muted} name={icon} size={14} />
+      <Text numberOfLines={1} style={styles.factText}>
+        {label}
+      </Text>
     </View>
   );
 }
@@ -214,7 +238,7 @@ export function ProfileFeaturedSection({
           <SectionEditButton label="Edit featured work" onPress={onEdit} />
         ) : undefined
       }
-      title="Featured">
+      title="Featured work">
       {profile.polish.portfolio.length > 0 ? (
         <PortfolioCarousel
           accent={accent}
@@ -231,7 +255,7 @@ export function ProfileFeaturedSection({
             { borderRadius: radius },
             pressed && styles.pressed,
           ]}>
-          <Ionicons color={accent} name="images-outline" size={26} />
+          <Ionicons color={accent} name="images-outline" size={22} />
           <View style={styles.emptyCopy}>
             <Text style={styles.ownerEmptyTitle}>
               Show people what you have built.
@@ -249,12 +273,10 @@ export function ProfilePromptSection({
   accent,
   onEdit,
   profile,
-  radius,
 }: {
   accent: string;
   onEdit?: () => void;
   profile: PublicProfile;
-  radius: number;
 }) {
   const prompts = profile.polish.prompts
     .filter((prompt) => prompt.answer.trim())
@@ -266,10 +288,10 @@ export function ProfilePromptSection({
       action={
         onEdit ? <SectionEditButton label="Edit prompts" onPress={onEdit} /> : undefined
       }
-      title="Right now">
-      <View style={styles.promptGrid}>
+      title="Current focus">
+      <View style={styles.promptList}>
         {prompts.map((prompt) => (
-          <View key={prompt.id} style={[styles.prompt, { borderRadius: radius }]}>
+          <View key={prompt.id} style={styles.prompt}>
             <Text style={[styles.promptLabel, { color: accent }]}>
               {profilePromptOptions.find(
                 (option) => option.value === prompt.promptKey,
@@ -288,13 +310,11 @@ export function ProfileProfessionalSections({
   onEdit,
   onError,
   profile,
-  radius,
 }: {
   accent: string;
   onEdit?: () => void;
   onError: (message: string) => void;
   profile: PublicProfile;
-  radius: number;
 }) {
   const customLinks = profile.polish.customLinks.filter(
     (link) => !recognizedSocialPlatform(link.url),
@@ -302,17 +322,13 @@ export function ProfileProfessionalSections({
 
   return (
     <>
-      {profile.opportunityInterests.length > 0 ? (
-        <ProfileSection title="Open to">
-          <View style={styles.chips}>
-            {profile.opportunityInterests.slice(0, 8).map((interest) => (
-              <Chip
-                accent
-                key={interest}
-                label={getOptionLabel(opportunityInterestOptions, interest)}
-              />
-            ))}
-          </View>
+      {profile.bio ? (
+        <ProfileSection
+          action={
+            onEdit ? <SectionEditButton label="Edit about" onPress={onEdit} /> : undefined
+          }
+          title="About">
+          <Text style={styles.bodyText}>{profile.bio}</Text>
         </ProfileSection>
       ) : null}
 
@@ -323,20 +339,24 @@ export function ProfileProfessionalSections({
           }
           title="Skills">
           <View style={styles.chips}>
-            {profile.skills.slice(0, 10).map((skill) => (
+            {profile.skills.slice(0, 14).map((skill) => (
               <Chip key={skill.toLowerCase()} label={skill} />
             ))}
           </View>
         </ProfileSection>
       ) : null}
 
-      {profile.bio ? (
-        <ProfileSection
-          action={
-            onEdit ? <SectionEditButton label="Edit about" onPress={onEdit} /> : undefined
-          }
-          title="About">
-          <Text style={styles.bodyText}>{profile.bio}</Text>
+      {profile.opportunityInterests.length > 0 ? (
+        <ProfileSection title="Open to">
+          <View style={styles.chips}>
+            {profile.opportunityInterests.slice(0, 10).map((interest) => (
+              <Chip
+                accent
+                key={interest}
+                label={getOptionLabel(opportunityInterestOptions, interest)}
+              />
+            ))}
+          </View>
         </ProfileSection>
       ) : null}
 
@@ -353,11 +373,7 @@ export function ProfileProfessionalSections({
                 accessibilityRole="link"
                 key={link.id}
                 onPress={() => void openCustomLink(link.url, onError)}
-                style={({ pressed }) => [
-                  styles.customLink,
-                  { borderRadius: radius },
-                  pressed && styles.pressed,
-                ]}>
+                style={({ pressed }) => [styles.customLink, pressed && styles.pressed]}>
                 <View style={[styles.linkIcon, { backgroundColor: `${accent}14` }]}>
                   <Ionicons color={accent} name="link-outline" size={20} />
                 </View>
@@ -377,15 +393,25 @@ export function ProfileProfessionalSections({
       ) : null}
 
       <ProfileSection title="Background">
-        <View style={styles.experienceLine}>
-          <Ionicons
-            color={accent}
-            name="ribbon-outline"
-            size={19}
+        <View style={styles.detailList}>
+          <ProfileDetail
+            accent={accent}
+            icon="ribbon-outline"
+            label="Experience"
+            value={getOptionLabel(experienceOptions, profile.experienceLevel)}
           />
-          <Text style={styles.experienceText}>
-            {getOptionLabel(experienceOptions, profile.experienceLevel)}
-          </Text>
+          <ProfileDetail
+            accent={accent}
+            icon="time-outline"
+            label="Availability"
+            value={getOptionLabel(availabilityOptions, profile.availability)}
+          />
+          <ProfileDetail
+            accent={accent}
+            icon="navigate-outline"
+            label="Work style"
+            value={getOptionLabel(remotePreferenceOptions, profile.remotePreference)}
+          />
         </View>
         {profile.industryExperience.length > 0 ? (
           <View style={styles.chips}>
@@ -396,6 +422,30 @@ export function ProfileProfessionalSections({
         ) : null}
       </ProfileSection>
     </>
+  );
+}
+
+function ProfileDetail({
+  accent,
+  icon,
+  label,
+  value,
+}: {
+  accent: string;
+  icon: IconName;
+  label: string;
+  value: string;
+}) {
+  return (
+    <View style={styles.detailRow}>
+      <View style={[styles.detailIcon, { backgroundColor: `${accent}12` }]}>
+        <Ionicons color={accent} name={icon} size={17} />
+      </View>
+      <View style={styles.detailCopy}>
+        <Text style={styles.detailLabel}>{label}</Text>
+        <Text style={styles.detailValue}>{value}</Text>
+      </View>
+    </View>
   );
 }
 
@@ -495,7 +545,7 @@ export const profileAccentColors = {
 
 const styles = StyleSheet.create({
   banner: {
-    height: 176,
+    height: 168,
     overflow: 'hidden',
     position: 'relative',
   },
@@ -509,15 +559,23 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   bannerPanel: {
-    height: 230,
+    height: 220,
     position: 'absolute',
-    right: -38,
-    top: -96,
+    right: -28,
+    top: -92,
     transform: [{ rotate: '22deg' }],
-    width: 120,
+    width: 116,
+  },
+  bannerOrb: {
+    borderRadius: 120,
+    height: 240,
+    left: -96,
+    position: 'absolute',
+    top: -112,
+    width: 240,
   },
   bannerLine: {
-    height: 5,
+    height: 4,
     width: '100%',
   },
   topBar: {
@@ -531,30 +589,51 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.94)',
     borderRadius: 18,
-    bottom: 14,
-    height: theme.layout.minTouchTarget,
+    bottom: 12,
+    height: 42,
     justifyContent: 'center',
     position: 'absolute',
     right: 18,
-    width: theme.layout.minTouchTarget,
+    width: 42,
   },
-  identity: {
-    alignItems: 'flex-start',
-    gap: theme.density.controlGap,
+  identityCard: {
+    backgroundColor: theme.colors.surface,
+    borderColor: 'rgba(8,10,18,0.08)',
+    borderRadius: 22,
+    borderWidth: 1,
+    gap: theme.spacing.md,
+    marginTop: -46,
+    paddingBottom: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: 0,
+    ...theme.shadows.card,
+  },
+  centeredCard: {
+    alignItems: 'center',
   },
   centered: {
     alignItems: 'center',
   },
+  avatarHeader: {
+    alignItems: 'flex-end',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    minHeight: 58,
+  },
+  avatarHeaderCentered: {
+    alignItems: 'center',
+    flexDirection: 'column',
+  },
   avatar: {
     alignItems: 'center',
     backgroundColor: theme.colors.accentSoft,
-    borderRadius: 50,
-    borderWidth: 4,
-    height: 100,
+    borderRadius: 48,
+    borderWidth: 5,
+    height: 96,
     justifyContent: 'center',
-    marginTop: -52,
+    marginTop: -50,
     overflow: 'hidden',
-    width: 100,
+    width: 96,
   },
   avatarEdit: {
     alignItems: 'center',
@@ -568,13 +647,37 @@ const styles = StyleSheet.create({
     width: 28,
   },
   initials: {
-    fontSize: theme.typography.title,
+    fontSize: 27,
     fontWeight: '900',
+  },
+  profileSignal: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radii.pill,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 6,
+    minHeight: 32,
+    paddingHorizontal: theme.spacing.md,
+  },
+  profileSignalText: {
+    color: theme.colors.text,
+    fontSize: theme.typography.caption,
+    fontWeight: '800',
+  },
+  signalDot: {
+    borderRadius: 4,
+    height: 8,
+    width: 8,
+  },
+  identityCopy: {
+    gap: 7,
   },
   name: {
     color: theme.colors.text,
-    fontSize: theme.typography.screenHeading,
+    fontSize: 26,
     fontWeight: '900',
+    letterSpacing: 0,
     maxWidth: '100%',
   },
   boldName: {
@@ -585,68 +688,94 @@ const styles = StyleSheet.create({
   },
   username: {
     color: theme.colors.muted,
-    fontSize: theme.typography.small,
+    fontSize: theme.typography.caption,
+    fontWeight: '700',
   },
   headline: {
     color: theme.colors.textSoft,
-    fontSize: 15,
+    fontSize: theme.typography.small,
     fontWeight: '600',
-    lineHeight: 22,
+    lineHeight: 20,
     maxWidth: 430,
   },
-  meta: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: theme.spacing.sm,
-  },
-  metaText: {
+  metaLine: {
     color: theme.colors.muted,
     flexShrink: 1,
-    fontSize: theme.typography.small,
-  },
-  metaDot: {
-    color: theme.colors.mutedLight,
-    fontSize: theme.typography.tiny,
+    fontSize: theme.typography.caption,
+    fontWeight: '700',
+    lineHeight: 17,
   },
   centerWrap: {
     justifyContent: 'center',
   },
-  chips: {
+  factRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: theme.spacing.sm,
+    marginTop: 2,
   },
-  intent: {
-    backgroundColor: theme.colors.surface,
+  fact: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.surfaceMuted,
     borderRadius: theme.radii.pill,
-    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 5,
+    minHeight: 31,
     paddingHorizontal: theme.spacing.md,
-    paddingVertical: 7,
   },
-  intentText: {
-    fontSize: theme.typography.tiny,
+  factText: {
+    color: theme.colors.muted,
+    fontSize: theme.typography.caption,
     fontWeight: '800',
   },
+  chips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 7,
+  },
+  intentRail: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 7,
+  },
+  intent: {
+    borderRadius: theme.radii.pill,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  intentText: {
+    fontSize: theme.typography.caption,
+    fontWeight: '800',
+  },
+  identityActions: {
+    marginTop: theme.spacing.xs,
+    width: '100%',
+  },
   section: {
-    gap: theme.density.contentGap,
+    backgroundColor: theme.colors.surface,
+    borderColor: 'rgba(8,10,18,0.08)',
+    borderRadius: 18,
+    borderWidth: 1,
+    gap: theme.spacing.md,
+    padding: theme.spacing.lg,
   },
   sectionHeader: {
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    minHeight: 32,
+    minHeight: 24,
   },
   sectionTitle: {
     color: theme.colors.text,
-    fontSize: theme.typography.subheading,
+    fontSize: theme.typography.cardTitle,
     fontWeight: '900',
   },
   sectionEdit: {
     alignItems: 'center',
-    height: theme.layout.minTouchTarget,
+    borderRadius: theme.radii.pill,
+    height: 36,
     justifyContent: 'center',
-    width: theme.layout.minTouchTarget,
+    width: 36,
   },
   ownerEmpty: {
     alignItems: 'center',
@@ -655,7 +784,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     flexDirection: 'row',
     gap: theme.spacing.md,
-    padding: theme.spacing.lg,
+    padding: theme.spacing.md,
   },
   emptyCopy: {
     flex: 1,
@@ -663,7 +792,7 @@ const styles = StyleSheet.create({
   },
   ownerEmptyTitle: {
     color: theme.colors.text,
-    fontSize: theme.typography.body,
+    fontSize: theme.typography.small,
     fontWeight: '900',
   },
   ownerEmptyBody: {
@@ -671,59 +800,47 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.small,
     fontWeight: '700',
   },
-  promptGrid: {
-    gap: theme.spacing.md,
+  promptList: {
+    gap: theme.spacing.sm,
   },
   prompt: {
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderWidth: 1,
-    gap: theme.spacing.sm,
-    padding: theme.spacing.md,
+    borderLeftColor: theme.colors.border,
+    borderLeftWidth: 2,
+    gap: 5,
+    paddingLeft: theme.spacing.md,
+    paddingVertical: 3,
   },
   promptLabel: {
-    fontSize: theme.typography.small,
+    fontSize: theme.typography.caption,
     fontWeight: '900',
   },
   promptAnswer: {
     color: theme.colors.textSoft,
     fontSize: theme.typography.small,
-    lineHeight: 21,
+    lineHeight: 20,
   },
   bodyText: {
     color: theme.colors.textSoft,
     fontSize: theme.typography.small,
     lineHeight: 21,
   },
-  experienceLine: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: theme.spacing.sm,
-  },
-  experienceText: {
-    color: theme.colors.text,
-    fontSize: theme.typography.small,
-    fontWeight: '800',
-  },
   linkList: {
-    gap: theme.spacing.sm,
+    gap: 0,
   },
   customLink: {
     alignItems: 'center',
     backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderWidth: 1,
     flexDirection: 'row',
     gap: theme.spacing.md,
-    minHeight: 68,
-    paddingHorizontal: theme.spacing.md,
+    minHeight: 58,
+    paddingVertical: theme.spacing.sm,
   },
   linkIcon: {
     alignItems: 'center',
     borderRadius: theme.radii.md,
-    height: 42,
+    height: 38,
     justifyContent: 'center',
-    width: 42,
+    width: 38,
   },
   linkCopy: {
     flex: 1,
@@ -731,13 +848,45 @@ const styles = StyleSheet.create({
   },
   linkLabel: {
     color: theme.colors.text,
-    fontSize: theme.typography.body,
+    fontSize: theme.typography.small,
     fontWeight: '800',
   },
   linkHost: {
     color: theme.colors.muted,
     fontSize: theme.typography.tiny,
     marginTop: 2,
+  },
+  detailList: {
+    gap: theme.spacing.sm,
+  },
+  detailRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: theme.spacing.md,
+    minHeight: 40,
+  },
+  detailIcon: {
+    alignItems: 'center',
+    borderRadius: theme.radii.md,
+    height: 34,
+    justifyContent: 'center',
+    width: 34,
+  },
+  detailCopy: {
+    flex: 1,
+    gap: 1,
+    minWidth: 0,
+  },
+  detailLabel: {
+    color: theme.colors.muted,
+    fontSize: 10,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  detailValue: {
+    color: theme.colors.text,
+    fontSize: theme.typography.small,
+    fontWeight: '700',
   },
   pressed: {
     opacity: 0.72,

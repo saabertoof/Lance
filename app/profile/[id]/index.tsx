@@ -149,14 +149,12 @@ export default function PublicProfileScreen() {
         <ProfilePromptSection
           accent={accent}
           profile={profile}
-          radius={radius}
         />
 
         <ProfileProfessionalSections
           accent={accent}
           onError={setError}
           profile={profile}
-          radius={radius}
         />
 
         {!isOwnProfile ? (
@@ -214,9 +212,9 @@ const styles = StyleSheet.create({
     paddingTop: 0,
   },
   body: {
-    gap: theme.density.sectionGap,
-    paddingBottom: theme.spacing.xxxl,
-    paddingHorizontal: theme.layout.screenPadding,
+    gap: theme.spacing.md,
+    paddingBottom: 120,
+    paddingHorizontal: 14,
   },
   topActions: {
     flexDirection: 'row',

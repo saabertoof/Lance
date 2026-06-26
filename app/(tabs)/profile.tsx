@@ -252,13 +252,6 @@ export default function ProfileScreen() {
           summary={summary}
         />
 
-        <ProfilePromptSection
-          accent={accent}
-          onEdit={editProfile}
-          profile={profile}
-          radius={radius}
-        />
-
         <ProfileFeaturedSection
           accent={accent}
           onEdit={editProfile}
@@ -267,12 +260,17 @@ export default function ProfileScreen() {
           radius={radius}
         />
 
+        <ProfilePromptSection
+          accent={accent}
+          onEdit={editProfile}
+          profile={profile}
+        />
+
         <ProfileProfessionalSections
           accent={accent}
           onEdit={editProfile}
           onError={setError}
           profile={profile}
-          radius={radius}
         />
 
         <ProfileOwnerDashboard groups={dashboardGroups} />
@@ -342,9 +340,9 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
   },
   body: {
-    gap: theme.density.sectionGap,
-    paddingBottom: theme.spacing.lg,
-    paddingHorizontal: theme.layout.screenPadding,
+    gap: theme.spacing.md,
+    paddingBottom: 120,
+    paddingHorizontal: 14,
   },
   error: {
     color: theme.colors.danger,
