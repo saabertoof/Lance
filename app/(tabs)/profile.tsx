@@ -162,10 +162,20 @@ export default function ProfileScreen() {
           label: 'Businesses & projects',
           onPress: () => router.push(routes.businesses),
         },
+      ],
+    },
+    {
+      title: 'Profile',
+      items: [
         {
           icon: 'color-palette-outline',
-          label: 'Manage profile',
+          label: 'Edit profile',
           onPress: () => router.push(routes.editProfile),
+        },
+        {
+          icon: 'settings-outline',
+          label: 'Settings',
+          onPress: () => router.push(routes.profileSettings),
         },
       ],
     },
