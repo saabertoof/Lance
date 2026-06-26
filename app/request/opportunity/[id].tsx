@@ -76,8 +76,8 @@ export default function OpportunityResponseScreen() {
 
   function confirmUpdate(action: 'withdraw' | 'decline' | 'close') {
     const labels = {
-      withdraw: 'Withdraw response',
-      decline: 'Decline response',
+      withdraw: 'Withdraw application',
+      decline: 'Pass on applicant',
       close: 'Close discussion',
     };
     Alert.alert(`${labels[action]}?`, 'This status change is recorded for both people.', [
@@ -91,7 +91,9 @@ export default function OpportunityResponseScreen() {
           setIsSubmitting(true);
           try {
             await updateOpportunityResponse(id, action);
-            showSuccess(`${labels[action]} complete.`);
+            showSuccess(
+              action === 'decline' ? 'Applicant marked as passed.' : `${labels[action]} complete.`,
+            );
             router.back();
           } catch (updateError) {
             setError(formatCommunicationError(updateError));
@@ -127,9 +129,9 @@ export default function OpportunityResponseScreen() {
           style={styles.iconButton}>
           <Ionicons color={theme.colors.text} name="arrow-back" size={22} />
         </Pressable>
-        <Text style={styles.title}>Opportunity response</Text>
+        <Text style={styles.title}>Application</Text>
         <Pressable
-          accessibilityLabel="Response safety options"
+          accessibilityLabel="Application safety options"
           onPress={() => setSafetyOpen(true)}
           style={styles.iconButton}>
           <Ionicons color={theme.colors.text} name="ellipsis-horizontal" size={22} />
@@ -162,7 +164,7 @@ export default function OpportunityResponseScreen() {
       <Card style={styles.card}>
         <View style={styles.cardHeader}>
           <Text style={styles.sectionTitle}>
-            {ownerView ? 'Their response' : 'Your response'}
+            {ownerView ? 'Application note' : 'Your application'}
           </Text>
           <Chip
             accent={response.status === 'submitted'}
@@ -208,7 +210,7 @@ export default function OpportunityResponseScreen() {
           />
           <Button
             disabled={isSubmitting}
-            label="Decline response"
+            label="Pass"
             onPress={() => confirmUpdate('decline')}
             variant="secondary"
           />
@@ -217,7 +219,7 @@ export default function OpportunityResponseScreen() {
       {!ownerView && response.status === 'submitted' ? (
         <Button
           disabled={isSubmitting}
-          label="Withdraw response"
+          label="Withdraw application"
           onPress={() => confirmUpdate('withdraw')}
           variant="danger"
         />
@@ -256,6 +258,8 @@ export default function OpportunityResponseScreen() {
 
 function statusLabel(value: string) {
   if (value === 'in_discussion') return 'In discussion';
+  if (value === 'submitted') return 'Applied';
+  if (value === 'declined') return 'Passed';
   return value.replace(/^\w/, (letter) => letter.toUpperCase());
 }
 
