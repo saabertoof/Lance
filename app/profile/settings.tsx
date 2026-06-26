@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Switch,
   Text,
+  useColorScheme,
   View,
 } from 'react-native';
 
@@ -35,22 +36,26 @@ type ToggleKey = Exclude<keyof LocalSettingsPreferences, 'appearanceMode'>;
 
 const appearanceOptions: {
   description: string;
+  enabled: boolean;
   label: string;
   value: AppearanceMode;
 }[] = [
   {
     label: 'System',
-    description: 'Follow device preference later.',
+    description: 'Staged until Lance has dynamic theme tokens across every screen.',
+    enabled: false,
     value: 'system',
   },
   {
     label: 'Light',
-    description: 'Current Lance theme.',
+    description: 'Active now across the app.',
+    enabled: true,
     value: 'light',
   },
   {
     label: 'Dark',
-    description: 'Saved for the theme pass.',
+    description: 'Staged until the static style sheets are migrated safely.',
+    enabled: false,
     value: 'dark',
   },
 ];
@@ -134,6 +139,7 @@ const aiToggles: {
 export default function ProfileSettingsScreen() {
   const { signOut, user } = useAuth();
   const { showSuccess, showWarning } = useFeedback();
+  const deviceColorScheme = useColorScheme();
   const [profile, setProfile] = useState<PersonalProfile | null>(null);
   const [preferences, setPreferences] = useState<LocalSettingsPreferences>(
     defaultLocalSettingsPreferences,
@@ -276,7 +282,7 @@ export default function ProfileSettingsScreen() {
       </SettingsSection>
 
       <SettingsSection
-        description="Theme controls are staged here. Lance still uses the light theme until the full theme pass."
+        description="Light mode is the only active app theme right now. System and dark mode need a centralized dynamic theme pass before they are safe to enable."
         title="Appearance">
         <SegmentedSetting
           onChange={(appearanceMode) => {
@@ -285,6 +291,12 @@ export default function ProfileSettingsScreen() {
           }}
           options={appearanceOptions}
           value={preferences.appearanceMode}
+        />
+        <StatusRow
+          detail="Lance can read this later once app-wide dark mode is wired."
+          icon="phone-portrait-outline"
+          label="Device theme"
+          value={deviceColorScheme === 'dark' ? 'Dark' : 'Light'}
         />
       </SettingsSection>
 
@@ -595,26 +607,36 @@ function SegmentedSetting({
       <View style={styles.segmented}>
         {options.map((option) => {
           const selected = option.value === value;
+          const disabled = !option.enabled;
           return (
             <Pressable
               accessibilityRole="button"
-              accessibilityState={{ selected }}
+              accessibilityState={{ disabled, selected }}
+              disabled={disabled}
               key={option.value}
               onPress={() => onChange(option.value)}
               style={({ pressed }) => [
                 styles.segment,
                 selected && styles.segmentSelected,
+                disabled && styles.segmentDisabled,
                 pressed && styles.pressed,
               ]}>
-              <Text style={[styles.segmentLabel, selected && styles.segmentLabelSelected]}>
+              <Text
+                style={[
+                  styles.segmentLabel,
+                  selected && styles.segmentLabelSelected,
+                  disabled && styles.segmentLabelDisabled,
+                ]}>
                 {option.label}
               </Text>
+              {disabled ? <Text style={styles.segmentSoon}>Soon</Text> : null}
             </Pressable>
           );
         })}
       </View>
       <Text style={styles.segmentHint}>
-        {options.find((option) => option.value === value)?.description}
+        Light mode is active. System and dark are intentionally disabled until
+        the full app theme is migrated.
       </Text>
     </View>
   );
@@ -761,6 +783,9 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surface,
     ...theme.shadows.card,
   },
+  segmentDisabled: {
+    opacity: 0.52,
+  },
   segmentLabel: {
     color: theme.colors.muted,
     fontSize: theme.typography.caption,
@@ -768,6 +793,17 @@ const styles = StyleSheet.create({
   },
   segmentLabelSelected: {
     color: theme.colors.text,
+  },
+  segmentLabelDisabled: {
+    color: theme.colors.mutedLight,
+  },
+  segmentSoon: {
+    color: theme.colors.mutedLight,
+    fontSize: 9,
+    fontWeight: '900',
+    lineHeight: 11,
+    marginTop: -1,
+    textTransform: 'uppercase',
   },
   segmentHint: {
     color: theme.colors.muted,

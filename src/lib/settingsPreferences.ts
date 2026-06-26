@@ -16,6 +16,8 @@ export type LocalSettingsPreferences = {
   appearanceMode: AppearanceMode;
 };
 
+const SUPPORTED_APPEARANCE_MODES: AppearanceMode[] = ['light'];
+
 const DEFAULT_SETTINGS: LocalSettingsPreferences = {
   aiApplicantSummary: false,
   aiDrafting: true,
@@ -27,7 +29,7 @@ const DEFAULT_SETTINGS: LocalSettingsPreferences = {
   newApplicantNotifications: true,
   opportunityReminders: true,
   savedSearchAlerts: true,
-  appearanceMode: 'system',
+  appearanceMode: 'light',
 };
 
 function keyFor(profileId: string) {
@@ -40,7 +42,13 @@ export async function loadLocalSettingsPreferences(profileId: string) {
 
   try {
     const parsed = JSON.parse(stored) as Partial<LocalSettingsPreferences>;
-    return { ...DEFAULT_SETTINGS, ...parsed };
+    const next = { ...DEFAULT_SETTINGS, ...parsed };
+    return {
+      ...next,
+      appearanceMode: SUPPORTED_APPEARANCE_MODES.includes(next.appearanceMode)
+        ? next.appearanceMode
+        : DEFAULT_SETTINGS.appearanceMode,
+    };
   } catch {
     return DEFAULT_SETTINGS;
   }
