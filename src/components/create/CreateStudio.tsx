@@ -27,12 +27,12 @@ type IconName = keyof typeof Ionicons.glyphMap;
 
 export function CreatePathGrid({
   onBusiness,
-  onJob,
+  onOpportunity,
   onProject,
   reduceMotion,
 }: {
   onBusiness: () => void;
-  onJob: () => void;
+  onOpportunity: () => void;
   onProject: () => void;
   reduceMotion: boolean;
 }) {
@@ -47,11 +47,11 @@ export function CreatePathGrid({
         description="Post the opportunity, share the link, and review applicants in one place."
         icon="briefcase-outline"
         metadata="Freelance, internship, cofounder, and more"
-        onPress={onJob}
+        onPress={onOpportunity}
         primary
         reduceMotion={reduceMotion}
         title="Post an opportunity"
-        tone="job"
+        tone="opportunity"
       />
       <View
         style={[
@@ -104,7 +104,7 @@ function CreatePathCard({
   primary?: boolean;
   reduceMotion: boolean;
   title: string;
-  tone: 'business' | 'job' | 'project';
+  tone: 'business' | 'opportunity' | 'project';
 }) {
   const palette = pathPalettes[tone];
 
@@ -237,23 +237,23 @@ export function DraftContinuation({
 export function YourCreations({
   businesses,
   onBusiness,
-  onJob,
+  onOpportunity,
   onManageBusinesses,
-  onManageJobs,
+  onManageOpportunities,
   opportunities,
 }: {
   businesses: CreateStudioBusiness[];
   onBusiness: (id: string) => void;
-  onJob: (id: string) => void;
+  onOpportunity: (id: string) => void;
   onManageBusinesses: () => void;
-  onManageJobs: () => void;
+  onManageOpportunities: () => void;
   opportunities: CreateStudioOpportunity[];
 }) {
   const items = useMemo(() => {
-    const jobs = opportunities.map((item) => ({
+    const opportunityItems = opportunities.map((item) => ({
       id: item.id,
       imageUrl: null,
-      kind: 'job' as const,
+      kind: 'opportunity' as const,
       label: 'Opportunity',
       status: item.status,
       title: item.title,
@@ -269,7 +269,7 @@ export function YourCreations({
       updatedAt: item.updatedAt,
     }));
 
-    return [...jobs, ...organizations]
+    return [...opportunityItems, ...organizations]
       .sort(
         (left, right) =>
           new Date(right.updatedAt).getTime() -
@@ -290,7 +290,7 @@ export function YourCreations({
               kind={item.kind}
               label={item.label}
               onPress={() =>
-                item.kind === 'job' ? onJob(item.id) : onBusiness(item.id)
+                item.kind === 'opportunity' ? onOpportunity(item.id) : onBusiness(item.id)
               }
               status={item.status}
               title={item.title}
@@ -307,7 +307,7 @@ export function YourCreations({
         <ManageButton
           icon="briefcase-outline"
           label="Opportunities"
-          onPress={onManageJobs}
+          onPress={onManageOpportunities}
         />
         <ManageButton
           icon="business-outline"
@@ -329,7 +329,7 @@ function CreationRow({
   updatedAt,
 }: {
   imageUrl: string | null;
-  kind: 'business' | 'job';
+  kind: 'business' | 'opportunity';
   label: string;
   onPress: () => void;
   status: BusinessStatus | OpportunityStatus;
@@ -358,7 +358,7 @@ function CreationRow({
         ) : (
           <Ionicons
             color={theme.colors.accentStrong}
-            name={kind === 'job' ? 'briefcase-outline' : 'business-outline'}
+            name={kind === 'opportunity' ? 'briefcase-outline' : 'business-outline'}
             size={20}
           />
         )}
@@ -461,7 +461,7 @@ function relativeDate(value: string) {
 }
 
 const pathPalettes = {
-  job: {
+  opportunity: {
     accent: theme.colors.white,
     arrowBorder: 'rgba(255,255,255,0.3)',
     art: 'rgba(255,255,255,0.18)',

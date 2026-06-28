@@ -4,8 +4,8 @@ export type OwnerProfileSummary = {
   applied: number;
   businesses: number;
   connections: number;
-  jobs: number;
   newApplicants: number;
+  opportunities: number;
   pendingRequests: number;
   saved: number;
 };
@@ -18,7 +18,7 @@ export async function loadOwnerProfileSummary(
     connections,
     pendingRequests,
     applied,
-    jobs,
+    opportunities,
     newApplicants,
     businesses,
     savedProfiles,
@@ -71,7 +71,7 @@ export async function loadOwnerProfileSummary(
     connections.error,
     pendingRequests.error,
     applied.error,
-    jobs.error,
+    opportunities.error,
     newApplicants.error,
     businesses.error,
     savedProfiles.error,
@@ -84,8 +84,8 @@ export async function loadOwnerProfileSummary(
     applied: applied.count ?? 0,
     businesses: businesses.count ?? 0,
     connections: connections.count ?? 0,
-    jobs: jobs.count ?? 0,
     newApplicants: newApplicants.count ?? 0,
+    opportunities: opportunities.count ?? 0,
     pendingRequests: pendingRequests.count ?? 0,
     saved: (savedProfiles.count ?? 0) + (savedOpportunities.count ?? 0),
   };

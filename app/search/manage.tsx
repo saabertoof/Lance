@@ -132,7 +132,7 @@ export default function SavedSearchManagementScreen() {
     );
   }
 
-  const jobSearches = searches.filter((search) => search.targetType === 'jobs');
+  const opportunitySearches = searches.filter((search) => search.targetType === 'jobs');
 
   return (
     <Screen
@@ -233,13 +233,13 @@ export default function SavedSearchManagementScreen() {
             }
             title="Opportunity alerts"
           />
-          {jobSearches.length === 0 ? (
+          {opportunitySearches.length === 0 ? (
             <Text style={styles.emptyLine}>
               Save an opportunity search to create an alert.
             </Text>
           ) : (
             <View style={styles.list}>
-              {jobSearches.map((search) => (
+              {opportunitySearches.map((search) => (
                 <Pressable
                   accessibilityLabel={`Change alert frequency for ${search.name}`}
                   accessibilityRole="button"

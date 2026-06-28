@@ -10,7 +10,9 @@
     "lint": "eslint app src",
     "typecheck": "tsc --noEmit",
     "expo:config": "expo config --type public",
-    "test:phase6": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/search-plan.test.mts"
+    "test:phase6": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/search-plan.test.mts",
+    "test:app": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/location.test.mts tests/app-hygiene.test.mts",
+    "check": "npm run typecheck && npm run lint && npm run expo:config && npm run test:phase6 && npm run test:app"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -45,7 +47,6 @@
     "react-native-url-polyfill": "^3.0.0",
     "react-native-web": "~0.21.0",
     "react-native-worklets": "0.5.1",
-    "undefined": ".npm-cache",
     "zod": "^4.4.3"
   },
   "devDependencies": {

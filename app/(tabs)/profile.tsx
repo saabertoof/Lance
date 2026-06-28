@@ -140,7 +140,7 @@ export default function ProfileScreen() {
           onPress: () => router.push(routes.applications),
         },
         {
-          count: summary?.jobs ?? null,
+          count: summary?.opportunities ?? null,
           icon: 'briefcase-outline',
           label: 'My opportunities',
           onPress: () => router.push(routes.opportunities),
@@ -258,7 +258,7 @@ export default function ProfileScreen() {
         <ProfileStatsRow
           onApplied={() => router.push(routes.applications)}
           onConnections={() => router.push(routes.connections)}
-          onJobs={() => router.push(routes.opportunities)}
+          onOpportunities={() => router.push(routes.opportunities)}
           summary={summary}
         />
 

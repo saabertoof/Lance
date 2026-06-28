@@ -6,7 +6,6 @@ import {
   StyleSheet,
   Switch,
   Text,
-  useColorScheme,
   View,
 } from 'react-native';
 
@@ -21,7 +20,6 @@ import {
   defaultLocalSettingsPreferences,
   loadLocalSettingsPreferences,
   saveLocalSettingsPreferences,
-  type AppearanceMode,
   type LocalSettingsPreferences,
 } from '@/lib/settingsPreferences';
 import { supabase } from '@/lib/supabase';
@@ -33,32 +31,6 @@ import {
 
 type IconName = keyof typeof Ionicons.glyphMap;
 type ToggleKey = Exclude<keyof LocalSettingsPreferences, 'appearanceMode'>;
-
-const appearanceOptions: {
-  description: string;
-  enabled: boolean;
-  label: string;
-  value: AppearanceMode;
-}[] = [
-  {
-    label: 'System',
-    description: 'Staged until Lance has dynamic theme tokens across every screen.',
-    enabled: false,
-    value: 'system',
-  },
-  {
-    label: 'Light',
-    description: 'Active now across the app.',
-    enabled: true,
-    value: 'light',
-  },
-  {
-    label: 'Dark',
-    description: 'Staged until the static style sheets are migrated safely.',
-    enabled: false,
-    value: 'dark',
-  },
-];
 
 const notificationToggles: {
   detail: string;
@@ -139,7 +111,6 @@ const aiToggles: {
 export default function ProfileSettingsScreen() {
   const { signOut, user } = useAuth();
   const { showSuccess, showWarning } = useFeedback();
-  const deviceColorScheme = useColorScheme();
   const [profile, setProfile] = useState<PersonalProfile | null>(null);
   const [preferences, setPreferences] = useState<LocalSettingsPreferences>(
     defaultLocalSettingsPreferences,
@@ -282,21 +253,13 @@ export default function ProfileSettingsScreen() {
       </SettingsSection>
 
       <SettingsSection
-        description="Light mode is the only active app theme right now. System and dark mode need a centralized dynamic theme pass before they are safe to enable."
+        description="Lance is currently optimized for the clean light visual system."
         title="Appearance">
-        <SegmentedSetting
-          onChange={(appearanceMode) => {
-            updatePreferences({ appearanceMode });
-            showSuccess('Appearance preference saved for this device.');
-          }}
-          options={appearanceOptions}
-          value={preferences.appearanceMode}
-        />
         <StatusRow
-          detail="Lance can read this later once app-wide dark mode is wired."
-          icon="phone-portrait-outline"
-          label="Device theme"
-          value={deviceColorScheme === 'dark' ? 'Dark' : 'Light'}
+          detail="Dark and system themes are hidden until the app has full dynamic theme tokens."
+          icon="color-palette-outline"
+          label="Theme"
+          value="Light"
         />
       </SettingsSection>
 
@@ -324,29 +287,29 @@ export default function ProfileSettingsScreen() {
           label="Profile visibility"
           value="Public profile for now"
         />
-        <PlaceholderSwitch
-          detail="Location visibility needs server-backed profile rules before it can be changed here."
+        <StatusRow
+          detail="Location is edited from your profile."
           icon="location-outline"
           label="Show location"
-          value={Boolean(profile?.city)}
-        />
-        <PlaceholderSwitch
-          detail="Social links are still controlled by your profile editor."
-          icon="link-outline"
-          label="Show social links"
-          value={Boolean((profile?.links.length ?? 0) > 0)}
-        />
-        <PlaceholderSwitch
-          detail="Lance does not currently expose active status."
-          icon="pulse-outline"
-          label="Show active status"
-          value={false}
+          value={profile?.city ? 'On' : 'Off'}
         />
         <StatusRow
-          detail="A full blocked-users manager needs a later backend and UI pass."
+          detail="Social links are managed from Edit profile."
+          icon="link-outline"
+          label="Show social links"
+          value={(profile?.links.length ?? 0) > 0 ? 'On' : 'Off'}
+        />
+        <StatusRow
+          detail="Lance does not expose active status."
+          icon="pulse-outline"
+          label="Show active status"
+          value="Off"
+        />
+        <StatusRow
+          detail="Blocking is handled from profile, opportunity, and message safety menus."
           icon="ban-outline"
           label="Blocked users"
-          value="Coming soon"
+          value="Safety menus"
         />
       </SettingsSection>
 
@@ -417,10 +380,10 @@ export default function ProfileSettingsScreen() {
         title="Danger zone">
         <StatusRow
           danger
-          detail="Full account deletion needs a secure backend deletion flow."
+          detail="Full account deletion needs a secure backend deletion flow before this appears."
           icon="trash-outline"
           label="Delete account"
-          value="Not available yet"
+          value="Unavailable"
         />
       </SettingsSection>
     </Screen>
@@ -561,87 +524,6 @@ function SwitchRow({
   );
 }
 
-function PlaceholderSwitch({
-  detail,
-  icon,
-  label,
-  value,
-}: {
-  detail: string;
-  icon: IconName;
-  label: string;
-  value: boolean;
-}) {
-  return (
-    <View style={styles.row}>
-      <RowIcon icon={icon} />
-      <View style={styles.rowCopy}>
-        <Text style={styles.rowLabel}>{label}</Text>
-        <Text style={styles.rowDetail}>{detail}</Text>
-      </View>
-      <Switch
-        disabled
-        ios_backgroundColor={theme.colors.border}
-        thumbColor={theme.colors.white}
-        trackColor={{
-          false: theme.colors.border,
-          true: theme.colors.accent,
-        }}
-        value={value}
-      />
-    </View>
-  );
-}
-
-function SegmentedSetting({
-  onChange,
-  options,
-  value,
-}: {
-  onChange: (value: AppearanceMode) => void;
-  options: typeof appearanceOptions;
-  value: AppearanceMode;
-}) {
-  return (
-    <View style={styles.segmentedWrap}>
-      <View style={styles.segmented}>
-        {options.map((option) => {
-          const selected = option.value === value;
-          const disabled = !option.enabled;
-          return (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityState={{ disabled, selected }}
-              disabled={disabled}
-              key={option.value}
-              onPress={() => onChange(option.value)}
-              style={({ pressed }) => [
-                styles.segment,
-                selected && styles.segmentSelected,
-                disabled && styles.segmentDisabled,
-                pressed && styles.pressed,
-              ]}>
-              <Text
-                style={[
-                  styles.segmentLabel,
-                  selected && styles.segmentLabelSelected,
-                  disabled && styles.segmentLabelDisabled,
-                ]}>
-                {option.label}
-              </Text>
-              {disabled ? <Text style={styles.segmentSoon}>Soon</Text> : null}
-            </Pressable>
-          );
-        })}
-      </View>
-      <Text style={styles.segmentHint}>
-        Light mode is active. System and dark are intentionally disabled until
-        the full app theme is migrated.
-      </Text>
-    </View>
-  );
-}
-
 function RowIcon({
   danger,
   icon,
@@ -761,54 +643,6 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     maxWidth: 112,
     textAlign: 'right',
-  },
-  segmentedWrap: {
-    gap: theme.spacing.sm,
-    paddingTop: theme.spacing.md,
-  },
-  segmented: {
-    backgroundColor: theme.colors.surfaceMuted,
-    borderRadius: theme.radii.pill,
-    flexDirection: 'row',
-    padding: 4,
-  },
-  segment: {
-    alignItems: 'center',
-    borderRadius: theme.radii.pill,
-    flex: 1,
-    minHeight: 38,
-    justifyContent: 'center',
-  },
-  segmentSelected: {
-    backgroundColor: theme.colors.surface,
-    ...theme.shadows.card,
-  },
-  segmentDisabled: {
-    opacity: 0.52,
-  },
-  segmentLabel: {
-    color: theme.colors.muted,
-    fontSize: theme.typography.caption,
-    fontWeight: '900',
-  },
-  segmentLabelSelected: {
-    color: theme.colors.text,
-  },
-  segmentLabelDisabled: {
-    color: theme.colors.mutedLight,
-  },
-  segmentSoon: {
-    color: theme.colors.mutedLight,
-    fontSize: 9,
-    fontWeight: '900',
-    lineHeight: 11,
-    marginTop: -1,
-    textTransform: 'uppercase',
-  },
-  segmentHint: {
-    color: theme.colors.muted,
-    fontSize: theme.typography.caption,
-    lineHeight: 17,
   },
   dangerText: {
     color: theme.colors.danger,

@@ -78,7 +78,7 @@ export function ChatRow({
           </Text>
         </View>
         {chat.type === 'opportunity' && chat.opportunityTitle ? (
-          <Text numberOfLines={1} style={styles.jobContext}>
+          <Text numberOfLines={1} style={styles.opportunityContext}>
             {chat.businessName
               ? `${chat.businessName} | ${chat.opportunityTitle}`
               : chat.opportunityTitle}
@@ -96,7 +96,7 @@ export function ChatRow({
       </View>
       <View style={styles.trailing}>
         {chat.type === 'opportunity' ? (
-          <View style={styles.jobThumb}>
+          <View style={styles.opportunityThumb}>
             <Ionicons
               color={theme.colors.accentStrong}
               name={chat.businessName ? 'business-outline' : 'briefcase-outline'}
@@ -201,7 +201,7 @@ export function OpportunityResponseRow({
         </Text>
       </View>
       <View style={styles.trailing}>
-        <View style={styles.jobThumb}>
+        <View style={styles.opportunityThumb}>
           <Ionicons
             color={theme.colors.accentStrong}
             name="briefcase-outline"
@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
     color: theme.colors.muted,
     fontSize: theme.typography.small,
   },
-  jobContext: {
+  opportunityContext: {
     color: theme.colors.accentStrong,
     fontSize: 12,
     fontWeight: '700',
@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minWidth: 30,
   },
-  jobThumb: {
+  opportunityThumb: {
     alignItems: 'center',
     backgroundColor: theme.colors.accentSoft,
     borderRadius: theme.radii.md,

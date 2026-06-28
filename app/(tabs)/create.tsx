@@ -75,7 +75,7 @@ export default function CreateScreen() {
 
       <CreatePathGrid
         onBusiness={() => router.push(routes.newBusinessFor('startup'))}
-        onJob={() => router.push(routes.newOpportunity())}
+        onOpportunity={() => router.push(routes.newOpportunity())}
         onProject={() => router.push(routes.newBusinessFor('project'))}
         reduceMotion={reduceMotion}
       />
@@ -91,9 +91,9 @@ export default function CreateScreen() {
           <YourCreations
             businesses={summary.businesses}
             onBusiness={(id) => router.push(routes.business(id))}
-            onJob={(id) => router.push(routes.opportunity(id))}
+            onOpportunity={(id) => router.push(routes.opportunity(id))}
             onManageBusinesses={() => router.push(routes.businesses)}
-            onManageJobs={() => router.push(routes.opportunities)}
+            onManageOpportunities={() => router.push(routes.opportunities)}
             opportunities={summary.opportunities}
           />
         </>

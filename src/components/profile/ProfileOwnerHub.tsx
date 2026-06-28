@@ -46,12 +46,12 @@ export function ProfileOwnerActions({
 export function ProfileStatsRow({
   onApplied,
   onConnections,
-  onJobs,
+  onOpportunities,
   summary,
 }: {
   onApplied: () => void;
   onConnections: () => void;
-  onJobs: () => void;
+  onOpportunities: () => void;
   summary: OwnerProfileSummary | null;
 }) {
   return (
@@ -71,8 +71,8 @@ export function ProfileStatsRow({
       <Stat
         badge={summary?.newApplicants}
         label="Opportunities"
-        onPress={onJobs}
-        value={summary?.jobs ?? null}
+        onPress={onOpportunities}
+        value={summary?.opportunities ?? null}
       />
     </View>
   );
