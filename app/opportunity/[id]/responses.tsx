@@ -125,7 +125,7 @@ export default function OpportunityResponsesScreen() {
 
     try {
       const conversationId = await startOpportunityConversation(response.id);
-      showSuccess('Discussion started.');
+      showSuccess('Conversation started.');
       router.push(routes.conversation(conversationId));
     } catch (startError) {
       setError(formatCommunicationError(startError));
@@ -201,20 +201,20 @@ export default function OpportunityResponsesScreen() {
               {opportunity.title}
             </Text>
             <Text style={styles.contextBody}>
-              Review applicants who came through your Lance link.
+              Review reusable Lance profiles from people who came through your link.
             </Text>
           </View>
           <View style={styles.totalPill}>
             <Text style={styles.totalValue}>{responses.length}</Text>
-            <Text style={styles.totalLabel}>total</Text>
+            <Text style={styles.totalLabel}>applied</Text>
           </View>
         </View>
       ) : null}
       {isOwner && responses.length > 0 ? (
         <View style={styles.summaryRow}>
-          <SummaryPill label="New" value={summary.newCount} />
-          <SummaryPill label="Reviewing" value={summary.activeCount} />
-          <SummaryPill label="In discussion" value={summary.discussionCount} />
+          <SummaryPill label="Fresh" value={summary.newCount} />
+          <SummaryPill label="Ready" value={summary.activeCount} />
+          <SummaryPill label="Talking" value={summary.discussionCount} />
         </View>
       ) : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -320,7 +320,7 @@ function ApplicantCard({
             ) : null}
           </View>
           <Text numberOfLines={1} style={styles.roleLine}>
-            {[response.responder.primaryRole, location].filter(Boolean).join(' / ') ||
+            {[response.responder.primaryRole, location].filter(Boolean).join(' · ') ||
               'Lance applicant'}
           </Text>
           <Text style={styles.sentAt}>Applied {formatInboxTime(response.createdAt)}</Text>
@@ -330,7 +330,7 @@ function ApplicantCard({
 
       {response.note ? (
         <View style={styles.noteBox}>
-          <Text style={styles.noteLabel}>Application note</Text>
+          <Text style={styles.noteLabel}>Why they fit</Text>
           <Text numberOfLines={4} style={styles.noteText}>
             {response.note}
           </Text>
@@ -385,12 +385,12 @@ function ApplicantCard({
 
       <View style={styles.cardActions}>
         <CardAction icon="person-outline" label="Profile" onPress={onOpenProfile} />
-        <CardAction icon="document-text-outline" label="Open" onPress={onOpenApplication} />
+        <CardAction icon="document-text-outline" label="Application" onPress={onOpenApplication} />
         {response.status === 'submitted' ? (
           <>
             <CardAction
               icon="paper-plane-outline"
-              label="Discuss"
+              label="Message"
               loading={activeActionId === `${response.id}:discussion`}
               onPress={onStartDiscussion}
               primary

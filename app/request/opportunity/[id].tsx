@@ -16,11 +16,18 @@ import {
   startOpportunityConversation,
   updateOpportunityResponse,
 } from '@/lib/communication';
+import { loadPublicProfilesByIds } from '@/lib/discovery';
 import { routes } from '@/lib/routes';
 import type {
   OpportunityResponseRecord,
   RelationshipStatus,
 } from '@/types/communication';
+import {
+  availabilityOptions,
+  experienceOptions,
+  getOptionLabel,
+  type PublicProfile,
+} from '@/types/profile';
 
 export default function OpportunityResponseScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -28,6 +35,7 @@ export default function OpportunityResponseScreen() {
   const { showSuccess } = useFeedback();
   const submitting = useRef(false);
   const [response, setResponse] = useState<OpportunityResponseRecord | null>(null);
+  const [applicantProfile, setApplicantProfile] = useState<PublicProfile | null>(null);
   const [relationship, setRelationship] = useState<RelationshipStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -39,12 +47,18 @@ export default function OpportunityResponseScreen() {
     loadOpportunityResponse(id)
       .then(async (result) => {
         if (!active) return;
-        setResponse(result);
         const otherId =
           result.ownerProfileId === user?.id
             ? result.responderProfileId
             : result.ownerProfileId;
-        setRelationship(await loadRelationshipStatus(otherId));
+        const [relationshipResult, profiles] = await Promise.all([
+          loadRelationshipStatus(otherId),
+          loadPublicProfilesByIds([result.responderProfileId]).catch(() => []),
+        ]);
+        if (!active) return;
+        setResponse(result);
+        setApplicantProfile(profiles[0] ?? null);
+        setRelationship(relationshipResult);
       })
       .catch((loadError) => {
         if (active) setError(formatCommunicationError(loadError));
@@ -119,6 +133,25 @@ export default function OpportunityResponseScreen() {
   const otherProfileId = ownerView
     ? response.responderProfileId
     : response.ownerProfileId;
+  const location =
+    applicantProfile?.polish.location?.label ??
+    applicantProfile?.city ??
+    response.responder.city;
+  const availability = applicantProfile
+    ? getOptionLabel(availabilityOptions, applicantProfile.availability)
+    : null;
+  const experience = applicantProfile
+    ? getOptionLabel(experienceOptions, applicantProfile.experienceLevel)
+    : null;
+  const linkCount = applicantProfile
+    ? applicantProfile.links.length + applicantProfile.polish.customLinks.length
+    : 0;
+  const portfolioCount = applicantProfile?.polish.portfolio.length ?? 0;
+  const profileScore = applicantProfile ? profileCompleteness(applicantProfile) : null;
+  const skillNames =
+    response.selectedSkills.length > 0
+      ? response.selectedSkills.map((skill) => skill.name)
+      : applicantProfile?.skills.slice(0, 6) ?? [];
 
   return (
     <Screen scroll contentStyle={styles.screen}>
@@ -139,15 +172,41 @@ export default function OpportunityResponseScreen() {
       </View>
 
       <Pressable
+        accessibilityLabel={`Open ${response.responder.displayName}'s profile`}
+        accessibilityRole="button"
         onPress={() => router.push(routes.profile(response.responder.id))}
-        style={styles.person}>
-        <ProfileAvatar profile={response.responder} size={76} />
-        <Text style={styles.name}>{response.responder.displayName}</Text>
-        <Text style={styles.meta}>
-          {[response.responder.primaryRole, response.responder.city]
-            .filter(Boolean)
-            .join(' | ')}
-        </Text>
+        style={({ pressed }) => [styles.profileHero, pressed && styles.pressed]}>
+        <View style={styles.profileTop}>
+          <ProfileAvatar profile={response.responder} size={74} />
+          <View style={styles.profileCopy}>
+            <View style={styles.nameRow}>
+              <Text numberOfLines={1} style={styles.name}>
+                {response.responder.displayName}
+              </Text>
+              <ResponseStatusBadge status={response.status} />
+            </View>
+            <Text numberOfLines={1} style={styles.meta}>
+              {[response.responder.primaryRole, location].filter(Boolean).join(' · ') ||
+                'Lance applicant'}
+            </Text>
+            {applicantProfile?.headline ? (
+              <Text numberOfLines={2} style={styles.headline}>
+                {applicantProfile.headline}
+              </Text>
+            ) : null}
+          </View>
+        </View>
+        <View style={styles.profileFacts}>
+          {availability ? <ProfileFact icon="time-outline" label={availability} /> : null}
+          {experience ? <ProfileFact icon="sparkles-outline" label={experience} /> : null}
+          {profileScore != null ? (
+            <ProfileFact icon="person-circle-outline" label={`Profile ${profileScore}%`} />
+          ) : null}
+          {portfolioCount > 0 ? (
+            <ProfileFact icon="images-outline" label={`${portfolioCount} portfolio`} />
+          ) : null}
+          {linkCount > 0 ? <ProfileFact icon="link-outline" label={`${linkCount} links`} /> : null}
+        </View>
       </Pressable>
 
       <Pressable
@@ -164,18 +223,22 @@ export default function OpportunityResponseScreen() {
       <Card style={styles.card}>
         <View style={styles.cardHeader}>
           <Text style={styles.sectionTitle}>
-            {ownerView ? 'Application note' : 'Your application'}
+            {ownerView ? 'What they sent' : 'Your application'}
           </Text>
-          <Chip
-            accent={response.status === 'submitted'}
-            label={statusLabel(response.status)}
-          />
+          <Text style={styles.date}>
+            Sent {new Date(response.createdAt).toLocaleDateString()}
+          </Text>
         </View>
-        {response.note ? <Text style={styles.body}>{response.note}</Text> : null}
-        {response.selectedSkills.length > 0 ? (
+        <View style={styles.noteBox}>
+          <Text style={styles.noteLabel}>Why they fit</Text>
+          <Text style={styles.body}>
+            {response.note || 'No note added. Use the profile, skills, and proof below to review fit.'}
+          </Text>
+        </View>
+        {skillNames.length > 0 ? (
           <View style={styles.skills}>
-            {response.selectedSkills.map((skill) => (
-              <Chip key={skill.id} label={skill.name} />
+            {skillNames.map((skill) => (
+              <Chip key={skill.toLowerCase()} label={skill} />
             ))}
           </View>
         ) : null}
@@ -191,20 +254,30 @@ export default function OpportunityResponseScreen() {
               />
             )}
             <View style={styles.portfolioCopy}>
-              <Text style={styles.portfolioLabel}>Shared portfolio item</Text>
+              <Text style={styles.portfolioLabel}>Attached proof</Text>
               <Text style={styles.portfolioTitle}>{response.portfolioTitle}</Text>
             </View>
           </View>
         ) : null}
-        <Text style={styles.date}>
-          Sent {new Date(response.createdAt).toLocaleDateString()}
-        </Text>
       </Card>
+
+      <View style={styles.reviewCard}>
+        <View style={styles.reviewHeader}>
+          <Text style={styles.reviewTitle}>Fast review</Text>
+          <Text style={styles.reviewSubtitle}>Signals from their reusable profile</Text>
+        </View>
+        <View style={styles.reviewGrid}>
+          <ReviewSignal label="Skills" value={skillNames.length ? `${skillNames.length} shown` : 'Needs more'} />
+          <ReviewSignal label="Proof" value={response.portfolioTitle ? 'Attached' : portfolioCount ? 'On profile' : 'Missing'} />
+          <ReviewSignal label="Links" value={linkCount ? `${linkCount} live` : 'None'} />
+          <ReviewSignal label="Availability" value={availability ?? 'Not listed'} />
+        </View>
+      </View>
 
       {ownerView && response.status === 'submitted' ? (
         <View style={styles.actions}>
           <Button
-            label="Start discussion"
+            label="Message applicant"
             loading={isSubmitting}
             onPress={() => void startDiscussion()}
           />
@@ -263,14 +336,84 @@ function statusLabel(value: string) {
   return value.replace(/^\w/, (letter) => letter.toUpperCase());
 }
 
+function ResponseStatusBadge({ status }: { status: OpportunityResponseRecord['status'] }) {
+  const tone = statusTone(status);
+  return (
+    <View style={[styles.statusBadge, { backgroundColor: tone.background }]}>
+      <Text style={[styles.statusText, { color: tone.text }]}>{statusLabel(status)}</Text>
+    </View>
+  );
+}
+
+function ProfileFact({
+  icon,
+  label,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+}) {
+  return (
+    <View style={styles.profileFact}>
+      <Ionicons color={theme.colors.textSoft} name={icon} size={14} />
+      <Text numberOfLines={1} style={styles.profileFactText}>{label}</Text>
+    </View>
+  );
+}
+
+function ReviewSignal({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.reviewSignal}>
+      <Text style={styles.reviewLabel}>{label}</Text>
+      <Text numberOfLines={1} style={styles.reviewValue}>{value}</Text>
+    </View>
+  );
+}
+
+function profileCompleteness(profile: PublicProfile) {
+  const checks = [
+    Boolean(profile.avatarUrl),
+    Boolean(profile.headline),
+    Boolean(profile.bio),
+    Boolean(profile.primaryRole),
+    Boolean(profile.polish.location?.label ?? profile.city),
+    profile.skills.length > 0,
+    profile.polish.portfolio.length > 0,
+    profile.links.length + profile.polish.customLinks.length > 0,
+    profile.polish.currentIntents.length > 0,
+  ];
+  return Math.round((checks.filter(Boolean).length / checks.length) * 100);
+}
+
+function statusTone(status: OpportunityResponseRecord['status']) {
+  if (status === 'submitted') {
+    return { background: theme.colors.accentSoft, text: theme.colors.accentStrong };
+  }
+  if (status === 'in_discussion') {
+    return { background: '#E8F7EE', text: '#15733C' };
+  }
+  if (status === 'declined') {
+    return { background: '#F3F4F6', text: theme.colors.muted };
+  }
+  return { background: '#FFF4D8', text: '#7C5711' };
+}
+
 const styles = StyleSheet.create({
   screen: { gap: theme.spacing.xl, paddingBottom: theme.spacing.xxxl },
   topBar: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
   iconButton: { alignItems: 'center', height: 44, justifyContent: 'center', width: 44 },
   title: { color: theme.colors.text, fontSize: theme.typography.subheading, fontWeight: '900' },
-  person: { alignItems: 'center', gap: theme.spacing.sm },
-  name: { color: theme.colors.text, fontSize: theme.typography.heading, fontWeight: '900' },
-  meta: { color: theme.colors.muted, fontSize: theme.typography.small, textAlign: 'center' },
+  profileHero: { backgroundColor: theme.colors.surface, borderColor: theme.colors.border, borderRadius: theme.radii.lg, borderWidth: 1, gap: theme.spacing.md, padding: theme.spacing.md, ...theme.shadows.card },
+  profileTop: { alignItems: 'center', flexDirection: 'row', gap: theme.spacing.md },
+  profileCopy: { flex: 1, gap: 4, minWidth: 0 },
+  nameRow: { alignItems: 'center', flexDirection: 'row', gap: theme.spacing.sm },
+  name: { color: theme.colors.text, flex: 1, fontSize: theme.typography.heading, fontWeight: '900' },
+  meta: { color: theme.colors.muted, fontSize: theme.typography.small, fontWeight: '700' },
+  headline: { color: theme.colors.textSoft, fontSize: theme.typography.small, fontWeight: '700', lineHeight: 20 },
+  profileFacts: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm },
+  profileFact: { alignItems: 'center', backgroundColor: theme.colors.surfaceMuted, borderRadius: theme.radii.pill, flexDirection: 'row', gap: 5, maxWidth: '100%', paddingHorizontal: 10, paddingVertical: 7 },
+  profileFactText: { color: theme.colors.textSoft, flexShrink: 1, fontSize: theme.typography.caption, fontWeight: '800' },
+  statusBadge: { borderRadius: theme.radii.pill, paddingHorizontal: 9, paddingVertical: 5 },
+  statusText: { fontSize: theme.typography.caption, fontWeight: '900' },
   opportunity: { alignItems: 'center', backgroundColor: theme.colors.accentSoft, borderRadius: theme.radii.md, flexDirection: 'row', gap: theme.spacing.md, padding: theme.spacing.md },
   opportunityCopy: { flex: 1, gap: 2 },
   opportunityLabel: { color: theme.colors.accentStrong, fontSize: theme.typography.tiny, fontWeight: '800', textTransform: 'uppercase' },
@@ -279,7 +422,9 @@ const styles = StyleSheet.create({
   card: { gap: theme.spacing.md },
   cardHeader: { alignItems: 'center', flexDirection: 'row', gap: theme.spacing.md, justifyContent: 'space-between' },
   sectionTitle: { color: theme.colors.text, flex: 1, fontSize: theme.typography.subheading, fontWeight: '900' },
-  body: { color: theme.colors.textSoft, fontSize: theme.typography.body, lineHeight: 24 },
+  noteBox: { backgroundColor: theme.colors.surfaceMuted, borderRadius: theme.radii.md, gap: theme.spacing.xs, padding: theme.spacing.md },
+  noteLabel: { color: theme.colors.muted, fontSize: theme.typography.caption, fontWeight: '900', textTransform: 'uppercase' },
+  body: { color: theme.colors.textSoft, fontSize: theme.typography.bodySmall, lineHeight: 22 },
   skills: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm },
   portfolio: { alignItems: 'center', backgroundColor: theme.colors.surfaceMuted, borderRadius: theme.radii.md, flexDirection: 'row', gap: theme.spacing.md, padding: theme.spacing.md },
   portfolioImage: { borderRadius: theme.radii.sm, height: 48, width: 48 },
@@ -287,6 +432,15 @@ const styles = StyleSheet.create({
   portfolioLabel: { color: theme.colors.muted, fontSize: theme.typography.tiny },
   portfolioTitle: { color: theme.colors.text, fontSize: theme.typography.small, fontWeight: '800' },
   date: { color: theme.colors.mutedLight, fontSize: theme.typography.tiny },
+  reviewCard: { backgroundColor: '#17151F', borderRadius: theme.radii.lg, gap: theme.spacing.md, padding: theme.spacing.lg, ...theme.shadows.card },
+  reviewHeader: { gap: 3 },
+  reviewTitle: { color: theme.colors.white, fontSize: theme.typography.cardTitle, fontWeight: '900' },
+  reviewSubtitle: { color: 'rgba(255,255,255,0.62)', fontSize: theme.typography.caption, fontWeight: '700' },
+  reviewGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm },
+  reviewSignal: { backgroundColor: 'rgba(255,255,255,0.09)', borderColor: 'rgba(255,255,255,0.12)', borderRadius: theme.radii.md, borderWidth: 1, gap: 3, padding: theme.spacing.md, width: '48%' },
+  reviewLabel: { color: 'rgba(255,255,255,0.58)', fontSize: theme.typography.caption, fontWeight: '900', textTransform: 'uppercase' },
+  reviewValue: { color: theme.colors.white, fontSize: theme.typography.small, fontWeight: '900' },
   actions: { gap: theme.spacing.md },
   error: { color: theme.colors.danger, fontSize: theme.typography.small, lineHeight: 20, textAlign: 'center' },
+  pressed: { opacity: 0.68 },
 });
