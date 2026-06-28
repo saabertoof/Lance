@@ -1,13 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
-import { Image } from 'expo-image';
 import { Modal, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { OpportunityLinkPreviewCard } from '@/components/create';
 import { Button } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useFeedback } from '@/context/FeedbackContext';
-import { getOpportunityShareCopy } from '@/lib/opportunity';
+import {
+  formatCompensation,
+  formatOpportunityLocation,
+  getOpportunityShareCopy,
+} from '@/lib/opportunity';
 import type { OpportunityRecord } from '@/types/opportunity';
 
 export function OpportunityShareSheet({
@@ -21,7 +25,6 @@ export function OpportunityShareSheet({
 }) {
   const { showSuccess } = useFeedback();
   const share = getOpportunityShareCopy(opportunity);
-  const mark = opportunity.poster.name.charAt(0).toUpperCase() || 'L';
 
   async function copy(label: string, value: string) {
     await Clipboard.setStringAsync(value);
@@ -53,30 +56,16 @@ export function OpportunityShareSheet({
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
-          <View style={styles.card}>
-            <View style={styles.posterImage}>
-              {opportunity.poster.imageUrl ? (
-                <Image
-                  contentFit="cover"
-                  source={opportunity.poster.imageUrl}
-                  style={styles.image}
-                />
-              ) : (
-                <Text style={styles.mark}>{mark}</Text>
-              )}
-            </View>
-            <View style={styles.cardCopy}>
-              <Text numberOfLines={1} style={styles.posterName}>
-                {opportunity.poster.name}
-              </Text>
-              <Text numberOfLines={2} style={styles.opportunityTitle}>
-                {opportunity.title}
-              </Text>
-              <Text numberOfLines={1} style={styles.previewUrl}>
-                {share.url}
-              </Text>
-            </View>
-          </View>
+          <OpportunityLinkPreviewCard
+            compensationLabel={formatCompensation(opportunity)}
+            locationLabel={formatOpportunityLocation(opportunity)}
+            posterImageUrl={opportunity.poster.imageUrl}
+            posterLabel={opportunity.poster.name}
+            skills={opportunity.skills}
+            summary={opportunity.shortSummary}
+            title={opportunity.title}
+            urlLabel={share.url}
+          />
 
           <Pressable
             accessibilityLabel="Copy public opportunity link"
@@ -205,56 +194,6 @@ const styles = StyleSheet.create({
   content: {
     gap: theme.spacing.lg,
     paddingBottom: theme.spacing.xl,
-  },
-  card: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radii.lg,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: theme.spacing.md,
-    padding: theme.spacing.md,
-    ...theme.shadows.card,
-  },
-  posterImage: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.accentSoft,
-    borderRadius: theme.radii.md,
-    height: 54,
-    justifyContent: 'center',
-    overflow: 'hidden',
-    width: 54,
-  },
-  image: {
-    height: '100%',
-    width: '100%',
-  },
-  mark: {
-    color: theme.colors.accentStrong,
-    fontSize: theme.typography.body,
-    fontWeight: '900',
-  },
-  cardCopy: {
-    flex: 1,
-    gap: 3,
-    minWidth: 0,
-  },
-  posterName: {
-    color: theme.colors.muted,
-    fontSize: theme.typography.small,
-    fontWeight: '800',
-  },
-  opportunityTitle: {
-    color: theme.colors.text,
-    fontSize: theme.typography.cardTitle,
-    fontWeight: '900',
-    lineHeight: 22,
-  },
-  previewUrl: {
-    color: theme.colors.accentStrong,
-    fontSize: theme.typography.tiny,
-    fontWeight: '800',
   },
   linkBox: {
     alignItems: 'center',

@@ -78,7 +78,7 @@ export default function OpportunityResponseScreen() {
     setError(null);
     try {
       const conversationId = await startOpportunityConversation(id);
-      showSuccess('Discussion started.');
+      showSuccess('Conversation started.');
       router.replace(routes.conversation(conversationId));
     } catch (startError) {
       setError(formatCommunicationError(startError));

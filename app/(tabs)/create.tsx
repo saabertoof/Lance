@@ -1,13 +1,13 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { router } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import {
   CreatePathGrid,
   CreateStudioSkeleton,
   DraftContinuation,
+  PromptLinkBuilder,
   YourCreations,
 } from '@/components/create';
 import { Screen } from '@/components/ui';
@@ -18,7 +18,10 @@ import {
   loadCreateStudioSummary,
   type CreateStudioSummary,
 } from '@/lib/createStudio';
+import { applyMagicOpportunityDraft } from '@/lib/opportunityMagicDraft';
+import { loadPersonalProfile } from '@/lib/profile';
 import { routes } from '@/lib/routes';
+import { createEmptyOpportunityDraft } from '@/types/opportunity';
 
 const emptySummary: CreateStudioSummary = {
   businesses: [],
@@ -32,12 +35,38 @@ export default function CreateScreen() {
   const { reduceMotion } = useAdaptiveTabBar();
   const [summary, setSummary] = useState<CreateStudioSummary>(emptySummary);
   const [isLoading, setIsLoading] = useState(true);
+  const [ideaPrompt, setIdeaPrompt] = useState('');
+  const [posterName, setPosterName] = useState('Your Lance profile');
+  const [posterImageUrl, setPosterImageUrl] = useState<string | null>(null);
+
+  const previewDraft = useMemo(() => {
+    const base = createEmptyOpportunityDraft();
+    const prompt = ideaPrompt.trim();
+
+    if (prompt.length >= 12) {
+      return applyMagicOpportunityDraft(prompt, base);
+    }
+
+    base.title = 'Short-form editor for a creator launch';
+    base.shortSummary =
+      'A clean opportunity link for a hungry editor, builder, or collaborator.';
+    base.category = 'video_editing';
+    base.skills = ['Short-form editing', 'CapCut', 'YouTube Shorts'];
+    base.industry = 'Creator Economy';
+    base.workplace = 'remote';
+    return base;
+  }, [ideaPrompt]);
 
   const load = useCallback(async () => {
     if (!user) return;
     setIsLoading(true);
-    const result = await loadCreateStudioSummary(user.id);
+    const [result, profile] = await Promise.all([
+      loadCreateStudioSummary(user.id),
+      loadPersonalProfile(user.id, user.email ?? null).catch(() => null),
+    ]);
     setSummary(result);
+    setPosterName(profile?.displayName ?? 'Your Lance profile');
+    setPosterImageUrl(profile?.avatarUrl ?? null);
     setIsLoading(false);
   }, [user]);
 
@@ -47,9 +76,16 @@ export default function CreateScreen() {
       if (!user) return undefined;
 
       setIsLoading(true);
-      loadCreateStudioSummary(user.id)
-        .then((result) => {
-          if (active) setSummary(result);
+      Promise.all([
+        loadCreateStudioSummary(user.id),
+        loadPersonalProfile(user.id, user.email ?? null).catch(() => null),
+      ])
+        .then(([result, profile]) => {
+          if (active) {
+            setSummary(result);
+            setPosterName(profile?.displayName ?? 'Your Lance profile');
+            setPosterImageUrl(profile?.avatarUrl ?? null);
+          }
         })
         .finally(() => {
           if (active) setIsLoading(false);
@@ -61,18 +97,24 @@ export default function CreateScreen() {
     }, [user]),
   );
 
+  function draftFromPrompt() {
+    const prompt = ideaPrompt.trim();
+    if (prompt.length < 12) return;
+    router.push(routes.newOpportunity(undefined, prompt));
+  }
+
   return (
     <Screen compact scroll contentStyle={styles.screen}>
-      <Animated.View
-        entering={reduceMotion ? undefined : FadeInDown.duration(280)}
-        style={styles.intro}>
-        <Text style={styles.eyebrow}>CREATE STUDIO</Text>
-        <Text style={styles.title}>What are you building?</Text>
-        <Text style={styles.subtitle}>
-          Post an opportunity, launch a project, or create a home for your business.
-        </Text>
-      </Animated.View>
-
+      <PromptLinkBuilder
+        onDraft={draftFromPrompt}
+        onPromptChange={setIdeaPrompt}
+        onUseExample={setIdeaPrompt}
+        posterImageUrl={posterImageUrl}
+        posterName={posterName}
+        previewDraft={previewDraft}
+        prompt={ideaPrompt}
+        reduceMotion={reduceMotion}
+      />
       <CreatePathGrid
         onBusiness={() => router.push(routes.newBusinessFor('startup'))}
         onOpportunity={() => router.push(routes.newOpportunity())}
@@ -122,27 +164,7 @@ export default function CreateScreen() {
 
 const styles = StyleSheet.create({
   screen: {
-    gap: theme.spacing.xl,
-  },
-  intro: {
-    gap: theme.spacing.xs,
-  },
-  eyebrow: {
-    color: theme.colors.accentStrong,
-    fontSize: theme.typography.caption,
-    fontWeight: '800',
-  },
-  title: {
-    color: theme.colors.text,
-    fontSize: theme.typography.screenHeading,
-    fontWeight: '800',
-    lineHeight: 29,
-  },
-  subtitle: {
-    color: theme.colors.muted,
-    fontSize: theme.typography.bodySmall,
-    lineHeight: 20,
-    maxWidth: 440,
+    gap: theme.density.sectionGap,
   },
   loadError: {
     alignItems: 'center',

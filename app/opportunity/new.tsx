@@ -10,6 +10,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useFeedback } from '@/context/FeedbackContext';
 import { loadMyBusinesses } from '@/lib/business';
 import { formatOpportunityError, saveOpportunity } from '@/lib/opportunity';
+import { applyMagicOpportunityDraft } from '@/lib/opportunityMagicDraft';
 import { loadPersonalProfile } from '@/lib/profile';
 import { routes } from '@/lib/routes';
 import type { BusinessRecord } from '@/types/business';
@@ -20,7 +21,10 @@ import {
 } from '@/types/opportunity';
 
 export default function NewOpportunityScreen() {
-  const { businessId } = useLocalSearchParams<{ businessId?: string }>();
+  const { businessId, prompt } = useLocalSearchParams<{
+    businessId?: string;
+    prompt?: string;
+  }>();
   const { user } = useAuth();
   const { showSuccess } = useFeedback();
   const submissionRef = useRef(false);
@@ -45,6 +49,12 @@ export default function NewOpportunityScreen() {
         ]);
         const draft = createEmptyOpportunityDraft();
 
+        const promptText = typeof prompt === 'string' ? prompt.trim() : '';
+
+        if (promptText.length >= 12) {
+          Object.assign(draft, applyMagicOpportunityDraft(promptText, draft));
+        }
+
         if (businessId && businessResult.some((business) => business.id === businessId)) {
           draft.postingIdentity = 'business';
           draft.businessId = businessId;
@@ -67,7 +77,7 @@ export default function NewOpportunityScreen() {
     return () => {
       active = false;
     };
-  }, [businessId, user]);
+  }, [businessId, prompt, user]);
 
   async function save(draft: OpportunityDraft, status: OpportunityStatus) {
     if (!user || submissionRef.current) return;
@@ -106,13 +116,14 @@ export default function NewOpportunityScreen() {
           style={styles.iconButton}>
           <Ionicons color={theme.colors.text} name="close" size={24} />
         </Pressable>
-        <Text style={styles.title}>Post an opportunity</Text>
+        <Text style={styles.title}>Create opportunity link</Text>
         <View style={styles.placeholder} />
       </View>
       <OpportunityEditor
         businesses={businesses}
         displayName={displayName}
         initialDraft={initialDraft}
+        initialStep={initialDraft.title ? 1 : 0}
         isSaving={isSaving}
         onCreateBusiness={() => router.push(routes.newBusiness)}
         onError={setError}

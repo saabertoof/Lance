@@ -6,12 +6,18 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   useWindowDimensions,
   View,
 } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { theme } from '@/constants/theme';
+import { slugify } from '@/lib/business';
+import {
+  formatCompensation,
+  formatOpportunityLocation,
+} from '@/lib/opportunity';
 import type {
   CreateStudioBusiness,
   CreateStudioDraft,
@@ -20,8 +26,11 @@ import type {
 import type { BusinessStatus } from '@/types/business';
 import {
   workTypeOptions,
+  type OpportunityDraft,
   type OpportunityStatus,
 } from '@/types/opportunity';
+
+import { OpportunityLinkPreviewCard } from './OpportunityLinkPreviewCard';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
@@ -44,13 +53,13 @@ export function CreatePathGrid({
       <CreatePathCard
         accessibilityHint="Opens the existing guided opportunity creation flow."
         delay={40}
-        description="Post the opportunity, share the link, and review applicants in one place."
+        description="Projects, gigs, collabs, internships, and creator work all start here."
         icon="briefcase-outline"
-        metadata="Freelance, internship, cofounder, and more"
+        metadata="Create the link, then share it anywhere"
         onPress={onOpportunity}
         primary
         reduceMotion={reduceMotion}
-        title="Post an opportunity"
+        title="Make an opportunity link"
         tone="opportunity"
       />
       <View
@@ -61,25 +70,120 @@ export function CreatePathGrid({
         <CreatePathCard
           accessibilityHint="Opens the business and project form with Project selected."
           delay={110}
-          description="Give your idea a home and bring people into it."
+          description="Only if the idea needs its own logo, page, and identity."
           icon="rocket-outline"
           onPress={onProject}
           reduceMotion={reduceMotion}
-          title="Launch a project"
+          title="Project profile"
           tone="project"
         />
         <CreatePathCard
           accessibilityHint="Opens the business and project form with Startup selected."
           delay={180}
-          description="Build your company presence and post as your brand."
+          description="Post links as a brand instead of your personal profile."
           icon="business-outline"
           onPress={onBusiness}
           reduceMotion={reduceMotion}
-          title="Create a business profile"
+          title="Business profile"
           tone="business"
         />
       </View>
     </View>
+  );
+}
+
+export function PromptLinkBuilder({
+  onDraft,
+  onPromptChange,
+  onUseExample,
+  posterImageUrl,
+  posterName,
+  previewDraft,
+  prompt,
+  reduceMotion,
+}: {
+  onDraft: () => void;
+  onPromptChange: (value: string) => void;
+  onUseExample: (value: string) => void;
+  posterImageUrl: string | null;
+  posterName: string;
+  previewDraft: OpportunityDraft;
+  prompt: string;
+  reduceMotion: boolean;
+}) {
+  const promptReady = prompt.trim().length >= 12;
+  const urlSlug = slugify(previewDraft.title).slice(0, 48) || 'your-opportunity';
+
+  return (
+    <Animated.View
+      entering={reduceMotion ? undefined : FadeInDown.duration(260)}
+      style={styles.builder}>
+      <View style={styles.builderHeader}>
+        <View style={styles.builderCopy}>
+          <Text style={styles.builderEyebrow}>Opportunity link maker</Text>
+          <Text style={styles.builderTitle}>Describe what you need.</Text>
+          <Text style={styles.builderBody}>
+            Lance turns the rough idea into a draft link you can edit, publish,
+            and share anywhere.
+          </Text>
+        </View>
+        <View style={styles.builderIcon}>
+          <Ionicons color={theme.colors.accentStrong} name="sparkles-outline" size={20} />
+        </View>
+      </View>
+
+      <View style={styles.composer}>
+        <TextInput
+          multiline
+          onChangeText={onPromptChange}
+          placeholder="Need a short-form editor for my YouTube clips, paid per video, remote, CapCut preferred..."
+          placeholderTextColor={theme.colors.mutedLight}
+          style={styles.promptInput}
+          textAlignVertical="top"
+          value={prompt}
+        />
+        <View style={styles.composerFooter}>
+          <Text style={styles.composerHint}>
+            No AI call yet. This creates an editable smart starter draft.
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            disabled={!promptReady}
+            onPress={onDraft}
+            style={({ pressed }) => [
+              styles.draftButton,
+              !promptReady && styles.draftButtonDisabled,
+              pressed && promptReady && styles.pathPressed,
+            ]}>
+            <Text style={styles.draftButtonText}>Draft link</Text>
+            <Ionicons color={theme.colors.white} name="arrow-forward" size={15} />
+          </Pressable>
+        </View>
+      </View>
+
+      <View style={styles.examples}>
+        {promptExamples.map((example) => (
+          <Pressable
+            accessibilityRole="button"
+            key={example}
+            onPress={() => onUseExample(example)}
+            style={({ pressed }) => [styles.exampleChip, pressed && styles.rowPressed]}>
+            <Text numberOfLines={1} style={styles.exampleText}>{example}</Text>
+          </Pressable>
+        ))}
+      </View>
+
+      <OpportunityLinkPreviewCard
+        compensationLabel={formatCompensation(previewDraft)}
+        locationLabel={formatOpportunityLocation(previewDraft)}
+        posterImageUrl={posterImageUrl}
+        posterLabel={posterName}
+        skills={previewDraft.skills}
+        summary={previewDraft.shortSummary}
+        title={previewDraft.title}
+        urlLabel={`lance.app/o/${urlSlug}`}
+      />
+    </Animated.View>
   );
 }
 
@@ -490,7 +594,119 @@ const pathPalettes = {
   },
 };
 
+const promptExamples = [
+  'Need a short-form editor for YouTube clips, paid per video, remote',
+  'Looking for a cofounder-type builder to help prototype a creator app',
+  'Need someone to run TikTok growth for a small brand launch',
+];
+
 const styles = StyleSheet.create({
+  builder: {
+    gap: theme.spacing.md,
+  },
+  builderHeader: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    gap: theme.spacing.md,
+  },
+  builderCopy: {
+    flex: 1,
+    gap: 4,
+    minWidth: 0,
+  },
+  builderEyebrow: {
+    color: theme.colors.accentStrong,
+    fontSize: theme.typography.caption,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  builderTitle: {
+    color: theme.colors.text,
+    fontSize: theme.typography.heading,
+    fontWeight: '900',
+    lineHeight: 26,
+  },
+  builderBody: {
+    color: theme.colors.muted,
+    fontSize: theme.typography.bodySmall,
+    lineHeight: 20,
+  },
+  builderIcon: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.accentSoft,
+    borderRadius: theme.radii.md,
+    height: 40,
+    justifyContent: 'center',
+    width: 40,
+  },
+  composer: {
+    backgroundColor: theme.colors.surface,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radii.xl,
+    borderWidth: 1,
+    gap: theme.spacing.sm,
+    padding: theme.spacing.md,
+    ...theme.shadows.card,
+  },
+  promptInput: {
+    color: theme.colors.text,
+    fontSize: theme.typography.bodySmall,
+    lineHeight: 21,
+    minHeight: 96,
+    padding: 0,
+  },
+  composerFooter: {
+    alignItems: 'center',
+    borderTopColor: theme.colors.border,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+    paddingTop: theme.spacing.sm,
+  },
+  composerHint: {
+    color: theme.colors.muted,
+    flex: 1,
+    fontSize: theme.typography.caption,
+    fontWeight: '700',
+    lineHeight: 15,
+  },
+  draftButton: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.text,
+    borderRadius: theme.radii.pill,
+    flexDirection: 'row',
+    gap: 6,
+    minHeight: 38,
+    paddingHorizontal: theme.spacing.md,
+  },
+  draftButtonDisabled: {
+    opacity: 0.42,
+  },
+  draftButtonText: {
+    color: theme.colors.white,
+    fontSize: theme.typography.caption,
+    fontWeight: '900',
+  },
+  examples: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: theme.spacing.sm,
+  },
+  exampleChip: {
+    backgroundColor: theme.colors.surface,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radii.pill,
+    borderWidth: 1,
+    maxWidth: '100%',
+    minHeight: 34,
+    justifyContent: 'center',
+    paddingHorizontal: theme.spacing.md,
+  },
+  exampleText: {
+    color: theme.colors.textSoft,
+    fontSize: theme.typography.caption,
+    fontWeight: '800',
+  },
   pathGrid: {
     gap: theme.spacing.sm,
   },
@@ -513,11 +729,11 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   primaryPath: {
-    minHeight: 188,
+    minHeight: 148,
     padding: theme.spacing.lg,
   },
   secondaryPath: {
-    minHeight: 174,
+    minHeight: 132,
     padding: theme.spacing.md,
   },
   pathPressed: {
@@ -559,9 +775,9 @@ const styles = StyleSheet.create({
   pathIcon: {
     alignItems: 'center',
     borderRadius: theme.radii.md,
-    height: 46,
+    height: 40,
     justifyContent: 'center',
-    width: 46,
+    width: 40,
   },
   pathCopy: {
     flex: 1,
@@ -570,17 +786,18 @@ const styles = StyleSheet.create({
     paddingRight: theme.spacing.xl,
   },
   pathTitle: {
-    fontSize: 18,
+    fontSize: theme.typography.cardTitle,
     fontWeight: '800',
-    lineHeight: 22,
+    lineHeight: 20,
   },
   primaryPathTitle: {
-    fontSize: 22,
-    lineHeight: 26,
+    fontSize: theme.typography.subheading,
+    lineHeight: 23,
   },
   pathDescription: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: theme.typography.caption,
+    fontWeight: '700',
+    lineHeight: 16,
     marginTop: theme.spacing.xs,
   },
   pathMeta: {
@@ -593,11 +810,11 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     borderWidth: 1,
     bottom: theme.spacing.md,
-    height: 44,
+    height: 38,
     justifyContent: 'center',
     position: 'absolute',
     right: theme.spacing.md,
-    width: 44,
+    width: 38,
   },
   section: {
     gap: theme.spacing.md,

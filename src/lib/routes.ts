@@ -21,11 +21,11 @@ export const routes = {
   interestedTalent: (id: string) =>
     ({ pathname: '/business/[id]/interested-talent', params: { id } }) as Href,
   opportunities: '/opportunity' as Href,
-  newOpportunity: (businessId?: string) =>
-    businessId
+  newOpportunity: (businessId?: string, prompt?: string) =>
+    businessId || prompt
       ? (({
           pathname: '/opportunity/new',
-          params: { businessId },
+          params: { ...(businessId ? { businessId } : {}), ...(prompt ? { prompt } : {}) },
         }) as Href)
       : ('/opportunity/new' as Href),
   opportunity: (id: string, options?: { share?: boolean }) =>

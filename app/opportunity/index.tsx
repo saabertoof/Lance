@@ -69,7 +69,7 @@ export default function MyOpportunitiesScreen() {
         Draft, publish, pause, close, and archive opportunities you created.
       </Text>
       <Button
-        label="Post an opportunity"
+        label="Create opportunity link"
         onPress={() => router.push(routes.newOpportunity())}
       />
       {error ? <Text style={styles.error}>{error}</Text> : null}
