@@ -21,7 +21,11 @@ import {
   loadMyProfileSkills,
   sendOpportunityResponse,
 } from '@/lib/communication';
-import { formatCompensation, isClearlyPaid } from '@/lib/opportunity';
+import {
+  formatCompensation,
+  formatOpportunityLocation,
+  isClearlyPaid,
+} from '@/lib/opportunity';
 import { loadPersonalProfile } from '@/lib/profile';
 import { loadProfilePolish } from '@/lib/profilePolish';
 import type { OpportunityRecord } from '@/types/opportunity';
@@ -152,11 +156,7 @@ export function ExpressInterestSheet({
               <Text style={styles.opportunityTitle}>{opportunity.title}</Text>
               <Text style={styles.meta}>{opportunity.poster.name}</Text>
               <Text style={styles.compensation}>{formatCompensation(opportunity)}</Text>
-              <Text style={styles.meta}>
-                {[opportunity.workplace, opportunity.location]
-                  .filter(Boolean)
-                  .join(' | ')}
-              </Text>
+              <Text style={styles.meta}>{formatOpportunityLocation(opportunity)}</Text>
             </View>
           ) : null}
           {sender ? (

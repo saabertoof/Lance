@@ -6,14 +6,19 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
   FormSection,
   CatalogSelector,
-  LocationSelector,
+  LocationInput,
   SingleSelectChips,
   StepProgress,
 } from '@/components/profile';
 import { Button, DateField, TextField } from '@/components/ui';
+import { industryCatalog, skillCatalog } from '@/constants/catalogs';
 import { theme } from '@/constants/theme';
-import { industryCatalog, locationCatalog, skillCatalog } from '@/constants/catalogs';
 import { needsCompensationWarning, validateOpportunityDraft } from '@/lib/opportunity';
+import {
+  getLocationCatalogId,
+  getLocationCountryCode,
+  locationOptionFromStored,
+} from '@/lib/location';
 import type { BusinessRecord } from '@/types/business';
 import {
   compensationTypeOptions,
@@ -362,15 +367,26 @@ export function OpportunityEditor({
               selected={draft.workplace}
             />
           </FormSection>
-          <LocationSelector
+          <LocationInput
+            helperText={
+              draft.workplace === 'remote'
+                ? 'Optional for remote opportunities. Add a city only if it matters.'
+                : 'Add the city where hybrid or in-person work is based.'
+            }
+            label={draft.workplace === 'remote' ? 'Location (optional)' : 'City and country'}
             legacyValue={draft.location}
             onChange={(location) => {
               set('location', location?.label ?? '');
-              set('locationId', location?.id ?? null);
+              set('locationId', getLocationCatalogId(location));
               set('locationRegion', location?.region ?? '');
-              set('locationCountry', location?.country ?? '');
+              set('locationCountry', getLocationCountryCode(location));
             }}
-            value={locationCatalog.find((location) => location.id === draft.locationId) ?? null}
+            value={locationOptionFromStored({
+              id: draft.locationId,
+              label: draft.location,
+              region: draft.locationRegion,
+              country: draft.locationCountry,
+            })}
           />
           <CatalogSelector
             catalog={industryCatalog.map((label) => ({ label, category: 'Industries' }))}

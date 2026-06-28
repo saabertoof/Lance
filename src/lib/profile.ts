@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { supabase } from '@/lib/supabase';
 import { normalizeCatalogValue } from '@/constants/catalogs';
 import { registerCustomIndustries } from '@/lib/catalogs';
+import { normalizeStoredCountry } from '@/lib/location';
 import {
   availabilityOptions,
   experienceOptions,
@@ -29,7 +30,7 @@ const profileSchema = z.object({
       /^[a-z0-9_]{3,24}$/,
       'Use 3-24 lowercase letters, numbers, or underscores.',
     ),
-  city: z.string().trim().min(2, 'Enter a city or general location.').max(80),
+  city: z.string().trim().min(2, 'Choose a city and country.').max(100),
   primaryRole: z.string().trim().min(2, 'Choose your primary role.').max(60),
   headline: z.string().trim().min(3, 'Add a short headline.').max(120),
   bio: z.string().trim().min(10, 'Tell people a little more about you.').max(600),
@@ -275,6 +276,9 @@ type RawProfileRow = {
   headline: string | null;
   bio: string | null;
   city: string | null;
+  location_id: string | null;
+  location_region: string | null;
+  location_country: string | null;
   remote_preference: ProfileDraft['remotePreference'] | null;
   primary_role: string | null;
   experience_level: ProfileDraft['experienceLevel'] | null;
@@ -290,7 +294,7 @@ export async function loadPersonalProfile(userId: string, email: string | null) 
       supabase
         .from('profiles')
         .select(
-          'id, display_name, username, avatar_url, headline, bio, city, remote_preference, primary_role, experience_level, availability, industry_experience, is_18_or_older_confirmed_at, onboarding_completed_at',
+          'id, display_name, username, avatar_url, headline, bio, city, location_id, location_region, location_country, remote_preference, primary_role, experience_level, availability, industry_experience, is_18_or_older_confirmed_at, onboarding_completed_at',
         )
         .eq('id', userId)
         .maybeSingle(),
@@ -354,6 +358,9 @@ export async function loadPersonalProfile(userId: string, email: string | null) 
     username: row.username ?? '',
     avatarUrl: row.avatar_url,
     city: row.city ?? '',
+    locationId: row.location_id,
+    locationRegion: row.location_region ?? '',
+    locationCountry: row.location_country ?? '',
     remotePreference: isOptionValue(remotePreferenceOptions, row.remote_preference)
       ? row.remote_preference
       : 'flexible',
@@ -396,6 +403,9 @@ export function profileToDraft(profile: PersonalProfile): ProfileDraft {
     localAvatarUri: null,
     localAvatarBase64: null,
     city: profile.city,
+    locationId: profile.locationId,
+    locationRegion: profile.locationRegion,
+    locationCountry: profile.locationCountry,
     remotePreference: profile.remotePreference,
     confirmedAdult: Boolean(profile.confirmedAdultAt),
     primaryIntent: profile.primaryIntent,
@@ -452,6 +462,23 @@ export async function savePersonalProfile(
 
   if (error) {
     throw error;
+  }
+
+  const savedProfile = data as { id?: string } | null;
+  if (savedProfile?.id) {
+    const { error: locationError } = await supabase
+      .from('profiles')
+      .update({
+        city: draft.city.trim() || null,
+        location_id: draft.locationId,
+        location_region: draft.locationRegion.trim() || null,
+        location_country: normalizeStoredCountry(draft.locationCountry) || null,
+      })
+      .eq('id', savedProfile.id);
+
+    if (locationError) {
+      throw locationError;
+    }
   }
 
   return data;

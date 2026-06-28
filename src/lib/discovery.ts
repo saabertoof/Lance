@@ -6,7 +6,8 @@ import {
   filterBlockedOpportunityIds,
   filterBlockedProfileIds,
 } from '@/lib/communication';
-import { locationCatalog, skillCatalog } from '@/constants/catalogs';
+import { skillCatalog } from '@/constants/catalogs';
+import { locationOptionFromStored } from '@/lib/location';
 import type { BusinessRecord } from '@/types/business';
 import type {
   BusinessFilters,
@@ -321,23 +322,12 @@ function mapPublicProfile(
         displayOrder: link.display_order,
       }),
     );
-  const location =
-    locationCatalog.find((option) => option.id === row.location_id) ??
-    (row.location_id
-      ? {
-          id: row.location_id,
-          label: [row.city, row.location_region, row.location_country]
-            .filter(Boolean)
-            .join(', '),
-          city: row.city,
-          region: row.location_region,
-          country: row.location_country ?? '',
-          search: [row.city, row.location_region, row.location_country]
-            .filter(Boolean)
-            .join(' ')
-            .toLowerCase(),
-        }
-      : null);
+  const location = locationOptionFromStored({
+    id: row.location_id,
+    label: row.city,
+    region: row.location_region,
+    country: row.location_country,
+  });
   const polish = createEmptyProfilePolish(row.city ?? '');
   polish.bannerPath = row.banner_path;
   polish.bannerUrl = row.banner_path ? signedUrls.get(row.banner_path) ?? null : null;

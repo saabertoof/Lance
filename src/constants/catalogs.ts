@@ -1,3 +1,10 @@
+import {
+  countryFlag,
+  countryNameForCode,
+  countryOptions,
+  normalizeCountryCode,
+} from './countries';
+
 export type CatalogOption = {
   label: string;
   category: string;
@@ -99,14 +106,16 @@ export const industryCatalog = [
 
 export type LocationOption = {
   id: string;
+  catalogId?: string | null;
   label: string;
   city: string | null;
   region: string | null;
   country: string;
+  countryCode: string;
   search: string;
 };
 
-const usStates = [
+export const usStates = [
   ['AL', 'Alabama'], ['AK', 'Alaska'], ['AZ', 'Arizona'], ['AR', 'Arkansas'],
   ['CA', 'California'], ['CO', 'Colorado'], ['CT', 'Connecticut'], ['DE', 'Delaware'],
   ['FL', 'Florida'], ['GA', 'Georgia'], ['HI', 'Hawaii'], ['ID', 'Idaho'],
@@ -121,6 +130,33 @@ const usStates = [
   ['VT', 'Vermont'], ['VA', 'Virginia'], ['WA', 'Washington'], ['WV', 'West Virginia'],
   ['WI', 'Wisconsin'], ['WY', 'Wyoming'], ['DC', 'District of Columbia'],
 ] as const;
+
+const canadaRegions: Record<string, string> = {
+  alberta: 'AB',
+  'british columbia': 'BC',
+  manitoba: 'MB',
+  'new brunswick': 'NB',
+  'newfoundland and labrador': 'NL',
+  'northwest territories': 'NT',
+  'nova scotia': 'NS',
+  nunavut: 'NU',
+  ontario: 'ON',
+  'prince edward island': 'PE',
+  quebec: 'QC',
+  saskatchewan: 'SK',
+  yukon: 'YT',
+};
+
+const australiaRegions: Record<string, string> = {
+  'australian capital territory': 'ACT',
+  'new south wales': 'NSW',
+  'northern territory': 'NT',
+  queensland: 'QLD',
+  'south australia': 'SA',
+  tasmania: 'TAS',
+  victoria: 'VIC',
+  'western australia': 'WA',
+};
 
 const featuredLocations: LocationOption[] = [
   location('us-il-chicago', 'Chicago', 'Illinois', 'United States'),
@@ -149,30 +185,30 @@ const featuredLocations: LocationOption[] = [
 
 const stateLocations = usStates.map(([code, name]): LocationOption => ({
   id: `us-${code.toLowerCase()}`,
-  label: `${name}, United States`,
+  catalogId: `us-${code.toLowerCase()}`,
+  label: `${name} ${countryFlag('US')}`,
   city: null,
   region: name,
   country: 'United States',
-  search: `${name} ${code} United States USA`.toLowerCase(),
+  countryCode: 'US',
+  search: `${name} ${code} United States USA ${countryFlag('US')}`.toLowerCase(),
 }));
 
-const countryNames = [
-  ['country-us', 'United States'], ['country-ca', 'Canada'],
-  ['country-gb', 'United Kingdom'], ['country-au', 'Australia'],
-  ['country-in', 'India'], ['country-fr', 'France'], ['country-de', 'Germany'],
-  ['country-es', 'Spain'], ['country-nl', 'Netherlands'], ['country-ie', 'Ireland'],
-  ['country-sg', 'Singapore'], ['country-jp', 'Japan'],
-  ['country-ae', 'United Arab Emirates'], ['country-br', 'Brazil'],
-  ['country-mx', 'Mexico'],
-] as const;
+const seededCountryIds = new Set([
+  'US', 'CA', 'GB', 'AU', 'IN', 'FR', 'DE', 'ES', 'NL', 'IE', 'SG', 'JP', 'AE', 'BR', 'MX',
+]);
 
-const countryLocations = countryNames.map(([id, country]): LocationOption => ({
-  id,
-  label: country,
+const countryLocations = countryOptions.map((country): LocationOption => ({
+  id: `country-${country.code.toLowerCase()}`,
+  catalogId: seededCountryIds.has(country.code) ? `country-${country.code.toLowerCase()}` : null,
+  label: `${country.name} ${countryFlag(country.code)}`,
   city: null,
   region: null,
-  country,
-  search: country.toLowerCase(),
+  country: country.name,
+  countryCode: country.code,
+  search: [country.name, country.code, country.aliases?.join(' ') ?? '', countryFlag(country.code)]
+    .join(' ')
+    .toLowerCase(),
 }));
 
 export const locationCatalog = [
@@ -192,13 +228,64 @@ function location(
   country: string,
   aliases = '',
 ): LocationOption {
-  const label = city === region ? `${city}, ${country}` : `${city}, ${region}, ${country}`;
+  const countryCode = normalizeCountryCode(country);
+  const countryName = countryNameForCode(countryCode) || country;
+  const regionLabel = formatRegionForDisplay(region, countryCode);
+  const label = formatLocationLabel(city, regionLabel, countryCode, countryName);
   return {
     id,
+    catalogId: id,
     label,
     city,
     region,
-    country,
-    search: `${label} ${aliases}`.toLowerCase(),
+    country: countryName,
+    countryCode,
+    search: `${label} ${city} ${region} ${countryName} ${countryCode} ${aliases}`.toLowerCase(),
   };
+}
+
+function formatLocationLabel(
+  city: string | null,
+  region: string | null,
+  countryCode: string,
+  country: string,
+) {
+  const flag = countryFlag(countryCode);
+  const needsRegion = Boolean(region && countryCode && ['US', 'CA', 'AU'].includes(countryCode));
+
+  if (city && needsRegion) {
+    return `${city}, ${region} ${flag}`.trim();
+  }
+
+  if (city) {
+    return `${city} ${flag}`.trim();
+  }
+
+  if (region) {
+    return `${region} ${flag}`.trim();
+  }
+
+  return `${country} ${flag}`.trim();
+}
+
+function formatRegionForDisplay(region: string | null, countryCode: string) {
+  if (!region) return null;
+
+  const normalized = region.toLowerCase();
+
+  if (countryCode === 'US') {
+    return usStates.find(([code, name]) => (
+      code.toLowerCase() === normalized || name.toLowerCase() === normalized
+    ))?.[0] ?? region;
+  }
+
+  if (countryCode === 'CA') {
+    return canadaRegions[normalized] ?? region;
+  }
+
+  if (countryCode === 'AU') {
+    return australiaRegions[normalized] ?? region;
+  }
+
+  return region;
 }

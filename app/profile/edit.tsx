@@ -27,6 +27,10 @@ import {
   saveProfilePolish,
   uploadBanner,
 } from '@/lib/profilePolish';
+import {
+  getLocationCatalogId,
+  getLocationCountryCode,
+} from '@/lib/location';
 import { ProfileDraft } from '@/types/profile';
 import type { ProfilePolish } from '@/types/profilePolish';
 
@@ -106,6 +110,9 @@ export default function EditProfileScreen() {
         ...draft,
         avatarUrl,
         city: polish.location?.label ?? draft.city,
+        locationId: getLocationCatalogId(polish.location),
+        locationRegion: polish.location?.region ?? '',
+        locationCountry: getLocationCountryCode(polish.location),
         links: normalizedLinks,
         localAvatarBase64: null,
         localAvatarUri: null,

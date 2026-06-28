@@ -18,7 +18,7 @@ import {
 } from '@/types/profilePolish';
 
 import { FormSection } from './FormSection';
-import { LocationSelector } from './LocationSelector';
+import { LocationInput } from './LocationSelector';
 import { MultiSelectChips } from './MultiSelectChips';
 import { SingleSelectChips } from './SingleSelectChips';
 
@@ -106,9 +106,10 @@ export function ProfilePolishEditor({
       </FormSection>
 
       <FormSection
-        description="Select a city, region, or country. Remote preference remains separate."
-        title="Structured location">
-        <LocationSelector
+        description="Use city-level location only. Remote preference remains separate."
+        title="Location">
+        <LocationInput
+          label="City and country"
           legacyValue={polish.legacyLocation}
           onChange={(location) => set('location', location)}
           value={polish.location}

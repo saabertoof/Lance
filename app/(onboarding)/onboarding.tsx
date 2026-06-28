@@ -86,7 +86,7 @@ export default function OnboardingScreen() {
         return showError('Use a unique username with 3-24 lowercase letters, numbers, or underscores.');
       }
       if (draft.city.trim().length < 2) {
-        return showError('Enter a city or general location.');
+        return showError('Choose a city and country.');
       }
       if (!draft.confirmedAdult) {
         return showError('Confirm that you are at least 18 to continue.');

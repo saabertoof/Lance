@@ -13,13 +13,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   FormSection,
   CatalogSelector,
-  LocationSelector,
+  LocationInput,
   MultiSelectChips,
   SingleSelectChips,
 } from '@/components/profile';
 import { Button } from '@/components/ui';
+import { industryCatalog } from '@/constants/catalogs';
 import { theme } from '@/constants/theme';
-import { industryCatalog, locationCatalog } from '@/constants/catalogs';
+import { locationOptionFromStored } from '@/lib/location';
 import {
   businessRemoteOptions,
   businessSizeOptions,
@@ -195,10 +196,11 @@ function PeopleFilterFields({
           selected={draft.availability}
         />
       </FormSection>
-      <LocationSelector
+      <LocationInput
+        label="Location"
         legacyValue={draft.location}
         onChange={(location) => onChange({ ...draft, location: location?.label ?? '' })}
-        value={locationCatalog.find((location) => location.label === draft.location) ?? null}
+        value={locationOptionFromStored({ label: draft.location })}
       />
       <FormSection title="Remote preference">
         <SingleSelectChips
@@ -305,10 +307,11 @@ function OpportunityFilterFields({
           selected={draft.experienceLevel}
         />
       </FormSection>
-      <LocationSelector
+      <LocationInput
+        label="Location"
         legacyValue={draft.location}
         onChange={(location) => onChange({ ...draft, location: location?.label ?? '' })}
-        value={locationCatalog.find((location) => location.label === draft.location) ?? null}
+        value={locationOptionFromStored({ label: draft.location })}
       />
     </>
   );
@@ -346,10 +349,11 @@ function BusinessFilterFields({
         placeholder="Search industries"
         values={draft.industry ? [draft.industry] : []}
       />
-      <LocationSelector
+      <LocationInput
+        label="Location"
         legacyValue={draft.location}
         onChange={(location) => onChange({ ...draft, location: location?.label ?? '' })}
-        value={locationCatalog.find((location) => location.label === draft.location) ?? null}
+        value={locationOptionFromStored({ label: draft.location })}
       />
       <FormSection title="Remote status">
         <SingleSelectChips

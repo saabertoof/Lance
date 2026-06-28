@@ -17,6 +17,7 @@ import { formatDateLabel } from '@/lib/date';
 import {
   formatCompensation,
   formatOpportunityError,
+  formatOpportunityLocation,
   getOpportunityPublicUrl,
   loadPublicOpportunityBySlug,
   needsCompensationWarning,
@@ -84,7 +85,7 @@ export default function PublicOpportunityScreen() {
     opportunity.experienceLevel,
   );
   const arrangementLabel = getOptionLabel(workArrangementOptions, opportunity.workplace);
-  const locationLabel = [opportunity.location, arrangementLabel].filter(Boolean).join(' / ');
+  const locationLabel = formatOpportunityLocation(opportunity);
   const deadlineLabel = opportunity.expirationDate
     ? formatDateLabel(opportunity.expirationDate)
     : 'Open until filled';

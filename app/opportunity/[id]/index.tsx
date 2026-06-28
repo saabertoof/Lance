@@ -32,6 +32,7 @@ import {
   deleteDraftOpportunity,
   formatCompensation,
   formatOpportunityError,
+  formatOpportunityLocation,
   getOpportunityPublicUrl,
   loadOpportunity,
   needsCompensationWarning,
@@ -195,6 +196,7 @@ export default function OpportunityDetailScreen() {
   const isSaved = isOpportunitySaved(opportunity.id);
   const mark = opportunity.poster.name.charAt(0).toUpperCase() || 'L';
   const compensationWarning = needsCompensationWarning(opportunity.compensationType);
+  const locationLabel = formatOpportunityLocation(opportunity);
 
   return (
     <Screen scroll contentStyle={styles.screen}>
@@ -257,7 +259,7 @@ export default function OpportunityDetailScreen() {
             label={formatCompensation(opportunity)}
           />
           <WorkArrangementBadge
-            label={getOptionLabel(workArrangementOptions, opportunity.workplace)}
+            label={locationLabel}
           />
         </View>
       </View>
@@ -309,7 +311,7 @@ export default function OpportunityDetailScreen() {
           label="Arrangement"
           value={getOptionLabel(workArrangementOptions, opportunity.workplace)}
         />
-        <Detail label="Location" value={opportunity.location || 'Not specified'} />
+        <Detail label="Location" value={locationLabel} />
         <Detail label="Industry" value={opportunity.industry} />
         <Detail label="People needed" value={opportunity.peopleNeeded} />
         <Detail

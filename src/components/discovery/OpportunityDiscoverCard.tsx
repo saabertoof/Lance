@@ -5,11 +5,11 @@ import { StyleSheet, Text, View } from 'react-native';
 import { theme } from '@/constants/theme';
 import {
   formatCompensation,
+  formatOpportunityLocation,
   needsCompensationWarning,
 } from '@/lib/opportunity';
 import {
   timeCommitmentOptions,
-  workArrangementOptions,
   workTypeOptions,
   type OpportunityRecord,
 } from '@/types/opportunity';
@@ -26,10 +26,7 @@ export function OpportunityDiscoverCard({
 }) {
   const mark = opportunity.poster.name.charAt(0).toUpperCase() || 'L';
   const warning = needsCompensationWarning(opportunity.compensationType);
-  const arrangement = getOptionLabel(
-    workArrangementOptions,
-    opportunity.workplace,
-  );
+  const locationLabel = formatOpportunityLocation(opportunity);
 
   return (
     <View style={styles.card}>
@@ -104,7 +101,7 @@ export function OpportunityDiscoverCard({
             size={15}
           />
           <Text numberOfLines={1} style={styles.metaText}>
-            {[opportunity.location, arrangement].filter(Boolean).join(' | ')}
+            {locationLabel}
           </Text>
         </View>
 

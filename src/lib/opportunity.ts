@@ -6,6 +6,10 @@ import { slugify } from '@/lib/business';
 import { supabase } from '@/lib/supabase';
 import { normalizeCatalogValue } from '@/constants/catalogs';
 import { registerCustomIndustries } from '@/lib/catalogs';
+import {
+  formatOpportunityLocation,
+  normalizeStoredCountry,
+} from '@/lib/location';
 import type { BusinessRecord } from '@/types/business';
 import {
   compensationTypeOptions,
@@ -223,6 +227,14 @@ export function validateOpportunityDraft(draft: OpportunityDraft, publishing: bo
     return compensationError;
   }
 
+  if (
+    draft.workplace !== 'remote' &&
+    draft.workplace !== 'flexible' &&
+    draft.location.trim().length < 2
+  ) {
+    return 'Add a city and country for hybrid or in-person opportunities.';
+  }
+
   if (!draft.disclaimerAccepted) {
     return 'Accept the Lance compensation disclaimer before publishing.';
   }
@@ -316,7 +328,7 @@ function opportunityPayload(
     location: draft.location.trim() || null,
     location_id: draft.locationId,
     location_region: draft.locationRegion || null,
-    location_country: draft.locationCountry || null,
+    location_country: normalizeStoredCountry(draft.locationCountry) || null,
     expected_start_date: draft.expectedStartDate || null,
     expires_at: draft.expirationDate
       ? new Date(`${draft.expirationDate}T23:59:59.000Z`).toISOString()
@@ -333,6 +345,8 @@ function opportunityPayload(
     status,
   };
 }
+
+export { formatOpportunityLocation };
 
 export async function saveOpportunity(
   draft: OpportunityDraft,

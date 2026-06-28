@@ -13,17 +13,22 @@ import { BusinessLogoPicker } from '@/components/business/BusinessLogoPicker';
 import {
   CatalogSelector,
   FormSection,
-  LocationSelector,
+  LocationInput,
   SingleSelectChips,
 } from '@/components/profile';
 import { Card, TextField } from '@/components/ui';
+import { industryCatalog } from '@/constants/catalogs';
 import { theme } from '@/constants/theme';
-import { industryCatalog, locationCatalog } from '@/constants/catalogs';
 import {
   checkBusinessSlugAvailability,
   normalizeBusinessSlugInput,
   slugify,
 } from '@/lib/business';
+import {
+  getLocationCatalogId,
+  getLocationCountryCode,
+  locationOptionFromStored,
+} from '@/lib/location';
 import {
   businessRemoteOptions,
   businessSizeOptions,
@@ -264,20 +269,23 @@ export function BusinessForm({
       </FormSection>
 
       <FormSection title="Location and work style">
-        <LocationSelector
+        <LocationInput
           legacyValue={draft.location}
           onChange={(location) =>
             onChange({
               ...draft,
               location: location?.label ?? '',
-              locationId: location?.id ?? null,
+              locationId: getLocationCatalogId(location),
               locationRegion: location?.region ?? '',
-              locationCountry: location?.country ?? '',
+              locationCountry: getLocationCountryCode(location),
             })
           }
-          value={
-            locationCatalog.find((location) => location.id === draft.locationId) ?? null
-          }
+          value={locationOptionFromStored({
+            id: draft.locationId,
+            label: draft.location,
+            region: draft.locationRegion,
+            country: draft.locationCountry,
+          })}
         />
         <SingleSelectChips
           onChange={(remoteStatus) => set('remoteStatus', remoteStatus)}

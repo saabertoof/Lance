@@ -1,6 +1,11 @@
 import type { ImagePickerAsset } from 'expo-image-picker';
 
-import { locationCatalog, normalizeCatalogValue } from '@/constants/catalogs';
+import { normalizeCatalogValue } from '@/constants/catalogs';
+import {
+  getLocationCatalogId,
+  getLocationCountryCode,
+  locationOptionFromStored,
+} from '@/lib/location';
 import { supabase } from '@/lib/supabase';
 import {
   createEmptyProfilePolish,
@@ -90,23 +95,12 @@ export async function loadProfilePolish(profileId: string): Promise<ProfilePolis
     ]),
   ].filter((path): path is string => Boolean(path));
   const signedUrls = await signProfileMedia(storagePaths);
-  const location =
-    locationCatalog.find((option) => option.id === row.location_id) ??
-    (row.location_id
-      ? {
-          id: row.location_id,
-          label: [row.city, row.location_region, row.location_country]
-            .filter(Boolean)
-            .join(', '),
-          city: row.city,
-          region: row.location_region,
-          country: row.location_country ?? '',
-          search: [row.city, row.location_region, row.location_country]
-            .filter(Boolean)
-            .join(' ')
-            .toLowerCase(),
-        }
-      : null);
+  const location = locationOptionFromStored({
+    id: row.location_id,
+    label: row.city,
+    region: row.location_region,
+    country: row.location_country,
+  });
 
   return {
     bannerPath: row.banner_path,
@@ -167,9 +161,9 @@ export async function saveProfilePolish(profileId: string, polish: ProfilePolish
     .from('profiles')
     .update({
       banner_path: polish.bannerPath,
-      location_id: location?.id ?? null,
+      location_id: getLocationCatalogId(location),
       location_region: location?.region ?? null,
-      location_country: location?.country ?? null,
+      location_country: getLocationCountryCode(location) || null,
       city: location?.label ?? (polish.legacyLocation.trim() || null),
       profile_template: polish.theme.template,
       profile_accent: polish.theme.accent,

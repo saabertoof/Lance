@@ -6,6 +6,11 @@ import { TextField } from '@/components/ui';
 import { industryCatalog, skillCatalog } from '@/constants/catalogs';
 import { theme } from '@/constants/theme';
 import {
+  getLocationCatalogId,
+  getLocationCountryCode,
+  locationOptionFromStored,
+} from '@/lib/location';
+import {
   availabilityOptions,
   experienceOptions,
   opportunityInterestOptions,
@@ -18,6 +23,7 @@ import {
 import { AvatarPicker } from './AvatarPicker';
 import { CatalogSelector } from './CatalogSelector';
 import { FormSection } from './FormSection';
+import { LocationInput } from './LocationSelector';
 import { MultiSelectChips } from './MultiSelectChips';
 import { SingleSelectChips } from './SingleSelectChips';
 
@@ -73,13 +79,24 @@ export function BasicProfileFields({
         value={draft.username}
       />
       {showLocation ? (
-        <TextField
-          autoCapitalize="words"
-          label="City or general location"
-          maxLength={80}
-          onChangeText={(city) => onChange({ ...draft, city })}
-          placeholder="Chicago, IL"
-          value={draft.city}
+        <LocationInput
+          label="City and country"
+          legacyValue={draft.city}
+          onChange={(location) =>
+            onChange({
+              ...draft,
+              city: location?.label ?? '',
+              locationId: getLocationCatalogId(location),
+              locationRegion: location?.region ?? '',
+              locationCountry: getLocationCountryCode(location),
+            })
+          }
+          value={locationOptionFromStored({
+            id: draft.locationId,
+            label: draft.city,
+            region: draft.locationRegion,
+            country: draft.locationCountry,
+          })}
         />
       ) : null}
       <FormSection title="Remote preference">

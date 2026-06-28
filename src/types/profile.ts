@@ -106,6 +106,9 @@ export type ProfileDraft = {
   localAvatarUri: string | null;
   localAvatarBase64: string | null;
   city: string;
+  locationId: string | null;
+  locationRegion: string;
+  locationCountry: string;
   remotePreference: RemotePreference;
   confirmedAdult: boolean;
   primaryIntent: PrimaryIntent;
@@ -158,6 +161,9 @@ export function createEmptyProfileDraft(displayName = ''): ProfileDraft {
     localAvatarUri: null,
     localAvatarBase64: null,
     city: '',
+    locationId: null,
+    locationRegion: '',
+    locationCountry: '',
     remotePreference: 'flexible',
     confirmedAdult: false,
     primaryIntent: 'explore_everything',

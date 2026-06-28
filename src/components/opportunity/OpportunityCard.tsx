@@ -5,12 +5,11 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SaveButton } from '@/components/saved';
 import { Chip } from '@/components/ui';
 import { theme } from '@/constants/theme';
-import { formatCompensation } from '@/lib/opportunity';
+import { formatCompensation, formatOpportunityLocation } from '@/lib/opportunity';
 import { getOptionLabel } from '@/types/profile';
 import {
   OpportunityRecord,
   timeCommitmentOptions,
-  workArrangementOptions,
   workTypeOptions,
 } from '@/types/opportunity';
 
@@ -89,7 +88,7 @@ export function OpportunityCard({
           label={formatCompensation(opportunity)}
         />
         <WorkArrangementBadge
-          label={getOptionLabel(workArrangementOptions, opportunity.workplace)}
+          label={formatOpportunityLocation(opportunity)}
         />
       </View>
 

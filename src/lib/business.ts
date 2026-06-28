@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { supabase } from '@/lib/supabase';
 import { registerCustomIndustries } from '@/lib/catalogs';
+import { normalizeStoredCountry } from '@/lib/location';
 import {
   businessRemoteOptions,
   businessSizeOptions,
@@ -217,7 +218,7 @@ function businessPayload(draft: BusinessDraft, ownerId: string) {
     location: draft.location.trim() || null,
     location_id: draft.locationId,
     location_region: draft.locationRegion || null,
-    location_country: draft.locationCountry || null,
+    location_country: normalizeStoredCountry(draft.locationCountry) || null,
     remote_status: draft.remoteStatus,
     founding_year: draft.foundingYear ? Number(draft.foundingYear) : null,
     website: normalizeOptionalUrl(draft.websiteUrl) || null,
