@@ -6,20 +6,23 @@ import { Share, StyleSheet, Text, View } from 'react-native';
 
 import {
   ProfileCompletionCard,
-  ProfileFeaturedSection,
+  ProfileBackgroundStrip,
+  ProfileConnectionLine,
+  ProfileCurrentBuildingCard,
+  ProfileFeaturedWorkCard,
   ProfileHero,
   ProfileIdentityBlock,
-  ProfileOwnerActions,
   ProfileOwnerDashboard,
   ProfileOverlayButton,
-  ProfileProfessionalSections,
-  ProfilePromptSection,
+  ProfileProofOfWorkCard,
+  ProfileSignalPillRow,
+  ProfileSkillsOpenGrid,
   ProfileStatsRow,
   profileAccentColors,
   profileBackground,
-  profileShapeRadius,
   type ProfileDashboardGroup,
 } from '@/components/profile';
+import { profileVisual } from '@/components/profile/profileVisual';
 import { LoadingState, Screen } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
@@ -104,11 +107,10 @@ export default function ProfileScreen() {
 
   const currentProfile = profile;
   const accent = profileAccentColors[profile.polish.theme.accent];
-  const radius = profileShapeRadius(profile.polish.theme.cardShape);
   const completion = profileCompletion(profile);
   const dashboardGroups: ProfileDashboardGroup[] = [
     {
-      title: 'Network',
+      title: 'Quick actions',
       items: [
         {
           count: summary?.connections ?? null,
@@ -128,11 +130,6 @@ export default function ProfileScreen() {
           label: 'Messages',
           onPress: () => router.push(routes.messages),
         },
-      ],
-    },
-    {
-      title: 'Work',
-      items: [
         {
           count: summary?.applied ?? null,
           icon: 'paper-plane-outline',
@@ -144,49 +141,6 @@ export default function ProfileScreen() {
           icon: 'briefcase-outline',
           label: 'My opportunities',
           onPress: () => router.push(routes.opportunities),
-        },
-        {
-          badge: summary?.newApplicants,
-          icon: 'sparkles-outline',
-          label: 'Interested Talent',
-          onPress: () => router.push(routes.interestedTalentHub),
-        },
-      ],
-    },
-    {
-      title: 'Projects',
-      items: [
-        {
-          count: summary?.businesses ?? null,
-          icon: 'business-outline',
-          label: 'Businesses & projects',
-          onPress: () => router.push(routes.businesses),
-        },
-      ],
-    },
-    {
-      title: 'Profile',
-      items: [
-        {
-          icon: 'color-palette-outline',
-          label: 'Edit profile',
-          onPress: () => router.push(routes.editProfile),
-        },
-        {
-          icon: 'settings-outline',
-          label: 'Settings',
-          onPress: () => router.push(routes.profileSettings),
-        },
-      ],
-    },
-    {
-      title: 'Saved',
-      items: [
-        {
-          count: summary?.saved ?? null,
-          icon: 'bookmark-outline',
-          label: 'Saved people & opportunities',
-          onPress: () => router.push(routes.saved),
         },
       ],
     },
@@ -228,12 +182,12 @@ export default function ProfileScreen() {
               <ProfileOverlayButton
                 label="Share profile"
                 onPress={() => void shareProfile()}>
-                <Ionicons color={theme.colors.text} name="share-outline" size={21} />
+                <Ionicons color={profileVisual.text} name="share-outline" size={21} />
               </ProfileOverlayButton>
               <ProfileOverlayButton
                 label="Open profile settings"
                 onPress={() => router.push(routes.profileSettings)}>
-                <Ionicons color={theme.colors.text} name="settings-outline" size={21} />
+                <Ionicons color={profileVisual.text} name="settings-outline" size={21} />
               </ProfileOverlayButton>
             </View>
           </>
@@ -246,42 +200,48 @@ export default function ProfileScreen() {
           onEditAvatar={editProfile}
           onError={setError}
           profile={profile}
-          action={
-            <ProfileOwnerActions
-              onEdit={editProfile}
-              onPreview={() => router.push(routes.profile(profile.id))}
-              onShare={() => void shareProfile()}
-            />
-          }
+          showInlineSignals={false}
+        />
+
+        <ProfileConnectionLine
+          onPress={() => router.push(routes.connections)}
+          summary={summary}
         />
 
         <ProfileStatsRow
           onApplied={() => router.push(routes.applications)}
           onConnections={() => router.push(routes.connections)}
           onOpportunities={() => router.push(routes.opportunities)}
+          onSaved={() => router.push(routes.saved)}
           summary={summary}
         />
 
-        <ProfileFeaturedSection
-          accent={accent}
-          onEdit={editProfile}
-          onError={setError}
-          profile={profile}
-          radius={radius}
-        />
+        <ProfileSignalPillRow profile={profile} />
 
-        <ProfilePromptSection
-          accent={accent}
+        <ProfileCurrentBuildingCard
           onEdit={editProfile}
           profile={profile}
         />
 
-        <ProfileProfessionalSections
-          accent={accent}
+        <View style={styles.cardRow}>
+          <ProfileFeaturedWorkCard
+            onPress={editProfile}
+            profile={profile}
+          />
+          <ProfileProofOfWorkCard
+            onApplied={() => router.push(routes.applications)}
+            onOpportunities={() => router.push(routes.opportunities)}
+            onProjects={() => router.push(routes.businesses)}
+            summary={summary}
+          />
+        </View>
+
+        <ProfileSkillsOpenGrid
           onEdit={editProfile}
-          onError={setError}
           profile={profile}
         />
+
+        <ProfileBackgroundStrip profile={profile} />
 
         <ProfileOwnerDashboard groups={dashboardGroups} />
 
@@ -350,12 +310,16 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
   },
   body: {
-    gap: theme.spacing.md,
+    gap: 13,
     paddingBottom: 120,
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
+  },
+  cardRow: {
+    flexDirection: 'row',
+    gap: 12,
   },
   error: {
-    color: theme.colors.danger,
+    color: profileVisual.danger,
     fontSize: theme.typography.small,
     lineHeight: 20,
     textAlign: 'center',

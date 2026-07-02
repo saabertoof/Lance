@@ -1,5 +1,7 @@
 import type { Theme } from '@react-navigation/native';
 
+import { fontFamilies } from './fonts';
+
 const palette = {
   white: '#FFFFFF',
   canvas: '#F7F7FA',
@@ -39,7 +41,14 @@ export const theme = {
     white: palette.white,
   },
   typography: {
-    family: undefined,
+    family: fontFamilies.sans,
+    familyMedium: fontFamilies.sansMedium,
+    familySemiBold: fontFamilies.sansSemiBold,
+    familyBold: fontFamilies.sansBold,
+    familyExtraBold: fontFamilies.sansExtraBold,
+    familyMono: fontFamilies.mono,
+    familyMonoMedium: fontFamilies.monoMedium,
+    familyMonoSemiBold: fontFamilies.monoSemiBold,
     display: 34,
     title: 28,
     heading: 22,
@@ -117,19 +126,19 @@ export const lanceNavigationTheme: Theme = {
   },
   fonts: {
     regular: {
-      fontFamily: 'System',
+      fontFamily: fontFamilies.sans,
       fontWeight: '400',
     },
     medium: {
-      fontFamily: 'System',
+      fontFamily: fontFamilies.sansMedium,
       fontWeight: '500',
     },
     bold: {
-      fontFamily: 'System',
+      fontFamily: fontFamilies.sansBold,
       fontWeight: '700',
     },
     heavy: {
-      fontFamily: 'System',
+      fontFamily: fontFamilies.sansExtraBold,
       fontWeight: '800',
     },
   },

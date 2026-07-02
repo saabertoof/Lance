@@ -6,6 +6,8 @@ import { theme } from '@/constants/theme';
 import type { ProfileLink, ProfileLinkType } from '@/types/profile';
 import type { CustomProfileLink } from '@/types/profilePolish';
 
+import { profileVisual } from './profileVisual';
+
 export function ProfileSocialLinks({
   links,
   customLinks = [],
@@ -44,7 +46,7 @@ export function ProfileSocialLinks({
           }
           style={({ pressed }) => [styles.link, pressed && styles.pressed]}>
           <Ionicons
-            color={theme.colors.accentStrong}
+            color={profileVisual.purple}
             name={profileLinkIcons[link.linkType]}
             size={20}
           />
@@ -58,7 +60,7 @@ export function ProfileSocialLinks({
           onPress={() => void open(link.url, link.label)}
           style={({ pressed }) => [styles.link, pressed && styles.pressed]}>
           <Ionicons
-            color={theme.colors.accentStrong}
+            color={profileVisual.purple}
             name={link.platform === 'youtube' ? 'logo-youtube' : 'globe-outline'}
             size={20}
           />
@@ -102,13 +104,13 @@ const styles = StyleSheet.create({
   },
   link: {
     alignItems: 'center',
-    backgroundColor: theme.colors.accentSoft,
-    borderColor: '#DDD4FF',
+    backgroundColor: profileVisual.purpleSoft,
+    borderColor: profileVisual.borderStrong,
     borderRadius: theme.radii.pill,
     borderWidth: 1,
-    height: 42,
+    height: 38,
     justifyContent: 'center',
-    width: 42,
+    width: 38,
   },
   pressed: {
     opacity: 0.65,

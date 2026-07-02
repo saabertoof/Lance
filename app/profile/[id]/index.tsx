@@ -17,7 +17,7 @@ import {
   profileBackground,
   profileShapeRadius,
 } from '@/components/profile';
-import { SaveButton } from '@/components/saved';
+import { profileVisual } from '@/components/profile/profileVisual';
 import { LoadingState, Screen } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
@@ -94,29 +94,34 @@ export default function PublicProfileScreen() {
         topBar={
           <>
             <OverlayButton label="Go back" onPress={() => router.back()}>
-              <Ionicons color={theme.colors.text} name="arrow-back" size={22} />
+              <Ionicons color={profileVisual.text} name="arrow-back" size={22} />
             </OverlayButton>
             {isOwnProfile ? (
               <OverlayButton
                 label="Edit profile"
                 onPress={() => router.push('/profile/edit')}>
                 <Ionicons
-                  color={theme.colors.text}
+                  color={profileVisual.text}
                   name="create-outline"
                   size={21}
                 />
               </OverlayButton>
             ) : (
               <View style={styles.topActions}>
-                <SaveButton
-                  isSaved={saved}
-                  onPress={() => void setProfileSaved(profile.id, !saved)}
-                />
+                <OverlayButton
+                  label={saved ? 'Remove from Saved' : 'Save privately'}
+                  onPress={() => void setProfileSaved(profile.id, !saved)}>
+                  <Ionicons
+                    color={saved ? profileVisual.purple : profileVisual.text}
+                    name={saved ? 'bookmark' : 'bookmark-outline'}
+                    size={21}
+                  />
+                </OverlayButton>
                 <OverlayButton
                   label="Profile safety options"
                   onPress={() => setSafetyOpen(true)}>
                   <Ionicons
-                    color={theme.colors.text}
+                    color={profileVisual.text}
                     name="ellipsis-horizontal"
                     size={21}
                   />
@@ -212,9 +217,9 @@ const styles = StyleSheet.create({
     paddingTop: 0,
   },
   body: {
-    gap: theme.spacing.md,
+    gap: 13,
     paddingBottom: 120,
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
   },
   topActions: {
     flexDirection: 'row',
@@ -222,20 +227,22 @@ const styles = StyleSheet.create({
   },
   overlayButton: {
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.94)',
+    backgroundColor: 'rgba(5,6,11,0.68)',
+    borderColor: profileVisual.border,
     borderRadius: 22,
+    borderWidth: 1,
     height: 44,
     justifyContent: 'center',
     width: 44,
   },
   privateNote: {
-    color: theme.colors.muted,
+    color: profileVisual.muted,
     fontSize: theme.typography.tiny,
     lineHeight: 18,
     textAlign: 'center',
   },
   error: {
-    color: theme.colors.danger,
+    color: profileVisual.danger,
     fontSize: theme.typography.small,
     lineHeight: 20,
     textAlign: 'center',

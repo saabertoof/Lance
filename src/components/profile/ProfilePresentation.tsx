@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Chip } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import {
   availabilityOptions,
@@ -30,6 +29,7 @@ import {
   ProfileSocialLinks,
   recognizedSocialPlatform,
 } from './ProfileSocialLinks';
+import { profileFonts, profileVisual } from './profileVisual';
 
 type IconName = ComponentProps<typeof Ionicons>['name'];
 
@@ -47,7 +47,7 @@ export function ProfileHero({
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.banner, { height: 168 + insets.top }]}>
+    <View style={[styles.banner, { height: 194 + insets.top }]}>
       {profile.polish.bannerUrl ? (
         <Image
           accessibilityLabel={`${profile.displayName} profile banner`}
@@ -57,12 +57,13 @@ export function ProfileHero({
           transition={180}
         />
       ) : (
-        <View style={[styles.defaultBanner, { backgroundColor: `${accent}12` }]}>
-          <View style={[styles.bannerPanel, { backgroundColor: `${accent}28` }]} />
-          <View style={[styles.bannerOrb, { backgroundColor: `${accent}1C` }]} />
+        <View style={styles.defaultBanner}>
+          <View style={[styles.bannerPanel, { backgroundColor: `${accent}24` }]} />
+          <View style={[styles.bannerPanelAlt, { backgroundColor: `${accent}14` }]} />
           <View style={[styles.bannerLine, { backgroundColor: accent }]} />
         </View>
       )}
+      <View style={styles.bannerShade} />
       <View style={[styles.topBar, { top: insets.top + 8 }]}>{topBar}</View>
       {onEditBanner ? (
         <Pressable
@@ -73,7 +74,7 @@ export function ProfileHero({
             styles.mediaEdit,
             pressed && styles.pressed,
           ]}>
-          <Ionicons color={theme.colors.text} name="camera-outline" size={18} />
+          <Ionicons color={profileVisual.text} name="camera-outline" size={18} />
         </Pressable>
       ) : null}
     </View>
@@ -86,24 +87,26 @@ export function ProfileIdentityBlock({
   onEditAvatar,
   onError,
   profile,
+  showInlineSignals = true,
 }: {
   action?: ReactNode;
   accent: string;
   onEditAvatar?: () => void;
   onError: (message: string) => void;
   profile: PublicProfile;
+  showInlineSignals?: boolean;
 }) {
   const centered = profile.polish.theme.headerAlignment === 'center';
   const initials = initialsFor(profile.displayName);
   const location = profile.polish.location?.label ?? profile.city;
-  const metaItems = [profile.primaryRole, location].filter(Boolean);
+  const metaItems = [location, profile.primaryRole].filter(Boolean);
   const hasSocial =
     profile.links.length > 0 ||
     profile.polish.customLinks.some((link) =>
       recognizedSocialPlatform(link.url),
     );
   const avatar = (
-    <View style={[styles.avatar, { borderColor: theme.colors.surface }]}>
+    <View style={[styles.avatar, { borderColor: profileVisual.black }]}>
       {profile.avatarUrl ? (
         <Image
           accessibilityLabel={`${profile.displayName} profile photo`}
@@ -117,7 +120,7 @@ export function ProfileIdentityBlock({
       )}
       {onEditAvatar ? (
         <View style={styles.avatarEdit}>
-          <Ionicons color={theme.colors.white} name="camera" size={14} />
+          <Ionicons color={profileVisual.white} name="camera" size={14} />
         </View>
       ) : null}
     </View>
@@ -137,8 +140,10 @@ export function ProfileIdentityBlock({
         ) : (
           avatar
         )}
-        <View style={[styles.profileSignal, { borderColor: `${accent}3D` }]}>
-          <View style={[styles.signalDot, { backgroundColor: accent }]} />
+        <View style={[styles.profileSignal, { borderColor: `${accent}48` }]}>
+          <View style={styles.signalOuter}>
+            <View style={[styles.signalDot, { backgroundColor: profileVisual.green }]} />
+          </View>
           <Text numberOfLines={1} style={styles.profileSignalText}>
             {getOptionLabel(availabilityOptions, profile.availability)}
           </Text>
@@ -165,25 +170,27 @@ export function ProfileIdentityBlock({
         </Text>
         {metaItems.length > 0 ? (
           <Text numberOfLines={2} style={[styles.metaLine, centered && styles.centerText]}>
-            {metaItems.join('  |  ')}
+            {metaItems.join('  /  ')}
           </Text>
         ) : null}
-        <View style={[styles.factRow, centered && styles.centerWrap]}>
-          <ProfileFact
-            icon="navigate-outline"
-            label={getOptionLabel(remotePreferenceOptions, profile.remotePreference)}
-          />
-          <ProfileFact
-            icon="ribbon-outline"
-            label={getOptionLabel(experienceOptions, profile.experienceLevel)}
-          />
-        </View>
-        {profile.polish.currentIntents.length > 0 ? (
+        {showInlineSignals ? (
+          <View style={[styles.factRow, centered && styles.centerWrap]}>
+            <ProfileFact
+              icon="navigate-outline"
+              label={getOptionLabel(remotePreferenceOptions, profile.remotePreference)}
+            />
+            <ProfileFact
+              icon="ribbon-outline"
+              label={getOptionLabel(experienceOptions, profile.experienceLevel)}
+            />
+          </View>
+        ) : null}
+        {showInlineSignals && profile.polish.currentIntents.length > 0 ? (
           <View style={[styles.intentRail, centered && styles.centerWrap]}>
             {profile.polish.currentIntents.slice(0, 3).map((intent) => (
               <View
                 key={intent}
-                style={[styles.intent, { backgroundColor: `${accent}10` }]}>
+                style={[styles.intent, { borderColor: `${accent}38` }]}>
                 <Text style={[styles.intentText, { color: accent }]}>
                   {currentIntentOptions.find((option) => option.value === intent)
                     ?.label ?? intent}
@@ -208,7 +215,7 @@ export function ProfileIdentityBlock({
 function ProfileFact({ icon, label }: { icon: IconName; label: string }) {
   return (
     <View style={styles.fact}>
-      <Ionicons color={theme.colors.muted} name={icon} size={14} />
+      <Ionicons color={profileVisual.muted} name={icon} size={14} />
       <Text numberOfLines={1} style={styles.factText}>
         {label}
       </Text>
@@ -262,7 +269,7 @@ export function ProfileFeaturedSection({
             </Text>
             <Text style={styles.ownerEmptyBody}>Add featured work</Text>
           </View>
-          <Ionicons color={accent} name="add-circle-outline" size={24} />
+            <Ionicons color={accent} name="add-circle-outline" size={22} />
         </Pressable>
       ) : null}
     </ProfileSection>
@@ -340,7 +347,7 @@ export function ProfileProfessionalSections({
           title="Skills">
           <View style={styles.chips}>
             {profile.skills.slice(0, 14).map((skill) => (
-              <Chip key={skill.toLowerCase()} label={skill} />
+              <ProfilePill key={skill.toLowerCase()} label={skill} />
             ))}
           </View>
         </ProfileSection>
@@ -350,7 +357,7 @@ export function ProfileProfessionalSections({
         <ProfileSection title="Open to">
           <View style={styles.chips}>
             {profile.opportunityInterests.slice(0, 10).map((interest) => (
-              <Chip
+              <ProfilePill
                 accent
                 key={interest}
                 label={getOptionLabel(opportunityInterestOptions, interest)}
@@ -374,8 +381,8 @@ export function ProfileProfessionalSections({
                 key={link.id}
                 onPress={() => void openCustomLink(link.url, onError)}
                 style={({ pressed }) => [styles.customLink, pressed && styles.pressed]}>
-                <View style={[styles.linkIcon, { backgroundColor: `${accent}14` }]}>
-                  <Ionicons color={accent} name="link-outline" size={20} />
+                <View style={[styles.linkIcon, { borderColor: `${accent}30` }]}>
+                  <Ionicons color={accent} name="link-outline" size={18} />
                 </View>
                 <View style={styles.linkCopy}>
                   <Text numberOfLines={1} style={styles.linkLabel}>
@@ -385,7 +392,7 @@ export function ProfileProfessionalSections({
                     {safeHost(link.url)}
                   </Text>
                 </View>
-                <Ionicons color={theme.colors.muted} name="open-outline" size={18} />
+                <Ionicons color={profileVisual.muted} name="open-outline" size={17} />
               </Pressable>
             ))}
           </View>
@@ -416,7 +423,7 @@ export function ProfileProfessionalSections({
         {profile.industryExperience.length > 0 ? (
           <View style={styles.chips}>
             {profile.industryExperience.slice(0, 8).map((industry) => (
-              <Chip key={industry.toLowerCase()} label={industry} />
+              <ProfilePill key={industry.toLowerCase()} label={industry} />
             ))}
           </View>
         ) : null}
@@ -439,7 +446,7 @@ function ProfileDetail({
   return (
     <View style={styles.detailRow}>
       <View style={[styles.detailIcon, { backgroundColor: `${accent}12` }]}>
-        <Ionicons color={accent} name={icon} size={17} />
+        <Ionicons color={accent} name={icon} size={16} />
       </View>
       <View style={styles.detailCopy}>
         <Text style={styles.detailLabel}>{label}</Text>
@@ -482,8 +489,24 @@ function SectionEditButton({
       accessibilityRole="button"
       onPress={onPress}
       style={({ pressed }) => [styles.sectionEdit, pressed && styles.pressed]}>
-      <Ionicons color={theme.colors.accentStrong} name="create-outline" size={18} />
+      <Ionicons color={profileVisual.purple} name="create-outline" size={17} />
     </Pressable>
+  );
+}
+
+function ProfilePill({
+  accent,
+  label,
+}: {
+  accent?: boolean;
+  label: string;
+}) {
+  return (
+    <View style={[styles.pill, accent && styles.pillAccent]}>
+      <Text style={[styles.pillText, accent && styles.pillAccentText]}>
+        {label}
+      </Text>
+    </View>
   );
 }
 
@@ -528,24 +551,23 @@ export function profileShapeRadius(
 }
 
 export function profileBackground(
-  background: PublicProfile['polish']['theme']['background'],
+  _background: PublicProfile['polish']['theme']['background'],
 ) {
-  if (background === 'soft_gradient') return '#FAF8FF';
-  if (background === 'banner_led') return '#FCFCFE';
-  return theme.colors.background;
+  return profileVisual.background;
 }
 
 export const profileAccentColors = {
-  purple: '#6843F4',
-  blue: '#1769E0',
-  green: '#147A4B',
-  rose: '#B52B62',
-  charcoal: '#252730',
+  purple: '#A78BFA',
+  blue: '#65A8FF',
+  green: '#35E979',
+  rose: '#FF7AAD',
+  charcoal: '#C9CBD8',
 };
 
 const styles = StyleSheet.create({
   banner: {
-    height: 168,
+    backgroundColor: profileVisual.background,
+    height: 194,
     overflow: 'hidden',
     position: 'relative',
   },
@@ -554,59 +576,70 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   defaultBanner: {
+    backgroundColor: '#070814',
     flex: 1,
     justifyContent: 'flex-end',
     overflow: 'hidden',
   },
   bannerPanel: {
-    height: 220,
+    borderRadius: 34,
+    height: 160,
     position: 'absolute',
-    right: -28,
-    top: -92,
-    transform: [{ rotate: '22deg' }],
-    width: 116,
+    right: -20,
+    top: 18,
+    transform: [{ rotate: '-10deg' }],
+    width: 230,
   },
-  bannerOrb: {
-    borderRadius: 120,
-    height: 240,
-    left: -96,
+  bannerPanelAlt: {
+    borderRadius: 26,
+    height: 118,
+    left: -42,
     position: 'absolute',
-    top: -112,
-    width: 240,
+    top: 56,
+    transform: [{ rotate: '13deg' }],
+    width: 190,
   },
   bannerLine: {
-    height: 4,
+    height: 2,
+    opacity: 0.95,
     width: '100%',
+  },
+  bannerShade: {
+    backgroundColor: 'rgba(5,6,11,0.42)',
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
   },
   topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    left: 18,
+    left: 20,
     position: 'absolute',
-    right: 18,
+    right: 20,
   },
   mediaEdit: {
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.94)',
+    backgroundColor: 'rgba(5,6,11,0.68)',
+    borderColor: profileVisual.border,
     borderRadius: 18,
-    bottom: 12,
-    height: 42,
+    borderWidth: 1,
+    bottom: 14,
+    height: 38,
     justifyContent: 'center',
     position: 'absolute',
-    right: 18,
-    width: 42,
+    right: 20,
+    width: 38,
   },
   identityCard: {
-    backgroundColor: theme.colors.surface,
-    borderColor: 'rgba(8,10,18,0.08)',
-    borderRadius: 22,
-    borderWidth: 1,
-    gap: theme.spacing.md,
-    marginTop: -46,
-    paddingBottom: theme.spacing.lg,
-    paddingHorizontal: theme.spacing.lg,
+    backgroundColor: 'transparent',
+    borderRadius: 0,
+    gap: 10,
+    marginTop: -58,
+    paddingBottom: 3,
+    paddingHorizontal: 8,
     paddingTop: 0,
-    ...theme.shadows.card,
   },
   centeredCard: {
     alignItems: 'center',
@@ -618,7 +651,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    minHeight: 58,
+    minHeight: 66,
   },
   avatarHeaderCentered: {
     alignItems: 'center',
@@ -626,19 +659,25 @@ const styles = StyleSheet.create({
   },
   avatar: {
     alignItems: 'center',
-    backgroundColor: theme.colors.accentSoft,
-    borderRadius: 48,
-    borderWidth: 5,
-    height: 96,
+    backgroundColor: profileVisual.surfaceStrong,
+    borderRadius: 52,
+    borderWidth: 4,
+    height: 104,
     justifyContent: 'center',
-    marginTop: -50,
+    marginTop: -54,
     overflow: 'hidden',
-    width: 96,
+    shadowColor: profileVisual.purple,
+    shadowOffset: { height: 0, width: 0 },
+    shadowOpacity: 0.32,
+    shadowRadius: 16,
+    width: 104,
   },
   avatarEdit: {
     alignItems: 'center',
-    backgroundColor: 'rgba(8,10,18,0.78)',
+    backgroundColor: 'rgba(5,6,11,0.84)',
+    borderColor: profileVisual.border,
     borderRadius: 14,
+    borderWidth: 1,
     bottom: 5,
     height: 28,
     justifyContent: 'center',
@@ -647,62 +686,78 @@ const styles = StyleSheet.create({
     width: 28,
   },
   initials: {
-    fontSize: 27,
-    fontWeight: '900',
+    fontFamily: profileFonts.sansSemiBold,
+    fontSize: 28,
+    fontWeight: '600',
   },
   profileSignal: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surface,
+    backgroundColor: 'rgba(10,12,20,0.86)',
     borderRadius: theme.radii.pill,
     borderWidth: 1,
     flexDirection: 'row',
     gap: 6,
-    minHeight: 32,
-    paddingHorizontal: theme.spacing.md,
+    minHeight: 30,
+    paddingHorizontal: 11,
   },
   profileSignalText: {
-    color: theme.colors.text,
+    color: profileVisual.textSoft,
+    fontFamily: profileFonts.sans,
     fontSize: theme.typography.caption,
-    fontWeight: '800',
+    fontWeight: '700',
+  },
+  signalOuter: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(53,233,121,0.15)',
+    borderRadius: 7,
+    height: 14,
+    justifyContent: 'center',
+    width: 14,
   },
   signalDot: {
-    borderRadius: 4,
-    height: 8,
-    width: 8,
+    borderRadius: 3,
+    height: 6,
+    width: 6,
   },
   identityCopy: {
     gap: 7,
+    paddingHorizontal: 1,
   },
   name: {
-    color: theme.colors.text,
-    fontSize: 26,
-    fontWeight: '900',
+    color: profileVisual.text,
+    fontFamily: profileFonts.sansSemiBold,
+    fontSize: 32,
+    fontWeight: '600',
     letterSpacing: 0,
+    lineHeight: 35,
     maxWidth: '100%',
   },
   boldName: {
-    fontSize: 28,
+    fontSize: 32,
   },
   centerText: {
     textAlign: 'center',
   },
   username: {
-    color: theme.colors.muted,
-    fontSize: theme.typography.caption,
-    fontWeight: '700',
+    color: profileVisual.muted,
+    fontFamily: profileFonts.sansMedium,
+    fontSize: 13,
+    fontWeight: '500',
   },
   headline: {
-    color: theme.colors.textSoft,
-    fontSize: theme.typography.small,
-    fontWeight: '600',
+    color: profileVisual.textSoft,
+    fontFamily: profileFonts.sansMedium,
+    fontSize: 14,
+    fontWeight: '500',
     lineHeight: 20,
     maxWidth: 430,
   },
   metaLine: {
-    color: theme.colors.muted,
+    color: profileVisual.muted,
     flexShrink: 1,
-    fontSize: theme.typography.caption,
-    fontWeight: '700',
+    fontFamily: profileFonts.sansMedium,
+    fontSize: 12,
+    fontWeight: '500',
     lineHeight: 17,
   },
   centerWrap: {
@@ -711,27 +766,52 @@ const styles = StyleSheet.create({
   factRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: theme.spacing.sm,
-    marginTop: 2,
+    gap: 8,
+    marginTop: 3,
   },
   fact: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surfaceMuted,
+    backgroundColor: profileVisual.surfaceSoft,
+    borderColor: profileVisual.border,
     borderRadius: theme.radii.pill,
+    borderWidth: 1,
     flexDirection: 'row',
-    gap: 5,
-    minHeight: 31,
-    paddingHorizontal: theme.spacing.md,
+    gap: 6,
+    minHeight: 34,
+    paddingHorizontal: 12,
   },
   factText: {
-    color: theme.colors.muted,
-    fontSize: theme.typography.caption,
-    fontWeight: '800',
+    color: profileVisual.textSoft,
+    fontFamily: profileFonts.sansMedium,
+    fontSize: 12,
+    fontWeight: '500',
   },
   chips: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 7,
+  },
+  pill: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255,255,255,0.045)',
+    borderColor: profileVisual.border,
+    borderRadius: theme.radii.pill,
+    borderWidth: 1,
+    paddingHorizontal: 11,
+    paddingVertical: 7,
+  },
+  pillAccent: {
+    backgroundColor: profileVisual.purpleSoft,
+    borderColor: profileVisual.borderStrong,
+  },
+  pillText: {
+    color: profileVisual.textSoft,
+    fontFamily: profileFonts.sansMedium,
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  pillAccentText: {
+    color: profileVisual.text,
   },
   intentRail: {
     flexDirection: 'row',
@@ -739,25 +819,29 @@ const styles = StyleSheet.create({
     gap: 7,
   },
   intent: {
+    backgroundColor: profileVisual.surfaceSoft,
     borderRadius: theme.radii.pill,
+    borderWidth: 1,
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
   intentText: {
-    fontSize: theme.typography.caption,
-    fontWeight: '800',
+    fontFamily: profileFonts.sansMedium,
+    fontSize: 12,
+    fontWeight: '500',
   },
   identityActions: {
     marginTop: theme.spacing.xs,
     width: '100%',
   },
   section: {
-    backgroundColor: theme.colors.surface,
-    borderColor: 'rgba(8,10,18,0.08)',
-    borderRadius: 18,
+    backgroundColor: profileVisual.surface,
+    borderColor: profileVisual.border,
+    borderRadius: 20,
     borderWidth: 1,
-    gap: theme.spacing.md,
-    padding: theme.spacing.lg,
+    gap: 12,
+    overflow: 'hidden',
+    padding: 15,
   },
   sectionHeader: {
     alignItems: 'center',
@@ -766,108 +850,134 @@ const styles = StyleSheet.create({
     minHeight: 24,
   },
   sectionTitle: {
-    color: theme.colors.text,
-    fontSize: theme.typography.cardTitle,
-    fontWeight: '900',
+    color: '#C7B8FF',
+    fontFamily: profileFonts.monoMedium,
+    fontSize: 11,
+    fontWeight: '500',
+    letterSpacing: 0,
+    textTransform: 'uppercase',
   },
   sectionEdit: {
     alignItems: 'center',
+    backgroundColor: 'rgba(167,139,250,0.1)',
+    borderColor: profileVisual.borderStrong,
     borderRadius: theme.radii.pill,
-    height: 36,
+    borderWidth: 1,
+    height: 32,
     justifyContent: 'center',
-    width: 36,
+    width: 32,
   },
   ownerEmpty: {
     alignItems: 'center',
-    borderColor: theme.colors.border,
+    backgroundColor: 'rgba(255,255,255,0.035)',
+    borderColor: profileVisual.border,
     borderStyle: 'dashed',
     borderWidth: 1,
     flexDirection: 'row',
-    gap: theme.spacing.md,
-    padding: theme.spacing.md,
+    gap: 12,
+    padding: 13,
   },
   emptyCopy: {
     flex: 1,
     gap: 3,
   },
   ownerEmptyTitle: {
-    color: theme.colors.text,
-    fontSize: theme.typography.small,
-    fontWeight: '900',
+    color: profileVisual.text,
+    fontFamily: profileFonts.sansSemiBold,
+    fontSize: 13,
+    fontWeight: '600',
   },
   ownerEmptyBody: {
-    color: theme.colors.accentStrong,
-    fontSize: theme.typography.small,
-    fontWeight: '700',
+    color: profileVisual.purple,
+    fontFamily: profileFonts.sansMedium,
+    fontSize: 12,
+    fontWeight: '500',
   },
   promptList: {
-    gap: theme.spacing.sm,
+    gap: 9,
   },
   prompt: {
-    borderLeftColor: theme.colors.border,
-    borderLeftWidth: 2,
+    backgroundColor: 'rgba(255,255,255,0.035)',
+    borderColor: profileVisual.border,
+    borderRadius: 15,
+    borderWidth: 1,
     gap: 5,
-    paddingLeft: theme.spacing.md,
-    paddingVertical: 3,
+    padding: 12,
   },
   promptLabel: {
-    fontSize: theme.typography.caption,
-    fontWeight: '900',
+    fontFamily: profileFonts.monoMedium,
+    fontSize: 10,
+    fontWeight: '500',
+    letterSpacing: 0,
+    textTransform: 'uppercase',
   },
   promptAnswer: {
-    color: theme.colors.textSoft,
-    fontSize: theme.typography.small,
-    lineHeight: 20,
+    color: profileVisual.textSoft,
+    fontFamily: profileFonts.sans,
+    fontSize: 13,
+    lineHeight: 19,
   },
   bodyText: {
-    color: theme.colors.textSoft,
-    fontSize: theme.typography.small,
-    lineHeight: 21,
+    color: profileVisual.textSoft,
+    fontFamily: profileFonts.sans,
+    fontSize: 13,
+    lineHeight: 20,
   },
   linkList: {
-    gap: 0,
+    gap: 8,
   },
   customLink: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surface,
+    backgroundColor: 'rgba(255,255,255,0.035)',
+    borderColor: profileVisual.border,
+    borderRadius: 16,
+    borderWidth: 1,
     flexDirection: 'row',
-    gap: theme.spacing.md,
-    minHeight: 58,
-    paddingVertical: theme.spacing.sm,
+    gap: 12,
+    minHeight: 54,
+    paddingHorizontal: 11,
+    paddingVertical: 8,
   },
   linkIcon: {
     alignItems: 'center',
-    borderRadius: theme.radii.md,
-    height: 38,
+    backgroundColor: profileVisual.purpleSoft,
+    borderRadius: 13,
+    borderWidth: 1,
+    height: 36,
     justifyContent: 'center',
-    width: 38,
+    width: 36,
   },
   linkCopy: {
     flex: 1,
     minWidth: 0,
   },
   linkLabel: {
-    color: theme.colors.text,
-    fontSize: theme.typography.small,
-    fontWeight: '800',
+    color: profileVisual.text,
+    fontFamily: profileFonts.sansSemiBold,
+    fontSize: 13,
+    fontWeight: '600',
   },
   linkHost: {
-    color: theme.colors.muted,
-    fontSize: theme.typography.tiny,
+    color: profileVisual.muted,
+    fontFamily: profileFonts.sans,
+    fontSize: 11,
     marginTop: 2,
   },
   detailList: {
-    gap: theme.spacing.sm,
+    gap: 9,
   },
   detailRow: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: theme.spacing.md,
-    minHeight: 40,
+    gap: 11,
+    minHeight: 39,
   },
   detailIcon: {
     alignItems: 'center',
-    borderRadius: theme.radii.md,
+    backgroundColor: profileVisual.purpleSoft,
+    borderColor: profileVisual.borderStrong,
+    borderRadius: 13,
+    borderWidth: 1,
     height: 34,
     justifyContent: 'center',
     width: 34,
@@ -878,15 +988,17 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   detailLabel: {
-    color: theme.colors.muted,
+    color: profileVisual.mutedDim,
+    fontFamily: profileFonts.monoMedium,
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '500',
     textTransform: 'uppercase',
   },
   detailValue: {
-    color: theme.colors.text,
-    fontSize: theme.typography.small,
-    fontWeight: '700',
+    color: profileVisual.text,
+    fontFamily: profileFonts.sansMedium,
+    fontSize: 13,
+    fontWeight: '500',
   },
   pressed: {
     opacity: 0.72,

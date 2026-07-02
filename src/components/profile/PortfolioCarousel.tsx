@@ -15,6 +15,8 @@ import {
 import { theme } from '@/constants/theme';
 import type { PortfolioItem } from '@/types/profilePolish';
 
+import { profileFonts, profileVisual } from './profileVisual';
+
 export function PortfolioCarousel({
   accent,
   items,
@@ -112,7 +114,7 @@ export function PortfolioCarousel({
               )}
               {item.itemType === 'external_video' ? (
                 <View style={styles.play}>
-                  <Ionicons color={theme.colors.white} name="play" size={22} />
+                  <Ionicons color={profileVisual.white} name="play" size={22} />
                 </View>
               ) : null}
             </View>
@@ -146,7 +148,7 @@ export function PortfolioCarousel({
             }}
             style={styles.playControl}>
             <Ionicons
-              color={theme.colors.muted}
+              color={profileVisual.muted}
               name={autoAdvance ? 'pause' : 'play'}
               size={16}
             />
@@ -161,12 +163,12 @@ const styles = StyleSheet.create({
   wrapper: { gap: theme.spacing.sm },
   content: { gap: theme.spacing.md, paddingRight: theme.layout.screenPadding },
   card: {
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
+    backgroundColor: 'rgba(255,255,255,0.045)',
+    borderColor: profileVisual.border,
     borderWidth: 1,
     overflow: 'hidden',
   },
-  media: { aspectRatio: 16 / 9, backgroundColor: theme.colors.surfaceMuted },
+  media: { aspectRatio: 16 / 9, backgroundColor: 'rgba(255,255,255,0.04)' },
   image: { height: '100%', width: '100%' },
   fallback: { alignItems: 'center', flex: 1, justifyContent: 'center' },
   play: {
@@ -182,15 +184,26 @@ const styles = StyleSheet.create({
     top: '50%',
     width: 54,
   },
-  copy: { gap: theme.spacing.xs, padding: theme.spacing.md },
-  title: { color: theme.colors.text, fontSize: theme.typography.body, fontWeight: '900' },
-  caption: { color: theme.colors.muted, fontSize: theme.typography.small, lineHeight: 20 },
+  copy: { gap: 4, padding: 12 },
+  title: {
+    color: profileVisual.text,
+    fontFamily: profileFonts.sansSemiBold,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  caption: {
+    color: profileVisual.muted,
+    fontFamily: profileFonts.sans,
+    fontSize: 12,
+    lineHeight: 18,
+  },
   controls: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
   dots: { flexDirection: 'row', gap: 6 },
-  dot: { backgroundColor: theme.colors.border, borderRadius: 3, height: 5, width: 5 },
+  dot: { backgroundColor: profileVisual.border, borderRadius: 3, height: 5, width: 5 },
   playControl: {
     alignItems: 'center',
-    borderColor: theme.colors.border,
+    backgroundColor: 'rgba(255,255,255,0.035)',
+    borderColor: profileVisual.border,
     borderRadius: theme.radii.pill,
     borderWidth: 1,
     height: theme.layout.minTouchTarget,

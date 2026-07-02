@@ -90,12 +90,7 @@ export function AdaptiveTabBar({
           interpolate(progress.value, [0, 1], [0, 6]) +
           interpolate(keyboardProgress.value, [0, 1], [0, 18]),
       },
-      { scale: interpolate(progress.value, [0, 1], [1, 0.94]) },
     ],
-  }));
-
-  const iconScaleStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: interpolate(progress.value, [0, 1], [1, 0.92]) }],
   }));
 
   return (
@@ -178,7 +173,7 @@ export function AdaptiveTabBar({
                   styles.activeSurface,
                   selected && styles.activeSurfaceSelected,
                 ]}>
-                <Animated.View style={iconScaleStyle}>
+                <View>
                   {route.name === 'profile' && avatarUrl ? (
                     <View
                       style={[
@@ -206,7 +201,7 @@ export function AdaptiveTabBar({
                       size={route.name === 'create' ? 28 : 25}
                     />
                   )}
-                </Animated.View>
+                </View>
                 {badge ? (
                   <View style={styles.badge}>
                     <Text style={styles.badgeText}>{badge}</Text>
