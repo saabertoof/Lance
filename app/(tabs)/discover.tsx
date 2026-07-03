@@ -1,7 +1,9 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Share, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
 
 import {
   ConnectSheet,
@@ -16,8 +18,8 @@ import {
   SegmentedControl,
   type DiscoverDeckAction,
 } from '@/components/discovery';
-import { Button, EmptyState, Screen } from '@/components/ui';
-import { theme } from '@/constants/theme';
+import { Screen } from '@/components/ui';
+import { operatorFonts, operatorVisual as v } from '@/constants/operatorTheme';
 import { useAuth } from '@/context/AuthContext';
 import { useFeedback } from '@/context/FeedbackContext';
 import { useSaved } from '@/context/SavedContext';
@@ -51,8 +53,8 @@ import type { PersonalProfile, PublicProfile } from '@/types/profile';
 import type { ProfilePolish } from '@/types/profilePolish';
 
 const discoverModes = [
-  { label: 'People', value: 'people' },
-  { label: 'Opportunities', value: 'opportunities' },
+  { icon: 'people-outline', label: 'People', value: 'people' },
+  { icon: 'briefcase-outline', label: 'Opportunities', value: 'opportunities' },
 ] as const;
 
 type LastPass =
@@ -84,7 +86,10 @@ export default function DiscoverScreen() {
   const totals = useRef({ people: 0, opportunities: 0 });
   const seen = useRef({ people: new Set<string>(), opportunities: new Set<string>() });
   const requestId = useRef(0);
-  const jiggledModes = useRef(new Set<DiscoverMode>());
+  const immediateJiggleModes = useRef(new Set<DiscoverMode>());
+  const [immediateJiggleCardIds, setImmediateJiggleCardIds] = useState<
+    Partial<Record<DiscoverMode, string>>
+  >({});
 
   useEffect(() => {
     loadSkillOptions().then(setSkillOptions).catch(() => undefined);
@@ -299,8 +304,27 @@ export default function DiscoverScreen() {
       ? countPeopleFilters(peopleFilters)
       : countOpportunityFilters(opportunityFilters);
 
+  useFocusEffect(
+    useCallback(() => {
+      immediateJiggleModes.current.delete(mode);
+      setImmediateJiggleCardIds((current) => ({ ...current, [mode]: undefined }));
+      return undefined;
+    }, [mode]),
+  );
+
+  useEffect(() => {
+    const activeCardId =
+      mode === 'people' ? currentPerson?.id : currentOpportunity?.id;
+    if (!activeCardId || immediateJiggleModes.current.has(mode)) return;
+    immediateJiggleModes.current.add(mode);
+    setImmediateJiggleCardIds((current) => ({
+      ...current,
+      [mode]: activeCardId,
+    }));
+  }, [currentOpportunity?.id, currentPerson?.id, mode]);
+
   return (
-    <Screen compact contentStyle={styles.screen}>
+    <Screen compact contentStyle={styles.screen} style={styles.canvas}>
       <View style={styles.header}>
         <View style={styles.markSlot}>
           <Image
@@ -310,22 +334,45 @@ export default function DiscoverScreen() {
             style={styles.mark}
           />
         </View>
-        <View style={styles.mode}>
-          <SegmentedControl onChange={setMode} options={discoverModes} value={mode} />
+        <View style={styles.headerCopy}>
+          <Text style={styles.kicker}>Discover</Text>
+          <Text numberOfLines={2} style={styles.title}>
+            {mode === 'people'
+              ? 'Find your next builder'
+              : 'Find your next opportunity'}
+          </Text>
+          <Text numberOfLines={1} style={styles.subtitle}>
+            Work on what matters. Build with the right people.
+          </Text>
         </View>
         <FilterButton
           compact
           count={filterCount}
           onPress={() => setFiltersOpen(true)}
+          variant="operator"
         />
       </View>
+
+      <SegmentedControl
+        onChange={setMode}
+        options={discoverModes}
+        value={mode}
+        variant="operator"
+      />
 
       <View style={styles.deckArea}>
         {isLoading ? <DiscoverSkeleton /> : null}
         {!isLoading && error ? (
           <View style={styles.state}>
-            <EmptyState body={error} title="Discover is unavailable" />
-            <Button label="Retry" onPress={() => void loadDeck(mode, true)} />
+            <StatePanel
+              body={error}
+              icon="warning-outline"
+              primaryAction={{
+                label: 'Retry',
+                onPress: () => void loadDeck(mode, true),
+              }}
+              title="Discover is unavailable"
+            />
           </View>
         ) : null}
         {!isLoading && !error && mode === 'people' && currentPerson ? (
@@ -335,9 +382,8 @@ export default function DiscoverScreen() {
             cardKey={currentPerson.id}
             detailLabel="profile details"
             isSaved={isProfileSaved(currentPerson.id)}
-            onJiggleComplete={() => jiggledModes.current.add('people')}
+            jiggleImmediately={immediateJiggleCardIds.people === currentPerson.id}
             primaryActionLabel="Connect"
-            shouldJiggle={!jiggledModes.current.has('people')}
             nextCard={
               nextPerson ? (
                 <PersonCard
@@ -369,9 +415,10 @@ export default function DiscoverScreen() {
             cardKey={currentOpportunity.id}
             detailLabel="opportunity details"
             isSaved={isOpportunitySaved(currentOpportunity.id)}
-            onJiggleComplete={() => jiggledModes.current.add('opportunities')}
+            jiggleImmediately={
+              immediateJiggleCardIds.opportunities === currentOpportunity.id
+            }
             primaryActionLabel="Apply"
-            shouldJiggle={!jiggledModes.current.has('opportunities')}
             nextCard={
               nextOpportunity ? (
                 <OpportunityDiscoverCard
@@ -399,19 +446,27 @@ export default function DiscoverScreen() {
         ((mode === 'people' && !currentPerson) ||
           (mode === 'opportunities' && !currentOpportunity)) ? (
           <View style={styles.state}>
-            <EmptyState
-              body={`There are no more ${
-                mode === 'people' ? 'people' : 'opportunities'
-              } in this session with the current filters.`}
-              title="You are caught up"
+            <StatePanel
+              body={
+                mode === 'people'
+                  ? 'No more builders in this lane. Tune filters or check back soon.'
+                  : 'No more opportunities in this lane. Tune filters or check back soon.'
+              }
+              icon={mode === 'people' ? 'people-outline' : 'briefcase-outline'}
+              primaryAction={{
+                label: 'Adjust filters',
+                onPress: () => setFiltersOpen(true),
+              }}
+              secondaryAction={{
+                label: `Switch to ${mode === 'people' ? 'opportunities' : 'people'}`,
+                onPress: () => setMode(mode === 'people' ? 'opportunities' : 'people'),
+              }}
+              tertiaryAction={{
+                label: 'Refresh',
+                onPress: () => void loadDeck(mode, true),
+              }}
+              title={mode === 'people' ? 'No more builders for now.' : 'No opportunities yet.'}
             />
-            <Button label="Adjust filters" onPress={() => setFiltersOpen(true)} variant="secondary" />
-            <Button
-              label={`Switch to ${mode === 'people' ? 'opportunities' : 'people'}`}
-              onPress={() => setMode(mode === 'people' ? 'opportunities' : 'people')}
-              variant="ghost"
-            />
-            <Button label="Refresh session" onPress={() => void loadDeck(mode, true)} />
           </View>
         ) : null}
       </View>
@@ -450,6 +505,74 @@ export default function DiscoverScreen() {
   );
 }
 
+function StatePanel({
+  body,
+  icon,
+  primaryAction,
+  secondaryAction,
+  tertiaryAction,
+  title,
+}: {
+  body: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  primaryAction: { label: string; onPress: () => void };
+  secondaryAction?: { label: string; onPress: () => void };
+  tertiaryAction?: { label: string; onPress: () => void };
+  title: string;
+}) {
+  return (
+    <View style={styles.statePanel}>
+      <View style={styles.stateIcon}>
+        <Ionicons color={v.purpleStrong} name={icon} size={22} />
+      </View>
+      <Text style={styles.stateTitle}>{title}</Text>
+      <Text style={styles.stateBody}>{body}</Text>
+      <View style={styles.stateActions}>
+        <StateButton label={primaryAction.label} onPress={primaryAction.onPress} primary />
+        {secondaryAction ? (
+          <StateButton label={secondaryAction.label} onPress={secondaryAction.onPress} />
+        ) : null}
+        {tertiaryAction ? (
+          <StateButton label={tertiaryAction.label} onPress={tertiaryAction.onPress} quiet />
+        ) : null}
+      </View>
+    </View>
+  );
+}
+
+function StateButton({
+  label,
+  onPress,
+  primary,
+  quiet,
+}: {
+  label: string;
+  onPress: () => void;
+  primary?: boolean;
+  quiet?: boolean;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.stateButton,
+        primary && styles.stateButtonPrimary,
+        quiet && styles.stateButtonQuiet,
+        pressed && styles.pressed,
+      ]}>
+      <Text
+        style={[
+          styles.stateButtonText,
+          primary && styles.stateButtonPrimaryText,
+          quiet && styles.stateButtonQuietText,
+        ]}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
 function DiscoverSkeleton() {
   return (
     <View style={styles.skeleton}>
@@ -466,38 +589,170 @@ function DiscoverSkeleton() {
 }
 
 const styles = StyleSheet.create({
+  canvas: {
+    backgroundColor: v.background,
+  },
   screen: {
-    gap: theme.density.compactGap,
-    paddingHorizontal: theme.spacing.md,
+    gap: 12,
+    paddingHorizontal: 16,
   },
   header: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: theme.density.compactGap,
-    minHeight: 44,
+    gap: 12,
+    minHeight: 54,
   },
   mark: {
-    height: 32,
-    width: 32,
+    height: 34,
+    width: 34,
   },
   markSlot: {
     alignItems: 'center',
-    height: 44,
+    borderRightColor: v.border,
+    borderRightWidth: StyleSheet.hairlineWidth,
+    height: 46,
     justifyContent: 'center',
-    width: 44,
+    paddingRight: 12,
+    width: 48,
   },
-  mode: {
+  headerCopy: {
     flex: 1,
+    gap: 2,
+    minWidth: 0,
+  },
+  kicker: {
+    color: v.purpleStrong,
+    fontFamily: operatorFonts.monoSemiBold,
+    fontSize: 11,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
+  title: {
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 28,
+    fontWeight: '600',
+    lineHeight: 33,
+  },
+  subtitle: {
+    color: v.textSoft,
+    fontFamily: operatorFonts.sans,
+    fontSize: 13,
+    lineHeight: 18,
   },
   deckArea: {
     flex: 1,
-    minHeight: 480,
+    marginTop: 2,
+    minHeight: 430,
   },
-  state: { flex: 1, gap: theme.spacing.sm, justifyContent: 'center' },
-  skeleton: { backgroundColor: '#252630', borderColor: theme.colors.border, borderRadius: theme.radii.lg, borderWidth: 1, flex: 1, overflow: 'hidden' },
-  skeletonMedia: { backgroundColor: '#30313B', flex: 1 },
-  skeletonBody: { bottom: 56, gap: theme.spacing.md, left: 0, padding: theme.spacing.lg, position: 'absolute', right: 0 },
+  state: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  statePanel: {
+    alignItems: 'center',
+    alignSelf: 'center',
+    backgroundColor: v.surface,
+    borderColor: v.border,
+    borderRadius: 22,
+    borderWidth: 1,
+    gap: 10,
+    maxWidth: 340,
+    padding: 18,
+    width: '100%',
+  },
+  stateIcon: {
+    alignItems: 'center',
+    backgroundColor: v.purpleSoft,
+    borderColor: v.borderPurple,
+    borderRadius: 18,
+    borderWidth: 1,
+    height: 48,
+    justifyContent: 'center',
+    width: 48,
+  },
+  stateTitle: {
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 17,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  stateBody: {
+    color: v.textSoft,
+    fontFamily: operatorFonts.sans,
+    fontSize: 13,
+    lineHeight: 19,
+    textAlign: 'center',
+  },
+  stateActions: {
+    gap: 8,
+    marginTop: 2,
+    width: '100%',
+  },
+  stateButton: {
+    alignItems: 'center',
+    borderColor: v.border,
+    borderRadius: 17,
+    borderWidth: 1,
+    justifyContent: 'center',
+    minHeight: 42,
+    paddingHorizontal: 14,
+  },
+  stateButtonPrimary: {
+    backgroundColor: v.purple,
+    borderColor: v.purple,
+  },
+  stateButtonQuiet: {
+    backgroundColor: 'transparent',
+    borderColor: 'transparent',
+  },
+  stateButtonText: {
+    color: v.text,
+    fontFamily: operatorFonts.sansMedium,
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  stateButtonPrimaryText: {
+    color: v.white,
+  },
+  stateButtonQuietText: {
+    color: v.purpleStrong,
+  },
+  skeleton: {
+    backgroundColor: v.surface,
+    borderColor: v.border,
+    borderRadius: 24,
+    borderWidth: 1,
+    flex: 1,
+    overflow: 'hidden',
+  },
+  skeletonMedia: { backgroundColor: v.surfaceStrong, flex: 1 },
+  skeletonBody: {
+    bottom: 56,
+    gap: 12,
+    left: 0,
+    padding: 18,
+    position: 'absolute',
+    right: 0,
+  },
   skeletonLine: { backgroundColor: 'rgba(255,255,255,0.18)', borderRadius: 6, height: 16 },
-  skeletonFill: { backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: theme.radii.sm, height: 56, marginTop: theme.spacing.sm },
-  loadingText: { bottom: theme.spacing.lg, color: theme.colors.muted, fontSize: theme.typography.tiny, position: 'absolute', textAlign: 'center', width: '100%' },
+  skeletonFill: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 14,
+    height: 54,
+    marginTop: 4,
+  },
+  loadingText: {
+    bottom: 16,
+    color: v.muted,
+    fontFamily: operatorFonts.sans,
+    fontSize: 12,
+    position: 'absolute',
+    textAlign: 'center',
+    width: '100%',
+  },
+  pressed: {
+    opacity: 0.72,
+  },
 });

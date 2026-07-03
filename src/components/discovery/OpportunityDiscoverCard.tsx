@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { operatorFonts, operatorVisual as v } from '@/constants/operatorTheme';
 import { theme } from '@/constants/theme';
 import {
   formatCompensation,
@@ -79,19 +80,30 @@ export function OpportunityDiscoverCard({
             </Text>
             <Text style={styles.posterType}>
               {opportunity.poster.identityType === 'business'
-                ? 'Business or project'
+                ? 'Team profile'
                 : 'Personal profile'}
             </Text>
           </View>
-          {isSaved ? (
-            <View style={styles.savedIndicator}>
-              <Ionicons color={theme.colors.white} name="bookmark" size={15} />
-            </View>
-          ) : null}
+          <View style={styles.savedIndicator}>
+            <Ionicons
+              color={isSaved ? v.purpleStrong : v.text}
+              name={isSaved ? 'bookmark' : 'bookmark-outline'}
+              size={23}
+            />
+          </View>
+        </View>
+
+        <View style={styles.statusPill}>
+          <View style={styles.statusDot} />
+          <Text style={styles.statusText}>Hiring</Text>
         </View>
 
         <Text numberOfLines={2} style={styles.title}>
           {opportunity.title}
+        </Text>
+
+        <Text numberOfLines={3} style={styles.summary}>
+          {opportunity.shortSummary}
         </Text>
 
         <View style={styles.metaRow}>
@@ -139,10 +151,6 @@ export function OpportunityDiscoverCard({
           </View>
         ) : null}
 
-        <Text numberOfLines={2} style={styles.summary}>
-          {opportunity.shortSummary}
-        </Text>
-
         {reasons.length > 0 ? (
           <View style={styles.reason}>
             <Ionicons color="#C8BEFF" name="sparkles-outline" size={14} />
@@ -168,9 +176,9 @@ function OverlayPill({ label }: { label: string }) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#26212F',
-    borderColor: theme.colors.border,
-    borderRadius: theme.radii.lg,
+    backgroundColor: v.surface,
+    borderColor: v.borderPurple,
+    borderRadius: 24,
     borderWidth: 1,
     flex: 1,
     minHeight: 390,
@@ -183,14 +191,14 @@ const styles = StyleSheet.create({
   fallback: {
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
-    backgroundColor: '#26212F',
+    backgroundColor: v.surface,
     justifyContent: 'center',
     overflow: 'hidden',
   },
   fallbackAccent: {
-    backgroundColor: theme.colors.accent,
+    backgroundColor: v.purple,
     height: '140%',
-    opacity: 0.28,
+    opacity: 0.12,
     position: 'absolute',
     right: '15%',
     transform: [{ rotate: '22deg' }],
@@ -200,20 +208,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#4462D6',
     height: '80%',
     left: '7%',
-    opacity: 0.13,
+    opacity: 0.08,
     position: 'absolute',
     transform: [{ rotate: '-18deg' }],
     width: 74,
   },
   fallbackMark: {
-    color: 'rgba(255,255,255,0.18)',
+    color: 'rgba(255,255,255,0.08)',
     fontSize: 144,
-    fontWeight: '900',
+    fontWeight: '600',
   },
   heroLogo: {
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.94)',
-    borderColor: 'rgba(255,255,255,0.72)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderColor: v.borderStrong,
     borderRadius: theme.radii.lg,
     borderWidth: 1,
     height: 144,
@@ -229,10 +237,10 @@ const styles = StyleSheet.create({
   },
   mediaWash: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(5,5,10,0.22)',
+    backgroundColor: 'rgba(5,5,10,0.45)',
   },
   fadeTop: {
-    backgroundColor: 'rgba(5,5,10,0.18)',
+    backgroundColor: 'rgba(5,5,10,0.24)',
     bottom: 0,
     height: '74%',
     left: 0,
@@ -240,7 +248,7 @@ const styles = StyleSheet.create({
     right: 0,
   },
   fadeMiddle: {
-    backgroundColor: 'rgba(5,5,10,0.23)',
+    backgroundColor: 'rgba(5,5,10,0.3)',
     bottom: 0,
     height: '60%',
     left: 0,
@@ -248,7 +256,7 @@ const styles = StyleSheet.create({
     right: 0,
   },
   fadeBottom: {
-    backgroundColor: 'rgba(5,5,10,0.38)',
+    backgroundColor: 'rgba(5,5,10,0.52)',
     bottom: 0,
     height: '46%',
     left: 0,
@@ -256,22 +264,20 @@ const styles = StyleSheet.create({
     right: 0,
   },
   content: {
-    bottom: 0,
-    gap: 7,
-    left: 0,
-    padding: theme.spacing.lg,
-    position: 'absolute',
-    right: 0,
+    flex: 1,
+    gap: 11,
+    padding: 20,
+    position: 'relative',
   },
   posterRow: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: theme.spacing.sm,
+    gap: 10,
   },
   posterMark: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderColor: 'rgba(255,255,255,0.8)',
+    backgroundColor: v.surfaceStrong,
+    borderColor: v.borderStrong,
     borderRadius: 20,
     borderWidth: 2,
     height: 40,
@@ -280,9 +286,10 @@ const styles = StyleSheet.create({
     width: 40,
   },
   posterInitial: {
-    color: theme.colors.accentStrong,
-    fontSize: theme.typography.small,
-    fontWeight: '900',
+    color: v.purpleStrong,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 14,
+    fontWeight: '600',
   },
   posterCopy: {
     flex: 1,
@@ -290,28 +297,57 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   posterName: {
-    color: theme.colors.white,
-    fontSize: theme.typography.small,
-    fontWeight: '900',
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 15,
+    fontWeight: '600',
   },
   posterType: {
-    color: 'rgba(255,255,255,0.72)',
-    fontSize: 10,
-    fontWeight: '700',
+    color: v.textSoft,
+    fontFamily: operatorFonts.sans,
+    fontSize: 12,
   },
   savedIndicator: {
     alignItems: 'center',
-    backgroundColor: 'rgba(124,92,255,0.86)',
-    borderRadius: 16,
-    height: 32,
+    backgroundColor: 'rgba(5,5,10,0.44)',
+    borderColor: v.borderStrong,
+    borderRadius: 22,
+    borderWidth: 1,
+    height: 50,
     justifyContent: 'center',
-    width: 32,
+    width: 50,
+  },
+  statusPill: {
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: v.purpleSoft,
+    borderColor: v.borderPurple,
+    borderRadius: 15,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 7,
+    minHeight: 30,
+    paddingHorizontal: 10,
+  },
+  statusDot: {
+    backgroundColor: v.purple,
+    borderRadius: 4,
+    height: 8,
+    width: 8,
+  },
+  statusText: {
+    color: v.purpleStrong,
+    fontFamily: operatorFonts.monoSemiBold,
+    fontSize: 11,
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
   title: {
-    color: theme.colors.white,
-    fontSize: 25,
-    fontWeight: '900',
-    lineHeight: 29,
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 27,
+    fontWeight: '600',
+    lineHeight: 32,
     textShadowColor: 'rgba(0,0,0,0.34)',
     textShadowOffset: { height: 1, width: 0 },
     textShadowRadius: 4,
@@ -322,43 +358,44 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   metaText: {
-    color: 'rgba(255,255,255,0.86)',
+    color: v.textSoft,
     flex: 1,
-    fontSize: theme.typography.tiny,
-    fontWeight: '700',
+    fontFamily: operatorFonts.sans,
+    fontSize: 13,
   },
   compensationRow: {
     flexDirection: 'row',
   },
   compensation: {
     alignItems: 'center',
-    backgroundColor: 'rgba(66,48,145,0.72)',
-    borderColor: 'rgba(205,196,255,0.38)',
+    backgroundColor: v.purpleSoft,
+    borderColor: v.borderPurple,
     borderRadius: theme.radii.pill,
     borderWidth: 1,
     flexDirection: 'row',
     gap: 5,
     maxWidth: '100%',
-    paddingHorizontal: 9,
-    paddingVertical: 5,
+    minHeight: 30,
+    paddingHorizontal: 10,
   },
   compensationWarning: {
     backgroundColor: 'rgba(107,62,4,0.72)',
     borderColor: 'rgba(255,210,138,0.42)',
   },
   compensationText: {
-    color: '#E4DEFF',
+    color: v.purpleStrong,
     flexShrink: 1,
-    fontSize: 11,
-    fontWeight: '900',
+    fontFamily: operatorFonts.sansMedium,
+    fontSize: 12,
+    fontWeight: '500',
   },
   compensationWarningText: {
     color: '#FFE0A8',
   },
   workMeta: {
-    color: 'rgba(255,255,255,0.84)',
-    fontSize: theme.typography.tiny,
-    fontWeight: '700',
+    color: v.textSoft,
+    fontFamily: operatorFonts.sans,
+    fontSize: 13,
   },
   skills: {
     flexDirection: 'row',
@@ -366,23 +403,25 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   skill: {
-    backgroundColor: 'rgba(8,10,18,0.54)',
-    borderColor: 'rgba(255,255,255,0.28)',
+    backgroundColor: 'rgba(8,10,18,0.56)',
+    borderColor: v.borderStrong,
     borderRadius: theme.radii.pill,
     borderWidth: 1,
     maxWidth: '31%',
-    paddingHorizontal: 9,
-    paddingVertical: 5,
+    justifyContent: 'center',
+    minHeight: 28,
+    paddingHorizontal: 10,
   },
   skillText: {
-    color: theme.colors.white,
-    fontSize: 11,
-    fontWeight: '800',
+    color: v.text,
+    fontFamily: operatorFonts.sansMedium,
+    fontSize: 12,
+    fontWeight: '500',
   },
   summary: {
-    color: theme.colors.white,
-    fontSize: theme.typography.small,
-    fontWeight: '600',
+    color: v.textSoft,
+    fontFamily: operatorFonts.sans,
+    fontSize: 14,
     lineHeight: 20,
     textShadowColor: 'rgba(0,0,0,0.3)',
     textShadowOffset: { height: 1, width: 0 },
@@ -390,13 +429,17 @@ const styles = StyleSheet.create({
   },
   reason: {
     alignItems: 'center',
+    borderTopColor: v.border,
+    borderTopWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     gap: 6,
+    marginTop: 'auto',
+    paddingTop: 12,
   },
   reasonText: {
-    color: 'rgba(255,255,255,0.8)',
+    color: v.textSoft,
     flex: 1,
+    fontFamily: operatorFonts.sans,
     fontSize: 11,
-    fontWeight: '700',
   },
 });

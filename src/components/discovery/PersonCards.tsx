@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { SaveButton } from '@/components/saved';
 import { Chip } from '@/components/ui';
+import { operatorFonts, operatorVisual as v } from '@/constants/operatorTheme';
 import { theme } from '@/constants/theme';
 import {
   availabilityOptions,
@@ -51,6 +52,10 @@ export function PersonCard({
     const statement = prompt?.answer || profile.headline || profile.bio;
     const showSmallAvatar =
       Boolean(profile.avatarUrl) && heroImage !== profile.avatarUrl;
+    const availabilityLabel = getOptionLabel(
+      availabilityOptions,
+      profile.availability,
+    );
 
     return (
       <View style={[styles.card, styles.discoverCard]}>
@@ -72,6 +77,20 @@ export function PersonCard({
         <View style={styles.fadeMiddle} />
         <View style={styles.fadeBottom} />
 
+        <View style={styles.topStatus}>
+          <View style={styles.statusDot} />
+          <Text numberOfLines={1} style={styles.topStatusText}>
+            {availabilityLabel}
+          </Text>
+        </View>
+        <View style={styles.topSave}>
+          <Ionicons
+            color={isSaved ? v.purpleStrong : v.text}
+            name={isSaved ? 'bookmark' : 'bookmark-outline'}
+            size={24}
+          />
+        </View>
+
         <View style={styles.discoverContent}>
           <View style={styles.discoverIdentity}>
             {showSmallAvatar ? (
@@ -89,19 +108,14 @@ export function PersonCard({
               </Text>
               <Text numberOfLines={1} style={styles.discoverRole}>
                 {profile.primaryRole}
-                {profile.username ? `  @${profile.username}` : ''}
+                {profile.username ? ` · @${profile.username}` : ''}
               </Text>
             </View>
-            {isSaved ? (
-              <View style={styles.savedIndicator}>
-                <Ionicons color={theme.colors.white} name="bookmark" size={15} />
-              </View>
-            ) : null}
           </View>
 
           <View style={styles.metaRow}>
             <Ionicons
-              color="rgba(255,255,255,0.82)"
+              color={v.textSoft}
               name="location-outline"
               size={15}
             />
@@ -119,12 +133,12 @@ export function PersonCard({
 
           <View style={styles.metaRow}>
             <Ionicons
-              color="rgba(255,255,255,0.82)"
+              color={v.green}
               name="time-outline"
               size={15}
             />
             <Text numberOfLines={1} style={styles.metaText}>
-              {getOptionLabel(availabilityOptions, profile.availability)}
+              {availabilityLabel}
             </Text>
           </View>
 
@@ -269,6 +283,8 @@ const styles = StyleSheet.create({
   },
   discoverCard: {
     backgroundColor: '#20222D',
+    borderColor: v.borderPurple,
+    borderRadius: 24,
     flex: 1,
     gap: 0,
     minHeight: 390,
@@ -296,7 +312,7 @@ const styles = StyleSheet.create({
   initials: {
     color: theme.colors.accentStrong,
     fontSize: theme.typography.subheading,
-    fontWeight: '900',
+    fontWeight: '600',
   },
   identity: {
     flex: 1,
@@ -306,7 +322,7 @@ const styles = StyleSheet.create({
   name: {
     color: theme.colors.text,
     fontSize: theme.typography.subheading,
-    fontWeight: '900',
+    fontWeight: '600',
   },
   username: {
     color: theme.colors.muted,
@@ -318,7 +334,7 @@ const styles = StyleSheet.create({
   role: {
     color: theme.colors.accentStrong,
     fontSize: theme.typography.small,
-    fontWeight: '800',
+    fontWeight: '600',
   },
   headline: {
     color: theme.colors.textSoft,
@@ -359,14 +375,14 @@ const styles = StyleSheet.create({
   fallbackInitials: {
     color: 'rgba(255,255,255,0.2)',
     fontSize: 116,
-    fontWeight: '900',
+    fontWeight: '600',
   },
   mediaShade: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(4,5,10,0.12)',
+    backgroundColor: 'rgba(4,5,10,0.18)',
   },
   fadeTop: {
-    backgroundColor: 'rgba(4,5,10,0.16)',
+    backgroundColor: 'rgba(4,5,10,0.18)',
     bottom: 0,
     height: '72%',
     left: 0,
@@ -374,7 +390,7 @@ const styles = StyleSheet.create({
     right: 0,
   },
   fadeMiddle: {
-    backgroundColor: 'rgba(4,5,10,0.22)',
+    backgroundColor: 'rgba(4,5,10,0.26)',
     bottom: 0,
     height: '58%',
     left: 0,
@@ -382,7 +398,7 @@ const styles = StyleSheet.create({
     right: 0,
   },
   fadeBottom: {
-    backgroundColor: 'rgba(4,5,10,0.36)',
+    backgroundColor: 'rgba(4,5,10,0.52)',
     bottom: 0,
     height: '44%',
     left: 0,
@@ -391,16 +407,56 @@ const styles = StyleSheet.create({
   },
   discoverContent: {
     bottom: 0,
-    gap: 7,
+    gap: 10,
     left: 0,
-    padding: theme.spacing.lg,
+    padding: 20,
     position: 'absolute',
     right: 0,
   },
   discoverIdentity: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: theme.spacing.sm,
+    gap: 10,
+  },
+  topStatus: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(5,5,10,0.66)',
+    borderColor: v.border,
+    borderRadius: 16,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 7,
+    left: 18,
+    minHeight: 32,
+    paddingHorizontal: 11,
+    position: 'absolute',
+    top: 18,
+  },
+  statusDot: {
+    backgroundColor: v.green,
+    borderRadius: 5,
+    height: 9,
+    width: 9,
+  },
+  topStatusText: {
+    color: v.text,
+    fontFamily: operatorFonts.sansMedium,
+    fontSize: 13,
+    fontWeight: '500',
+    maxWidth: 140,
+  },
+  topSave: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(5,5,10,0.44)',
+    borderColor: v.borderStrong,
+    borderRadius: 22,
+    borderWidth: 1,
+    height: 50,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: 18,
+    top: 18,
+    width: 50,
   },
   smallAvatar: {
     backgroundColor: theme.colors.surfaceMuted,
@@ -412,25 +468,19 @@ const styles = StyleSheet.create({
     width: 48,
   },
   discoverName: {
-    color: theme.colors.white,
-    fontSize: 24,
-    fontWeight: '900',
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 30,
+    fontWeight: '600',
+    lineHeight: 35,
     textShadowColor: 'rgba(0,0,0,0.35)',
     textShadowOffset: { height: 1, width: 0 },
     textShadowRadius: 4,
   },
   discoverRole: {
-    color: 'rgba(255,255,255,0.86)',
-    fontSize: theme.typography.small,
-    fontWeight: '700',
-  },
-  savedIndicator: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(124,92,255,0.86)',
-    borderRadius: 16,
-    height: 32,
-    justifyContent: 'center',
-    width: 32,
+    color: v.textSoft,
+    fontFamily: operatorFonts.sans,
+    fontSize: 14,
   },
   metaRow: {
     alignItems: 'center',
@@ -439,13 +489,13 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   metaText: {
-    color: 'rgba(255,255,255,0.88)',
+    color: v.textSoft,
     flexShrink: 1,
-    fontSize: theme.typography.tiny,
-    fontWeight: '700',
+    fontFamily: operatorFonts.sans,
+    fontSize: 13,
   },
   metaDot: {
-    backgroundColor: 'rgba(255,255,255,0.55)',
+    backgroundColor: v.muted,
     borderRadius: 2,
     height: 3,
     width: 3,
@@ -456,27 +506,29 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   overlayPill: {
-    backgroundColor: 'rgba(8,10,18,0.54)',
-    borderColor: 'rgba(255,255,255,0.28)',
+    backgroundColor: 'rgba(8,10,18,0.56)',
+    borderColor: v.borderStrong,
     borderRadius: theme.radii.pill,
     borderWidth: 1,
     maxWidth: '42%',
-    paddingHorizontal: 9,
-    paddingVertical: 5,
+    justifyContent: 'center',
+    minHeight: 28,
+    paddingHorizontal: 10,
   },
   overlayPillAccent: {
-    backgroundColor: 'rgba(104,67,244,0.72)',
-    borderColor: 'rgba(210,201,255,0.55)',
+    backgroundColor: v.purpleSoft,
+    borderColor: v.borderPurple,
   },
   overlayPillText: {
-    color: theme.colors.white,
-    fontSize: 11,
-    fontWeight: '800',
+    color: v.text,
+    fontFamily: operatorFonts.sansMedium,
+    fontSize: 12,
+    fontWeight: '500',
   },
   discoverStatement: {
-    color: theme.colors.white,
-    fontSize: theme.typography.small,
-    fontWeight: '600',
+    color: v.text,
+    fontFamily: operatorFonts.sans,
+    fontSize: 14,
     lineHeight: 20,
     textShadowColor: 'rgba(0,0,0,0.32)',
     textShadowOffset: { height: 1, width: 0 },
@@ -484,15 +536,18 @@ const styles = StyleSheet.create({
   },
   reason: {
     alignItems: 'center',
+    borderTopColor: v.border,
+    borderTopWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     gap: 6,
-    marginTop: 1,
+    marginTop: 2,
+    paddingTop: 10,
   },
   reasonText: {
-    color: 'rgba(255,255,255,0.82)',
+    color: v.textSoft,
     flex: 1,
+    fontFamily: operatorFonts.sans,
     fontSize: 11,
-    fontWeight: '700',
   },
   pressed: {
     opacity: 0.8,

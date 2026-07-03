@@ -20,6 +20,7 @@ import {
   View,
 } from 'react-native';
 
+import { operatorFonts, operatorVisual as v } from '@/constants/operatorTheme';
 import { theme } from '@/constants/theme';
 
 export type DiscoverDeckAction =
@@ -39,10 +40,9 @@ type DiscoverDeckProps = PropsWithChildren<{
     action: DiscoverDeckAction,
   ) => Promise<boolean | void> | boolean | void;
   onDismiss: () => void;
-  onJiggleComplete?: () => void;
   onUndo?: () => void;
   primaryActionLabel: string;
-  shouldJiggle?: boolean;
+  jiggleImmediately?: boolean;
 }>;
 
 const HORIZONTAL_THRESHOLD = 88;
@@ -57,17 +57,16 @@ export function DiscoverDeck({
   nextCard,
   onAction,
   onDismiss,
-  onJiggleComplete,
   onUndo,
   primaryActionLabel,
-  shouldJiggle,
+  jiggleImmediately,
 }: DiscoverDeckProps) {
   const { width } = useWindowDimensions();
   const position = useRef(new Animated.ValueXY()).current;
   const jiggleX = useRef(new Animated.Value(0)).current;
-  const jiggleDelay = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const jiggleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const jiggleAnimation = useRef<Animated.CompositeAnimation | null>(null);
-  const jiggleFinished = useRef(false);
+  const immediateJigglePlayedFor = useRef<string | null>(null);
   const threshold = useRef<DiscoverDeckAction | null>(null);
   const [isActing, setIsActing] = useState(false);
   const [reduceMotion, setReduceMotion] = useState<boolean | null>(null);
@@ -91,22 +90,59 @@ export function DiscoverDeck({
     };
   }, []);
 
-  const finishJiggle = useCallback(() => {
-    if (jiggleFinished.current) return;
-    jiggleFinished.current = true;
-    onJiggleComplete?.();
-  }, [onJiggleComplete]);
+  const clearJiggleTimer = useCallback(() => {
+    if (jiggleTimer.current) {
+      clearTimeout(jiggleTimer.current);
+      jiggleTimer.current = null;
+    }
+  }, []);
 
   const cancelJiggle = useCallback(() => {
-    if (jiggleDelay.current) {
-      clearTimeout(jiggleDelay.current);
-      jiggleDelay.current = null;
-    }
+    clearJiggleTimer();
     jiggleAnimation.current?.stop();
     jiggleAnimation.current = null;
     jiggleX.setValue(0);
-    if (shouldJiggle) finishJiggle();
-  }, [finishJiggle, jiggleX, shouldJiggle]);
+  }, [clearJiggleTimer, jiggleX]);
+
+  const runJiggle = useCallback(
+    (onComplete?: () => void) => {
+      clearJiggleTimer();
+      jiggleAnimation.current?.stop();
+      jiggleX.setValue(0);
+
+      const sequence = Animated.sequence([
+        Animated.timing(jiggleX, {
+          duration: 105,
+          toValue: 10,
+          useNativeDriver: true,
+        }),
+        Animated.timing(jiggleX, {
+          duration: 115,
+          toValue: -8,
+          useNativeDriver: true,
+        }),
+        Animated.timing(jiggleX, {
+          duration: 95,
+          toValue: 5,
+          useNativeDriver: true,
+        }),
+        Animated.spring(jiggleX, {
+          friction: 7,
+          tension: 92,
+          toValue: 0,
+          useNativeDriver: true,
+        }),
+      ]);
+
+      jiggleAnimation.current = sequence;
+      sequence.start(({ finished }) => {
+        jiggleAnimation.current = null;
+        jiggleX.setValue(0);
+        if (finished) onComplete?.();
+      });
+    },
+    [clearJiggleTimer, jiggleX],
+  );
 
   useEffect(() => {
     position.setValue({ x: 0, y: 0 });
@@ -115,47 +151,50 @@ export function DiscoverDeck({
   }, [cardKey, position]);
 
   useEffect(() => {
-    if (!shouldJiggle || reduceMotion !== false || jiggleFinished.current) return;
+    if (reduceMotion !== false || isActing) {
+      cancelJiggle();
+      return undefined;
+    }
 
-    jiggleDelay.current = setTimeout(() => {
-      const sequence = Animated.sequence([
-        Animated.timing(jiggleX, {
-          duration: 180,
-          toValue: 9,
-          useNativeDriver: true,
-        }),
-        Animated.timing(jiggleX, {
-          duration: 240,
-          toValue: -7,
-          useNativeDriver: true,
-        }),
-        Animated.spring(jiggleX, {
-          friction: 7,
-          tension: 70,
-          toValue: 0,
-          useNativeDriver: true,
-        }),
-      ]);
-      jiggleAnimation.current = sequence;
-      sequence.start(({ finished }) => {
-        jiggleAnimation.current = null;
-        jiggleX.setValue(0);
-        if (finished) finishJiggle();
+    let active = true;
+    const scheduleNextJiggle = () => {
+      clearJiggleTimer();
+      jiggleTimer.current = setTimeout(() => {
+        if (!active) return;
+        runJiggle(() => {
+          if (active) scheduleNextJiggle();
+        });
+      }, 5000);
+    };
+    const shouldRunImmediate =
+      jiggleImmediately === true && immediateJigglePlayedFor.current !== cardKey;
+
+    if (shouldRunImmediate) {
+      immediateJigglePlayedFor.current = cardKey;
+      runJiggle(() => {
+        if (active) scheduleNextJiggle();
       });
-    }, 5000 + Math.round(Math.random() * 1800));
+    } else {
+      scheduleNextJiggle();
+    }
 
     return () => {
-      if (jiggleDelay.current) clearTimeout(jiggleDelay.current);
+      active = false;
+      clearJiggleTimer();
       jiggleAnimation.current?.stop();
-      jiggleDelay.current = null;
       jiggleAnimation.current = null;
       jiggleX.setValue(0);
     };
-  }, [finishJiggle, jiggleX, reduceMotion, shouldJiggle]);
-
-  useEffect(() => {
-    if (shouldJiggle && reduceMotion === true) finishJiggle();
-  }, [finishJiggle, reduceMotion, shouldJiggle]);
+  }, [
+    cancelJiggle,
+    cardKey,
+    clearJiggleTimer,
+    isActing,
+    jiggleImmediately,
+    jiggleX,
+    reduceMotion,
+    runJiggle,
+  ]);
 
   const rotate = position.x.interpolate({
     inputRange: [-width, 0, width],
@@ -163,8 +202,8 @@ export function DiscoverDeck({
     extrapolate: 'clamp',
   });
   const jiggleRotate = jiggleX.interpolate({
-    inputRange: [-12, 0, 12],
-    outputRange: ['-1.4deg', '0deg', '1.4deg'],
+    inputRange: [-10, 0, 10],
+    outputRange: ['-1.5deg', '0deg', '1.5deg'],
     extrapolate: 'clamp',
   });
   const passOpacity = position.x.interpolate({
@@ -182,6 +221,10 @@ export function DiscoverDeck({
     outputRange: [1, 0.28, 0],
     extrapolate: 'clamp',
   });
+  const primaryIcon: keyof typeof Ionicons.glyphMap =
+    primaryActionLabel.toLowerCase() === 'apply'
+      ? 'briefcase-outline'
+      : 'paper-plane-outline';
 
   const reset = useCallback(() => {
     threshold.current = null;
@@ -324,8 +367,48 @@ export function DiscoverDeck({
         </Animated.View>
       </View>
 
+      <View style={styles.actions}>
+        <ActionButton
+          accessibilityHint="Passes this card"
+          color="#FF5D79"
+          icon="close"
+          label="Pass"
+          disabled={isActing}
+          onPress={() => void act('pass')}
+          tone="pass"
+        />
+        <ActionButton
+          accessibilityHint={`Opens the ${primaryActionLabel} review`}
+          color={v.white}
+          icon={primaryIcon}
+          label={primaryActionLabel}
+          disabled={isActing}
+          onPress={() => void act('primaryAction')}
+          tone="primary"
+        />
+        <ActionButton
+          accessibilityHint="Saves this privately"
+          color={isSaved ? v.white : v.purpleStrong}
+          icon={isSaved ? 'bookmark' : 'bookmark-outline'}
+          label={isSaved ? 'Saved privately' : 'Save privately'}
+          disabled={isActing}
+          onPress={() => void act('save')}
+          tone={isSaved ? 'saved' : 'save'}
+        />
+        <ActionButton
+          accessibilityHint="Opens the native share sheet"
+          color={v.textSoft}
+          icon="share-outline"
+          label="Share"
+          disabled={isActing}
+          onPress={() => void act('share')}
+          tone="share"
+        />
+      </View>
+
       {canUndo ? (
         <View accessibilityLiveRegion="polite" style={styles.undoToast}>
+          <Ionicons color={v.textSoft} name="return-up-back-outline" size={15} />
           <Text style={styles.undoMessage}>Passed</Text>
           <Pressable
             accessibilityLabel="Undo last pass"
@@ -336,45 +419,6 @@ export function DiscoverDeck({
           </Pressable>
         </View>
       ) : null}
-
-      <View style={styles.actions}>
-        <ActionButton
-          accessibilityHint="Passes this card"
-          color={theme.colors.danger}
-          icon="close"
-          label="Pass"
-          disabled={isActing}
-          onPress={() => void act('pass')}
-          tone="pass"
-        />
-        <ActionButton
-          accessibilityHint={`Opens the ${primaryActionLabel} review`}
-          color={theme.colors.white}
-          icon="paper-plane"
-          label={primaryActionLabel}
-          disabled={isActing}
-          onPress={() => void act('primaryAction')}
-          tone="primary"
-        />
-        <ActionButton
-          accessibilityHint="Saves this privately"
-          color={isSaved ? theme.colors.white : theme.colors.accentStrong}
-          icon={isSaved ? 'bookmark' : 'bookmark-outline'}
-          label={isSaved ? 'Saved privately' : 'Save privately'}
-          disabled={isActing}
-          onPress={() => void act('save')}
-          tone={isSaved ? 'saved' : 'save'}
-        />
-        <ActionButton
-          accessibilityHint="Opens the native share sheet"
-          color={theme.colors.text}
-          icon="share-outline"
-          label="Share"
-          disabled={isActing}
-          onPress={() => void act('share')}
-          tone="share"
-        />
-      </View>
     </View>
   );
 }
@@ -417,23 +461,23 @@ function ActionButton({
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
-    gap: theme.spacing.md,
+    gap: 12,
     position: 'relative',
   },
   stack: {
     flex: 1,
     minHeight: 390,
-    paddingBottom: 6,
+    paddingBottom: 2,
     position: 'relative',
   },
   nextCard: {
-    bottom: 0,
-    left: 5,
-    opacity: 0.24,
+    bottom: 3,
+    left: 18,
+    opacity: 0.34,
     position: 'absolute',
-    right: 5,
-    top: 8,
-    transform: [{ scale: 0.985 }],
+    right: -10,
+    top: 12,
+    transform: [{ rotate: '2.2deg' }, { scale: 0.97 }],
     zIndex: 0,
   },
   jiggleLayer: {
@@ -447,93 +491,109 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   passOverlay: {
-    backgroundColor: 'rgba(255,243,243,0.94)',
-    borderColor: theme.colors.danger,
-    borderRadius: theme.radii.sm,
-    borderWidth: 2,
-    left: theme.spacing.lg,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
+    backgroundColor: 'rgba(20,10,16,0.86)',
+    borderColor: 'rgba(255,93,121,0.55)',
+    borderRadius: 15,
+    borderWidth: 1,
+    left: 18,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     position: 'absolute',
-    top: theme.spacing.lg,
+    top: 18,
     transform: [{ rotate: '-8deg' }],
     zIndex: 5,
   },
   saveOverlay: {
-    backgroundColor: 'rgba(240,236,255,0.96)',
-    borderColor: theme.colors.accent,
-    borderRadius: theme.radii.sm,
-    borderWidth: 2,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
+    backgroundColor: 'rgba(18,13,32,0.88)',
+    borderColor: v.borderPurple,
+    borderRadius: 15,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     position: 'absolute',
-    right: theme.spacing.lg,
-    top: theme.spacing.lg,
+    right: 18,
+    top: 18,
     transform: [{ rotate: '8deg' }],
     zIndex: 5,
   },
   passOverlayText: {
-    color: theme.colors.danger,
-    fontSize: theme.typography.subheading,
-    fontWeight: '900',
+    color: '#FF5D79',
+    fontFamily: operatorFonts.monoSemiBold,
+    fontSize: 13,
+    fontWeight: '600',
   },
   saveOverlayText: {
-    color: theme.colors.accentStrong,
-    fontSize: theme.typography.subheading,
-    fontWeight: '900',
+    color: v.purpleStrong,
+    fontFamily: operatorFonts.monoSemiBold,
+    fontSize: 13,
+    fontWeight: '600',
   },
   primaryOverlay: {
     alignItems: 'center',
     alignSelf: 'center',
-    backgroundColor: 'rgba(8,10,18,0.86)',
-    borderRadius: theme.radii.pill,
+    backgroundColor: 'rgba(8,10,18,0.88)',
+    borderColor: v.borderPurple,
+    borderRadius: 16,
+    borderWidth: 1,
     flexDirection: 'row',
     gap: 5,
-    paddingHorizontal: theme.spacing.md,
+    paddingHorizontal: 12,
     paddingVertical: 8,
     position: 'absolute',
-    top: theme.spacing.md,
+    top: 14,
     zIndex: 6,
   },
   primaryOverlayText: {
     color: theme.colors.white,
-    fontSize: theme.typography.small,
-    fontWeight: '900',
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 13,
+    fontWeight: '600',
   },
   actions: {
     alignItems: 'center',
+    alignSelf: 'center',
+    backgroundColor: 'rgba(12,13,20,0.86)',
+    borderColor: v.border,
+    borderRadius: 38,
+    borderWidth: 1,
     flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    minHeight: 60,
+    gap: 14,
+    justifyContent: 'center',
+    minHeight: 74,
+    paddingHorizontal: 14,
+    width: '100%',
   },
   action: {
     alignItems: 'center',
-    borderRadius: 28,
+    borderColor: v.borderStrong,
+    borderRadius: 25,
     borderWidth: 1,
-    height: 56,
+    height: 50,
     justifyContent: 'center',
-    width: 56,
-    ...theme.shadows.card,
+    width: 50,
   },
   passAction: {
-    backgroundColor: '#FFF6F5',
-    borderColor: '#F0CECB',
+    backgroundColor: 'rgba(255,93,121,0.08)',
+    borderColor: 'rgba(255,93,121,0.24)',
   },
   primaryAction: {
-    backgroundColor: theme.colors.accent,
-    borderColor: theme.colors.accent,
+    backgroundColor: v.purple,
+    borderColor: 'rgba(167,139,250,0.72)',
+    borderRadius: 34,
+    height: 64,
+    width: 64,
   },
   saveAction: {
-    backgroundColor: theme.colors.accentSoft,
-    borderColor: '#D8CEFF',
+    backgroundColor: 'rgba(139,92,246,0.08)',
+    borderColor: v.borderPurple,
   },
   savedAction: {
-    backgroundColor: theme.colors.accentStrong,
-    borderColor: theme.colors.accentStrong,
+    backgroundColor: v.purple,
+    borderColor: v.purple,
   },
   shareAction: {
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
+    backgroundColor: 'rgba(255,255,255,0.035)',
+    borderColor: v.border,
   },
   pressed: {
     opacity: 0.72,
@@ -545,25 +605,26 @@ const styles = StyleSheet.create({
   undoToast: {
     alignItems: 'center',
     alignSelf: 'center',
-    backgroundColor: 'rgba(8,10,18,0.94)',
-    borderRadius: theme.radii.pill,
-    bottom: 72,
+    backgroundColor: 'rgba(16,16,24,0.94)',
+    borderColor: v.border,
+    borderRadius: 18,
+    borderWidth: 1,
     flexDirection: 'row',
-    gap: theme.spacing.lg,
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.sm,
-    position: 'absolute',
+    gap: 10,
+    minHeight: 36,
+    paddingHorizontal: 14,
     zIndex: 10,
   },
   undoMessage: {
-    color: theme.colors.white,
-    fontSize: theme.typography.small,
-    fontWeight: '700',
+    color: v.text,
+    fontFamily: operatorFonts.sans,
+    fontSize: 13,
   },
   undoLabel: {
-    color: '#BFB2FF',
-    fontSize: theme.typography.small,
-    fontWeight: '900',
+    color: v.purpleStrong,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 13,
+    fontWeight: '600',
   },
   undoPressed: {
     opacity: 0.65,

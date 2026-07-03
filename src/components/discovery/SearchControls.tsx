@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { operatorFonts, operatorVisual as v } from '@/constants/operatorTheme';
 import { theme } from '@/constants/theme';
 
 export function SearchBar({
@@ -55,11 +56,15 @@ export function FilterButton({
   compact,
   count,
   onPress,
+  variant = 'default',
 }: {
   compact?: boolean;
   count: number;
   onPress: () => void;
+  variant?: 'default' | 'operator';
 }) {
+  const operator = variant === 'operator';
+
   return (
     <Pressable
       accessibilityLabel={
@@ -70,20 +75,32 @@ export function FilterButton({
       style={({ pressed }) => [
         styles.filter,
         compact && styles.compactFilter,
+        operator && styles.operatorFilter,
         count > 0 && styles.active,
+        operator && count > 0 && styles.operatorActive,
         pressed && styles.pressed,
       ]}>
       <Ionicons
-        color={count > 0 ? theme.colors.accentStrong : theme.colors.text}
+        color={
+          operator
+            ? count > 0
+              ? v.purpleStrong
+              : v.text
+            : count > 0
+              ? theme.colors.accentStrong
+              : theme.colors.text
+        }
         name="options-outline"
-        size={theme.icons.standard}
+        size={operator ? 19 : theme.icons.standard}
       />
       {!compact ? (
         <Text style={[styles.filterLabel, count > 0 && styles.activeLabel]}>
           Filters
         </Text>
       ) : null}
-      {count > 0 ? (
+      {operator && compact && count > 0 ? (
+        <View style={styles.operatorDot} />
+      ) : count > 0 ? (
         <View style={[styles.count, compact && styles.compactCount]}>
           <Text style={styles.countLabel}>{count}</Text>
         </View>
@@ -134,6 +151,10 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.accentSoft,
     borderColor: '#D8CEFF',
   },
+  operatorActive: {
+    backgroundColor: v.surface,
+    borderColor: v.borderPurple,
+  },
   compactFilter: {
     alignSelf: 'center',
     borderRadius: 22,
@@ -143,10 +164,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
     width: 44,
   },
+  operatorFilter: {
+    backgroundColor: v.surface,
+    borderColor: v.borderStrong,
+    borderRadius: 16,
+    height: 42,
+    minHeight: 42,
+    width: 42,
+  },
   filterLabel: {
     color: theme.colors.text,
     fontSize: theme.typography.small,
-    fontWeight: '800',
+    fontFamily: operatorFonts.sansSemiBold,
+    fontWeight: '600',
   },
   activeLabel: {
     color: theme.colors.accentStrong,
@@ -172,7 +202,18 @@ const styles = StyleSheet.create({
   countLabel: {
     color: theme.colors.white,
     fontSize: theme.typography.tiny,
-    fontWeight: '900',
+    fontWeight: '600',
+  },
+  operatorDot: {
+    backgroundColor: v.purple,
+    borderColor: v.surface,
+    borderRadius: 6,
+    borderWidth: 2,
+    height: 12,
+    position: 'absolute',
+    right: -3,
+    top: -3,
+    width: 12,
   },
   pressed: {
     opacity: 0.7,
