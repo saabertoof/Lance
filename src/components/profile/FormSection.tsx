@@ -29,12 +29,14 @@ const styles = StyleSheet.create({
   },
   title: {
     color: theme.colors.text,
-    fontSize: theme.typography.subheading,
-    fontWeight: '800',
+    fontFamily: theme.typography.familyMonoSemiBold,
+    fontSize: theme.typography.caption,
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
   },
   description: {
     color: theme.colors.muted,
     fontSize: theme.typography.small,
-    lineHeight: 20,
+    lineHeight: 19,
   },
 });

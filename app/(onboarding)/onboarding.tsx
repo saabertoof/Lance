@@ -182,7 +182,7 @@ export default function OnboardingScreen() {
             accessibilityLabel="Lance"
             contentFit="contain"
             source={require('../../assets/images/lance_wordmark_transparent.png')}
-            style={styles.logo}
+            style={[styles.logo, styles.logoTint]}
           />
           <Text style={styles.display}>Find people worth building with.</Text>
           <Text style={styles.subtitle}>
@@ -288,10 +288,13 @@ const styles = StyleSheet.create({
     height: 42,
     width: 140,
   },
+  logoTint: {
+    tintColor: theme.colors.text,
+  },
   display: {
     color: theme.colors.text,
+    fontFamily: theme.typography.familySemiBold,
     fontSize: theme.typography.display,
-    fontWeight: '900',
     lineHeight: 42,
   },
   header: {
@@ -299,13 +302,14 @@ const styles = StyleSheet.create({
   },
   title: {
     color: theme.colors.text,
+    fontFamily: theme.typography.familySemiBold,
     fontSize: theme.typography.title,
-    fontWeight: '900',
+    letterSpacing: -0.4,
   },
   subtitle: {
     color: theme.colors.muted,
-    fontSize: theme.typography.body,
-    lineHeight: 24,
+    fontSize: theme.typography.small,
+    lineHeight: 20,
   },
   optionList: {
     gap: theme.spacing.md,
@@ -319,8 +323,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   error: {
-    backgroundColor: '#FFF3F3',
-    borderColor: '#FFD7D7',
+    backgroundColor: 'rgba(255,107,107,0.1)',
+    borderColor: 'rgba(255,107,107,0.24)',
     borderRadius: theme.radii.md,
     borderWidth: 1,
     color: theme.colors.danger,

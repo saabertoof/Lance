@@ -132,8 +132,8 @@ const styles = StyleSheet.create({
   },
   mark: {
     color: theme.colors.accentStrong,
+    fontFamily: theme.typography.familySemiBold,
     fontSize: theme.typography.body,
-    fontWeight: '900',
   },
   copy: {
     flex: 1,
@@ -141,8 +141,8 @@ const styles = StyleSheet.create({
   },
   label: {
     color: theme.colors.text,
-    fontSize: theme.typography.body,
-    fontWeight: '800',
+    fontFamily: theme.typography.familySemiBold,
+    fontSize: theme.typography.small,
   },
   meta: {
     color: theme.colors.muted,
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
   createLabel: {
     color: theme.colors.accentStrong,
     fontSize: theme.typography.small,
-    fontWeight: '800',
+    fontFamily: theme.typography.familySemiBold,
   },
   pressed: {
     opacity: 0.7,

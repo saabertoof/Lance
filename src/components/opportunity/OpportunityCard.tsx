@@ -166,8 +166,8 @@ const styles = StyleSheet.create({
   },
   mark: {
     color: theme.colors.accentStrong,
+    fontFamily: theme.typography.familySemiBold,
     fontSize: theme.typography.body,
-    fontWeight: '900',
   },
   posterCopy: {
     flex: 1,
@@ -175,8 +175,8 @@ const styles = StyleSheet.create({
   },
   poster: {
     color: theme.colors.text,
+    fontFamily: theme.typography.familySemiBold,
     fontSize: theme.typography.small,
-    fontWeight: '800',
   },
   identity: {
     color: theme.colors.muted,
@@ -190,8 +190,8 @@ const styles = StyleSheet.create({
   title: {
     color: theme.colors.text,
     flex: 1,
+    fontFamily: theme.typography.familySemiBold,
     fontSize: theme.typography.heading,
-    fontWeight: '900',
   },
   summary: {
     color: theme.colors.textSoft,

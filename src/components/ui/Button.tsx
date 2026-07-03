@@ -49,7 +49,9 @@ export function Button({
         style,
       ]}>
       {loading ? (
-        <ActivityIndicator color={variant === 'primary' ? theme.colors.white : theme.colors.accent} />
+        <ActivityIndicator
+          color={variant === 'primary' ? theme.colors.white : theme.colors.accentStrong}
+        />
       ) : (
         <Text style={[styles.label, styles[`${variant}Label`], labelStyle]}>{label}</Text>
       )}
@@ -67,33 +69,35 @@ const styles = StyleSheet.create({
     paddingVertical: theme.spacing.sm,
   },
   primary: {
-    backgroundColor: theme.colors.text,
+    backgroundColor: theme.colors.accent,
+    borderColor: 'rgba(167,139,250,0.55)',
+    borderWidth: 1,
   },
   secondary: {
-    backgroundColor: theme.colors.accentSoft,
-    borderColor: theme.colors.accentSoft,
+    backgroundColor: theme.colors.chip,
+    borderColor: theme.colors.border,
     borderWidth: 1,
   },
   ghost: {
     backgroundColor: 'transparent',
   },
   danger: {
-    backgroundColor: '#FFF1F1',
-    borderColor: '#FFD4D4',
+    backgroundColor: 'rgba(255,107,107,0.09)',
+    borderColor: 'rgba(255,107,107,0.22)',
     borderWidth: 1,
   },
   label: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontFamily: theme.typography.familySemiBold,
+    fontSize: 14,
   },
   primaryLabel: {
     color: theme.colors.white,
   },
   secondaryLabel: {
-    color: theme.colors.accentStrong,
+    color: theme.colors.text,
   },
   ghostLabel: {
-    color: theme.colors.text,
+    color: theme.colors.textSoft,
   },
   dangerLabel: {
     color: theme.colors.danger,

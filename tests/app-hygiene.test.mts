@@ -12,11 +12,12 @@ test('package metadata does not include the accidental undefined dependency', as
   assert.doesNotMatch(packageLock, /"node_modules\/undefined"|"undefined":\s*"\.npm-cache"/);
 });
 
-test('Settings does not expose disabled staged appearance controls', async () => {
+test('Settings exposes the current dark appearance truth without staged controls', async () => {
   const source = await readFile('app/profile/settings.tsx', 'utf8');
 
   assert.doesNotMatch(source, /SegmentedSetting|segmentSoon|Staged|Coming soon|Not available yet/);
-  assert.match(source, /value="Light"/);
+  assert.match(source, /value="Dark"/);
+  assert.doesNotMatch(source, /value="Light"/);
 });
 
 test('creator-facing create and profile code uses opportunity naming', async () => {

@@ -18,7 +18,7 @@ export function AuthFormShell({ children, footer, subtitle, title }: AuthFormShe
           accessibilityLabel="Lance"
           resizeMode="contain"
           source={require('../../../assets/images/lance_wordmark_transparent.png')}
-          style={styles.wordmark}
+          style={[styles.wordmark, styles.wordmarkTint]}
         />
       </View>
 
@@ -46,19 +46,23 @@ const styles = StyleSheet.create({
     width: 170,
     height: 54,
   },
+  wordmarkTint: {
+    tintColor: theme.colors.text,
+  },
   copy: {
     gap: theme.spacing.sm,
   },
   title: {
     color: theme.colors.text,
     fontSize: theme.typography.title,
-    fontWeight: '800',
+    fontFamily: theme.typography.familySemiBold,
+    letterSpacing: -0.4,
     textAlign: 'center',
   },
   subtitle: {
     color: theme.colors.muted,
-    fontSize: theme.typography.body,
-    lineHeight: 23,
+    fontSize: theme.typography.small,
+    lineHeight: 20,
     textAlign: 'center',
   },
   form: {

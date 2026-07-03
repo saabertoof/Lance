@@ -343,7 +343,13 @@ function CountryModal({
 const styles = StyleSheet.create({
   wrapper: { gap: theme.spacing.sm },
   labelRow: { gap: 2 },
-  label: { color: theme.colors.text, fontSize: theme.typography.small, fontWeight: '800' },
+  label: {
+    color: theme.colors.textSoft,
+    fontFamily: theme.typography.familyMonoSemiBold,
+    fontSize: theme.typography.caption,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
   helper: { color: theme.colors.muted, fontSize: theme.typography.tiny, lineHeight: 17 },
   legacy: {
     alignItems: 'flex-start',
@@ -367,14 +373,16 @@ const styles = StyleSheet.create({
   regionGroup: { gap: theme.spacing.xs, width: 92 },
   fieldLabel: {
     color: theme.colors.muted,
+    fontFamily: theme.typography.familyMonoSemiBold,
     fontSize: theme.typography.caption,
-    fontWeight: '800',
+    letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
   input: {
     backgroundColor: theme.colors.surfaceMuted,
     borderRadius: theme.radii.sm,
     color: theme.colors.text,
+    fontFamily: theme.typography.family,
     fontSize: theme.typography.small,
     minHeight: theme.layout.minTouchTarget,
     paddingHorizontal: theme.spacing.md,
@@ -391,8 +399,16 @@ const styles = StyleSheet.create({
   },
   countryFlag: { fontSize: 20, width: 28 },
   countryCopy: { flex: 1, gap: 2, minWidth: 0 },
-  countryText: { color: theme.colors.text, fontSize: theme.typography.small, fontWeight: '800' },
-  countryCode: { color: theme.colors.muted, fontSize: theme.typography.caption, fontWeight: '800' },
+  countryText: {
+    color: theme.colors.text,
+    fontFamily: theme.typography.familySemiBold,
+    fontSize: theme.typography.small,
+  },
+  countryCode: {
+    color: theme.colors.muted,
+    fontFamily: theme.typography.familyMonoMedium,
+    fontSize: theme.typography.caption,
+  },
   preview: {
     alignItems: 'center',
     backgroundColor: theme.colors.accentSoft,
@@ -406,7 +422,7 @@ const styles = StyleSheet.create({
     color: theme.colors.accentStrong,
     flex: 1,
     fontSize: theme.typography.small,
-    fontWeight: '900',
+    fontFamily: theme.typography.familySemiBold,
   },
   clear: {
     alignItems: 'center',
@@ -416,6 +432,7 @@ const styles = StyleSheet.create({
   },
   search: {
     alignItems: 'center',
+    backgroundColor: theme.colors.surface,
     borderColor: theme.colors.border,
     borderRadius: theme.radii.md,
     borderWidth: 1,
@@ -424,7 +441,12 @@ const styles = StyleSheet.create({
     minHeight: theme.layout.inputHeight,
     paddingHorizontal: theme.spacing.md,
   },
-  searchInput: { color: theme.colors.text, flex: 1, fontSize: theme.typography.small },
+  searchInput: {
+    color: theme.colors.text,
+    flex: 1,
+    fontFamily: theme.typography.family,
+    fontSize: theme.typography.small,
+  },
   results: { borderColor: theme.colors.border, borderRadius: theme.radii.md, borderWidth: 1, overflow: 'hidden' },
   result: {
     alignItems: 'center',
@@ -445,7 +467,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.layout.screenPadding,
     paddingVertical: theme.spacing.lg,
   },
-  modalTitle: { color: theme.colors.text, fontSize: theme.typography.heading, fontWeight: '900' },
+  modalTitle: {
+    color: theme.colors.text,
+    fontFamily: theme.typography.familySemiBold,
+    fontSize: theme.typography.heading,
+    letterSpacing: -0.3,
+  },
   modalSubtitle: { color: theme.colors.muted, fontSize: theme.typography.small, marginTop: 2 },
   closeButton: {
     alignItems: 'center',

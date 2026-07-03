@@ -51,8 +51,8 @@ const styles = StyleSheet.create({
   label: {
     color: theme.colors.text,
     flex: 1,
-    fontSize: theme.typography.body,
-    fontWeight: '700',
+    fontFamily: theme.typography.familySemiBold,
+    fontSize: theme.typography.small,
   },
   selectedLabel: {
     color: theme.colors.accentStrong,

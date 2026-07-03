@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
   },
   active: {
     backgroundColor: theme.colors.accentSoft,
-    borderColor: '#D8CEFF',
+    borderColor: 'rgba(167,139,250,0.35)',
   },
   operatorActive: {
     backgroundColor: v.surface,

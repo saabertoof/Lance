@@ -253,13 +253,13 @@ export default function ProfileSettingsScreen() {
       </SettingsSection>
 
       <SettingsSection
-        description="Lance is currently optimized for the clean light visual system."
+        description="Lance is tuned for the current dark operator visual system."
         title="Appearance">
         <StatusRow
-          detail="Dark and system themes are hidden until the app has full dynamic theme tokens."
+          detail="Light/system modes need a later cross-app token pass before they become real choices."
           icon="color-palette-outline"
           label="Theme"
-          value="Light"
+          value="Dark"
         />
       </SettingsSection>
 
@@ -566,33 +566,35 @@ const styles = StyleSheet.create({
   },
   title: {
     color: theme.colors.text,
+    fontFamily: theme.typography.familySemiBold,
     fontSize: theme.typography.screenHeading,
-    fontWeight: '900',
   },
   subtitle: {
     color: theme.colors.muted,
     fontSize: theme.typography.caption,
-    fontWeight: '700',
+    fontFamily: theme.typography.familyMedium,
   },
   section: {
     backgroundColor: theme.colors.surface,
-    borderColor: 'rgba(8,10,18,0.08)',
+    borderColor: theme.colors.border,
     borderRadius: 18,
     borderWidth: 1,
     gap: theme.spacing.md,
     padding: theme.spacing.lg,
   },
   dangerSection: {
-    backgroundColor: '#FFF8F8',
-    borderColor: '#F4D4D4',
+    backgroundColor: 'rgba(255,107,107,0.08)',
+    borderColor: 'rgba(255,107,107,0.22)',
   },
   sectionHeader: {
     gap: 4,
   },
   sectionTitle: {
     color: theme.colors.text,
+    fontFamily: theme.typography.familyMonoSemiBold,
     fontSize: theme.typography.cardTitle,
-    fontWeight: '900',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
   },
   sectionDescription: {
     color: theme.colors.muted,
@@ -619,7 +621,7 @@ const styles = StyleSheet.create({
     width: 36,
   },
   dangerIcon: {
-    backgroundColor: '#FFE8E8',
+    backgroundColor: 'rgba(255,107,107,0.12)',
   },
   rowCopy: {
     flex: 1,
@@ -629,7 +631,7 @@ const styles = StyleSheet.create({
   rowLabel: {
     color: theme.colors.text,
     fontSize: theme.typography.small,
-    fontWeight: '800',
+    fontFamily: theme.typography.familySemiBold,
   },
   rowDetail: {
     color: theme.colors.muted,
@@ -640,7 +642,7 @@ const styles = StyleSheet.create({
     color: theme.colors.muted,
     flexShrink: 0,
     fontSize: theme.typography.caption,
-    fontWeight: '800',
+    fontFamily: theme.typography.familyMonoMedium,
     maxWidth: 112,
     textAlign: 'right',
   },

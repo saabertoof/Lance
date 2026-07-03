@@ -20,17 +20,19 @@ const styles = StyleSheet.create({
   chip: {
     alignSelf: 'flex-start',
     backgroundColor: theme.colors.chip,
+    borderColor: theme.colors.border,
+    borderWidth: 1,
     borderRadius: theme.radii.pill,
     paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingVertical: 5,
   },
   accent: {
     backgroundColor: theme.colors.accentSoft,
   },
   label: {
     color: theme.colors.textSoft,
-    fontSize: 13,
-    fontWeight: '600',
+    fontFamily: theme.typography.familyMedium,
+    fontSize: 12,
   },
   accentLabel: {
     color: theme.colors.accentStrong,

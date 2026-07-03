@@ -173,14 +173,15 @@ const styles = StyleSheet.create({
   },
   eyebrow: {
     color: theme.colors.accentStrong,
+    fontFamily: theme.typography.familyMonoSemiBold,
     fontSize: theme.typography.caption,
-    fontWeight: '900',
+    letterSpacing: 1,
     textTransform: 'uppercase',
   },
   title: {
     color: theme.colors.text,
+    fontFamily: theme.typography.familySemiBold,
     fontSize: theme.typography.heading,
-    fontWeight: '900',
     marginTop: 3,
   },
   closeButton: {
@@ -221,14 +222,15 @@ const styles = StyleSheet.create({
   },
   linkLabel: {
     color: theme.colors.muted,
+    fontFamily: theme.typography.familyMonoSemiBold,
     fontSize: theme.typography.caption,
-    fontWeight: '800',
+    letterSpacing: 0.8,
     textTransform: 'uppercase',
   },
   linkText: {
     color: theme.colors.text,
     fontSize: theme.typography.small,
-    fontWeight: '800',
+    fontFamily: theme.typography.familySemiBold,
   },
   actions: {
     flexDirection: 'row',
@@ -270,7 +272,7 @@ const styles = StyleSheet.create({
   copyLabel: {
     color: theme.colors.text,
     fontSize: theme.typography.small,
-    fontWeight: '900',
+    fontFamily: theme.typography.familySemiBold,
   },
   copyValue: {
     color: theme.colors.muted,

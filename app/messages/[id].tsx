@@ -533,7 +533,7 @@ const styles = StyleSheet.create({
   },
   opportunityContext: {
     backgroundColor: theme.colors.accentSoft,
-    borderBottomColor: '#DED6FF',
+    borderBottomColor: 'rgba(167,139,250,0.18)',
     borderBottomWidth: 1,
   },
   opportunityCopy: { flex: 1, minWidth: 0 },
@@ -549,7 +549,7 @@ const styles = StyleSheet.create({
     textTransform: 'capitalize',
   },
   responseContext: {
-    borderTopColor: '#DED6FF',
+    borderTopColor: 'rgba(167,139,250,0.18)',
     borderTopWidth: 1,
     gap: 3,
     paddingHorizontal: theme.spacing.lg,
@@ -595,7 +595,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   bubbleMine: {
-    backgroundColor: theme.colors.text,
+    backgroundColor: theme.colors.accent,
     borderBottomRightRadius: theme.radii.sm,
   },
   bubbleOther: {

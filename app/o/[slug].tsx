@@ -200,7 +200,7 @@ export default function PublicOpportunityScreen() {
 
       {warning ? (
         <View style={styles.warning}>
-          <Ionicons color="#9A5B00" name="warning-outline" size={19} />
+          <Ionicons color="#F4BE65" name="warning-outline" size={19} />
           <Text style={styles.warningText}>
             This may not include guaranteed base pay. Review compensation terms before
             applying.
@@ -465,8 +465,8 @@ const styles = StyleSheet.create({
   },
   brand: {
     color: theme.colors.text,
+    fontFamily: theme.typography.familySemiBold,
     fontSize: theme.typography.cardTitle,
-    fontWeight: '900',
   },
   hero: {
     backgroundColor: theme.colors.surface,
@@ -540,7 +540,9 @@ const styles = StyleSheet.create({
   },
   openPill: {
     alignItems: 'center',
-    backgroundColor: '#EAF8EF',
+    backgroundColor: 'rgba(52,216,112,0.12)',
+    borderColor: 'rgba(52,216,112,0.22)',
+    borderWidth: 1,
     borderRadius: theme.radii.pill,
     flexDirection: 'row',
     gap: 6,
@@ -554,9 +556,9 @@ const styles = StyleSheet.create({
     width: 8,
   },
   openPillText: {
-    color: '#13733A',
+    color: theme.colors.success,
     fontSize: theme.typography.caption,
-    fontWeight: '900',
+    fontFamily: theme.typography.familyMonoSemiBold,
     textTransform: 'uppercase',
   },
   deadlineText: {
@@ -583,7 +585,7 @@ const styles = StyleSheet.create({
   posterMiniInitial: {
     color: theme.colors.accentStrong,
     fontSize: theme.typography.small,
-    fontWeight: '900',
+    fontFamily: theme.typography.familySemiBold,
   },
   posterText: {
     flex: 1,
@@ -593,7 +595,7 @@ const styles = StyleSheet.create({
   posterName: {
     color: theme.colors.text,
     fontSize: theme.typography.small,
-    fontWeight: '900',
+    fontFamily: theme.typography.familySemiBold,
   },
   posterType: {
     color: theme.colors.muted,
@@ -602,8 +604,8 @@ const styles = StyleSheet.create({
   },
   title: {
     color: theme.colors.text,
+    fontFamily: theme.typography.familySemiBold,
     fontSize: 26,
-    fontWeight: '900',
     lineHeight: 31,
   },
   summary: {
@@ -664,8 +666,8 @@ const styles = StyleSheet.create({
   },
   warning: {
     alignItems: 'flex-start',
-    backgroundColor: '#FFF5E8',
-    borderColor: '#F2D7AA',
+    backgroundColor: 'rgba(245,158,11,0.12)',
+    borderColor: 'rgba(245,158,11,0.22)',
     borderRadius: theme.radii.md,
     borderWidth: 1,
     flexDirection: 'row',
@@ -673,7 +675,7 @@ const styles = StyleSheet.create({
     padding: theme.spacing.md,
   },
   warningText: {
-    color: '#7D4B00',
+    color: '#F4BE65',
     flex: 1,
     fontSize: theme.typography.small,
     lineHeight: 20,

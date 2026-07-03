@@ -81,8 +81,8 @@ const styles = StyleSheet.create({
   },
   mark: {
     color: theme.colors.accentStrong,
+    fontFamily: theme.typography.familySemiBold,
     fontSize: theme.typography.subheading,
-    fontWeight: '900',
   },
   copy: {
     flex: 1,
@@ -90,8 +90,8 @@ const styles = StyleSheet.create({
   },
   name: {
     color: theme.colors.text,
+    fontFamily: theme.typography.familySemiBold,
     fontSize: theme.typography.subheading,
-    fontWeight: '900',
   },
   type: {
     color: theme.colors.muted,

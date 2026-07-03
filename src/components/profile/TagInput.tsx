@@ -80,9 +80,11 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
   },
   label: {
-    color: theme.colors.text,
-    fontSize: theme.typography.small,
-    fontWeight: '700',
+    color: theme.colors.textSoft,
+    fontFamily: theme.typography.familyMonoSemiBold,
+    fontSize: theme.typography.caption,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
   },
   inputRow: {
     alignItems: 'center',
@@ -102,7 +104,9 @@ const styles = StyleSheet.create({
   },
   addButton: {
     alignItems: 'center',
-    backgroundColor: theme.colors.text,
+    backgroundColor: theme.colors.accent,
+    borderColor: 'rgba(167,139,250,0.45)',
+    borderWidth: 1,
     borderRadius: theme.radii.md,
     height: theme.layout.inputHeight,
     justifyContent: 'center',
@@ -122,6 +126,8 @@ const styles = StyleSheet.create({
   tag: {
     alignItems: 'center',
     backgroundColor: theme.colors.chip,
+    borderColor: theme.colors.border,
+    borderWidth: 1,
     borderRadius: theme.radii.pill,
     flexDirection: 'row',
     gap: theme.spacing.xs,
@@ -131,6 +137,6 @@ const styles = StyleSheet.create({
   tagLabel: {
     color: theme.colors.textSoft,
     fontSize: theme.typography.small,
-    fontWeight: '600',
+    fontFamily: theme.typography.familyMedium,
   },
 });

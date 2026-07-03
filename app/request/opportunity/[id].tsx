@@ -389,12 +389,12 @@ function statusTone(status: OpportunityResponseRecord['status']) {
     return { background: theme.colors.accentSoft, text: theme.colors.accentStrong };
   }
   if (status === 'in_discussion') {
-    return { background: '#E8F7EE', text: '#15733C' };
+    return { background: 'rgba(52,216,112,0.12)', text: theme.colors.success };
   }
   if (status === 'declined') {
-    return { background: '#F3F4F6', text: theme.colors.muted };
+    return { background: theme.colors.chip, text: theme.colors.muted };
   }
-  return { background: '#FFF4D8', text: '#7C5711' };
+  return { background: 'rgba(245,158,11,0.12)', text: '#F4BE65' };
 }
 
 const styles = StyleSheet.create({

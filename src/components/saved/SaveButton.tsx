@@ -63,12 +63,12 @@ const styles = StyleSheet.create({
   },
   saved: {
     backgroundColor: theme.colors.accentSoft,
-    borderColor: '#D8CEFF',
+    borderColor: 'rgba(167,139,250,0.35)',
   },
   label: {
     color: theme.colors.text,
     fontSize: theme.typography.small,
-    fontWeight: '800',
+    fontFamily: theme.typography.familySemiBold,
   },
   savedLabel: {
     color: theme.colors.accentStrong,

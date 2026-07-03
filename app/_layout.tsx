@@ -57,7 +57,7 @@ export default function RootLayout() {
                 </Stack>
                 <StatusBar
                   backgroundColor="transparent"
-                  style="dark"
+                  style="light"
                   translucent
                 />
               </ThemeProvider>

@@ -25,6 +25,9 @@ const styles = StyleSheet.create({
   },
   message: {
     color: theme.colors.muted,
+    fontFamily: theme.typography.familyMonoMedium,
     fontSize: theme.typography.small,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
   },
 });

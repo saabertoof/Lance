@@ -295,7 +295,7 @@ export function OpportunityEditor({
           </FormSection>
           {showWarning ? (
             <View style={styles.warning}>
-              <Ionicons color="#9A5B00" name="warning-outline" size={20} />
+              <Ionicons color="#F4BE65" name="warning-outline" size={20} />
               <Text style={styles.warningText}>
                 This compensation may not include guaranteed base pay. Make the terms especially
                 clear.
@@ -654,8 +654,8 @@ const styles = StyleSheet.create({
   },
   magicTitle: {
     color: theme.colors.text,
+    fontFamily: theme.typography.familySemiBold,
     fontSize: theme.typography.cardTitle,
-    fontWeight: '900',
   },
   magicBody: {
     color: theme.colors.muted,
@@ -671,8 +671,8 @@ const styles = StyleSheet.create({
   },
   title: {
     color: theme.colors.text,
+    fontFamily: theme.typography.familySemiBold,
     fontSize: theme.typography.heading,
-    fontWeight: '900',
     lineHeight: 27,
   },
   subtitle: {
@@ -697,8 +697,8 @@ const styles = StyleSheet.create({
   },
   warning: {
     alignItems: 'flex-start',
-    backgroundColor: '#FFF5E8',
-    borderColor: '#F2D7AA',
+    backgroundColor: 'rgba(245,158,11,0.12)',
+    borderColor: 'rgba(245,158,11,0.22)',
     borderRadius: theme.radii.md,
     borderWidth: 1,
     flexDirection: 'row',
@@ -706,7 +706,7 @@ const styles = StyleSheet.create({
     padding: theme.spacing.md,
   },
   warningText: {
-    color: '#7D4B00',
+    color: '#F4BE65',
     flex: 1,
     fontSize: theme.typography.small,
     lineHeight: 20,
@@ -735,7 +735,7 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
     flex: 1,
     fontSize: theme.typography.small,
-    fontWeight: '600',
+    fontFamily: theme.typography.familyMedium,
     lineHeight: 21,
   },
   actions: {

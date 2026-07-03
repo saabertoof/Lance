@@ -455,8 +455,10 @@ const styles = StyleSheet.create({
   },
   title: {
     color: theme.colors.text,
-    fontSize: theme.typography.heading,
-    fontWeight: '900',
+    fontFamily: theme.typography.familyMonoSemiBold,
+    fontSize: theme.typography.caption,
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
   },
   subtitle: {
     color: theme.colors.muted,
@@ -465,6 +467,10 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     alignItems: 'center',
+    backgroundColor: theme.colors.chip,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radii.lg,
+    borderWidth: 1,
     height: theme.layout.minTouchTarget,
     justifyContent: 'center',
     width: theme.layout.minTouchTarget,
@@ -509,7 +515,7 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
     flex: 1,
     fontSize: theme.typography.small,
-    fontWeight: '700',
+    fontFamily: theme.typography.familySemiBold,
   },
   pressed: {
     opacity: 0.72,

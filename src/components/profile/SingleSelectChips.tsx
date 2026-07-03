@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
   label: {
     color: theme.colors.textSoft,
     fontSize: theme.typography.label,
-    fontWeight: '800',
+    fontFamily: theme.typography.familySemiBold,
   },
   selectedLabel: {
     color: theme.colors.accentStrong,

@@ -26,17 +26,20 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
   },
   label: {
-    color: theme.colors.text,
-    fontSize: theme.typography.small,
-    fontWeight: '700',
+    color: theme.colors.textSoft,
+    fontFamily: theme.typography.familyMonoSemiBold,
+    fontSize: theme.typography.caption,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
   },
   input: {
     minHeight: theme.layout.inputHeight,
     borderWidth: 1,
     borderColor: theme.colors.border,
-    borderRadius: theme.radii.md,
+    borderRadius: theme.radii.lg,
     color: theme.colors.text,
-    fontSize: theme.typography.body,
+    fontFamily: theme.typography.family,
+    fontSize: theme.typography.small,
     paddingHorizontal: theme.spacing.lg,
     backgroundColor: theme.colors.surface,
   },
@@ -45,6 +48,7 @@ const styles = StyleSheet.create({
   },
   error: {
     color: theme.colors.danger,
+    fontFamily: theme.typography.familyMedium,
     fontSize: theme.typography.tiny,
   },
 });

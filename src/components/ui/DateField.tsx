@@ -87,9 +87,11 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
   },
   label: {
-    color: theme.colors.text,
-    fontSize: theme.typography.small,
-    fontWeight: '700',
+    color: theme.colors.textSoft,
+    fontFamily: theme.typography.familyMonoSemiBold,
+    fontSize: theme.typography.caption,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
   },
   row: {
     alignItems: 'center',
@@ -100,7 +102,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: theme.colors.surface,
     borderColor: theme.colors.border,
-    borderRadius: theme.radii.md,
+    borderRadius: theme.radii.lg,
     borderWidth: 1,
     flex: 1,
     flexDirection: 'row',
@@ -121,7 +123,8 @@ const styles = StyleSheet.create({
   value: {
     color: theme.colors.text,
     flex: 1,
-    fontSize: theme.typography.body,
+    fontFamily: theme.typography.family,
+    fontSize: theme.typography.small,
   },
   placeholder: {
     color: theme.colors.mutedLight,
@@ -143,7 +146,7 @@ const styles = StyleSheet.create({
   doneText: {
     color: theme.colors.accentStrong,
     fontSize: theme.typography.small,
-    fontWeight: '800',
+    fontFamily: theme.typography.familySemiBold,
   },
   pressed: {
     opacity: 0.7,

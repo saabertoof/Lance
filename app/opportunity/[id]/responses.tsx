@@ -530,12 +530,12 @@ function statusTone(status: OpportunityResponseRecord['status']) {
     return { background: theme.colors.accentSoft, text: theme.colors.accentStrong };
   }
   if (status === 'in_discussion') {
-    return { background: '#E8F7EE', text: '#15733C' };
+    return { background: 'rgba(52,216,112,0.12)', text: theme.colors.success };
   }
   if (status === 'declined') {
-    return { background: '#F3F4F6', text: theme.colors.muted };
+    return { background: theme.colors.chip, text: theme.colors.muted };
   }
-  return { background: '#FFF4D8', text: '#7C5711' };
+  return { background: 'rgba(245,158,11,0.12)', text: '#F4BE65' };
 }
 
 const styles = StyleSheet.create({
@@ -585,7 +585,7 @@ const styles = StyleSheet.create({
   portfolioTitle: { color: theme.colors.text, fontSize: theme.typography.small, fontWeight: '900' },
   cardActions: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm },
   cardAction: { alignItems: 'center', backgroundColor: theme.colors.surfaceMuted, borderColor: theme.colors.border, borderRadius: theme.radii.pill, borderWidth: 1, flexDirection: 'row', gap: 5, minHeight: theme.layout.minTouchTarget, paddingHorizontal: 12 },
-  cardActionPrimary: { backgroundColor: theme.colors.text, borderColor: theme.colors.text },
+  cardActionPrimary: { backgroundColor: theme.colors.accent, borderColor: theme.colors.accent },
   cardActionSubtle: { backgroundColor: 'transparent' },
   cardActionText: { color: theme.colors.text, fontSize: theme.typography.caption, fontWeight: '900' },
   cardActionTextPrimary: { color: theme.colors.white },

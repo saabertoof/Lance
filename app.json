@@ -6,14 +6,14 @@
     "orientation": "portrait",
     "icon": "./assets/images/lance_app_icon_white_large.png",
     "scheme": "lance",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#FFFFFF",
+        "backgroundColor": "#05050A",
         "foregroundImage": "./assets/images/lance_app_icon_white_large.png",
         "monochromeImage": "./assets/images/lance_app_icon_black_large.png"
       },
@@ -21,12 +21,12 @@
       "predictiveBackGestureEnabled": false
     },
     "androidStatusBar": {
-      "barStyle": "dark-content",
+      "barStyle": "light-content",
       "translucent": true
     },
     "androidNavigationBar": {
-      "barStyle": "dark-content",
-      "backgroundColor": "#F7F7FA"
+      "barStyle": "light-content",
+      "backgroundColor": "#05050A"
     },
     "web": {
       "output": "static",
@@ -48,9 +48,9 @@
           "image": "./assets/images/lance_icon_transparent.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#F7F7FA",
+          "backgroundColor": "#05050A",
           "dark": {
-            "backgroundColor": "#F7F7FA"
+            "backgroundColor": "#05050A"
           }
         }
       ]

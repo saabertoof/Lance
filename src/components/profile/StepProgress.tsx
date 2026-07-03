@@ -42,8 +42,8 @@ const styles = StyleSheet.create({
   },
   label: {
     color: theme.colors.muted,
+    fontFamily: theme.typography.familyMonoMedium,
     fontSize: theme.typography.tiny,
-    fontWeight: '700',
     minWidth: 32,
   },
 });

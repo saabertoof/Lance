@@ -44,6 +44,8 @@ const styles = StyleSheet.create({
   badge: {
     alignSelf: 'flex-start',
     backgroundColor: theme.colors.chip,
+    borderColor: theme.colors.border,
+    borderWidth: 1,
     borderRadius: theme.radii.pill,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.sm,
@@ -52,21 +54,23 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.accentSoft,
   },
   warning: {
-    backgroundColor: '#FFF5E8',
+    backgroundColor: 'rgba(245,158,11,0.12)',
+    borderColor: 'rgba(245,158,11,0.22)',
   },
   live: {
-    backgroundColor: '#EAF8EF',
+    backgroundColor: 'rgba(52,216,112,0.12)',
+    borderColor: 'rgba(52,216,112,0.22)',
   },
   label: {
     color: theme.colors.textSoft,
+    fontFamily: theme.typography.familySemiBold,
     fontSize: theme.typography.tiny,
-    fontWeight: '800',
   },
   accentLabel: {
     color: theme.colors.accentStrong,
   },
   warningLabel: {
-    color: '#9A5B00',
+    color: '#F4BE65',
   },
   liveLabel: {
     color: theme.colors.success,

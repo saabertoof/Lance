@@ -232,12 +232,12 @@ const styles = StyleSheet.create({
   },
   title: {
     color: theme.colors.text,
+    fontFamily: theme.typography.familySemiBold,
     fontSize: theme.typography.heading,
-    fontWeight: '900',
   },
   error: {
-    backgroundColor: '#FFF3F3',
-    borderColor: '#FFD7D7',
+    backgroundColor: 'rgba(255,107,107,0.1)',
+    borderColor: 'rgba(255,107,107,0.24)',
     borderRadius: theme.radii.md,
     borderWidth: 1,
     color: theme.colors.danger,

@@ -279,7 +279,7 @@ export default function OpportunityDetailScreen() {
 
       {compensationWarning ? (
         <View style={styles.warning}>
-          <Ionicons color="#9A5B00" name="warning-outline" size={20} />
+          <Ionicons color="#F4BE65" name="warning-outline" size={20} />
           <Text style={styles.warningText}>
             This opportunity may not include guaranteed base pay. Lance does not employ users,
             process payments, or guarantee compensation.
@@ -592,8 +592,8 @@ const styles = StyleSheet.create({
   },
   mark: {
     color: theme.colors.accentStrong,
+    fontFamily: theme.typography.familySemiBold,
     fontSize: theme.typography.subheading,
-    fontWeight: '900',
   },
   posterCopy: {
     flex: 1,
@@ -602,7 +602,7 @@ const styles = StyleSheet.create({
   posterName: {
     color: theme.colors.text,
     fontSize: theme.typography.body,
-    fontWeight: '800',
+    fontFamily: theme.typography.familySemiBold,
   },
   posterType: {
     color: theme.colors.muted,
@@ -613,8 +613,8 @@ const styles = StyleSheet.create({
   },
   title: {
     color: theme.colors.text,
+    fontFamily: theme.typography.familySemiBold,
     fontSize: theme.typography.title,
-    fontWeight: '900',
     lineHeight: 36,
   },
   summary: {
@@ -638,8 +638,8 @@ const styles = StyleSheet.create({
   },
   warning: {
     alignItems: 'flex-start',
-    backgroundColor: '#FFF5E8',
-    borderColor: '#F2D7AA',
+    backgroundColor: 'rgba(245,158,11,0.12)',
+    borderColor: 'rgba(245,158,11,0.22)',
     borderRadius: theme.radii.md,
     borderWidth: 1,
     flexDirection: 'row',
@@ -647,7 +647,7 @@ const styles = StyleSheet.create({
     padding: theme.spacing.md,
   },
   warningText: {
-    color: '#7D4B00',
+    color: '#F4BE65',
     flex: 1,
     fontSize: theme.typography.small,
     lineHeight: 20,
@@ -703,7 +703,7 @@ const styles = StyleSheet.create({
   sharePrompt: {
     alignItems: 'center',
     backgroundColor: theme.colors.accentSoft,
-    borderColor: '#DCD5FF',
+    borderColor: 'rgba(167,139,250,0.28)',
     borderRadius: theme.radii.lg,
     borderWidth: 1,
     flexDirection: 'row',

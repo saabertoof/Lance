@@ -391,15 +391,17 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
   },
   fieldLabel: {
-    color: theme.colors.text,
-    fontSize: theme.typography.small,
-    fontWeight: '700',
+    color: theme.colors.textSoft,
+    fontFamily: theme.typography.familyMonoSemiBold,
+    fontSize: theme.typography.caption,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
   },
   urlInput: {
     alignItems: 'center',
     backgroundColor: theme.colors.surface,
     borderColor: theme.colors.border,
-    borderRadius: theme.radii.md,
+    borderRadius: theme.radii.lg,
     borderWidth: 1,
     flexDirection: 'row',
     minHeight: theme.layout.inputHeight,
@@ -413,6 +415,7 @@ const styles = StyleSheet.create({
   slugInput: {
     color: theme.colors.text,
     flex: 1,
+    fontFamily: theme.typography.family,
     fontSize: theme.typography.small,
     minHeight: theme.layout.inputHeight,
     minWidth: 80,
@@ -436,7 +439,7 @@ const styles = StyleSheet.create({
   available: {
     color: theme.colors.success,
     fontSize: theme.typography.tiny,
-    fontWeight: '700',
+    fontFamily: theme.typography.familySemiBold,
   },
   unavailable: {
     color: theme.colors.danger,
@@ -464,7 +467,7 @@ const styles = StyleSheet.create({
   suggestionText: {
     color: theme.colors.accentStrong,
     fontSize: theme.typography.tiny,
-    fontWeight: '700',
+    fontFamily: theme.typography.familySemiBold,
   },
   pressed: {
     opacity: 0.7,
@@ -474,8 +477,8 @@ const styles = StyleSheet.create({
   },
   previewName: {
     color: theme.colors.text,
+    fontFamily: theme.typography.familySemiBold,
     fontSize: theme.typography.heading,
-    fontWeight: '900',
   },
   previewMeta: {
     color: theme.colors.muted,
@@ -483,7 +486,7 @@ const styles = StyleSheet.create({
   },
   previewBody: {
     color: theme.colors.textSoft,
-    fontSize: theme.typography.body,
-    lineHeight: 24,
+    fontSize: theme.typography.small,
+    lineHeight: 20,
   },
 });

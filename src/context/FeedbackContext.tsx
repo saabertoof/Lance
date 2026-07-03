@@ -62,7 +62,7 @@ export function FeedbackProvider({ children }: PropsWithChildren) {
             feedback.tone === 'warning' ? styles.warningBanner : styles.successBanner,
           ]}>
           <Ionicons
-            color={feedback.tone === 'warning' ? '#7D4B00' : theme.colors.success}
+            color={feedback.tone === 'warning' ? '#F4BE65' : theme.colors.success}
             name={feedback.tone === 'warning' ? 'warning-outline' : 'checkmark-circle'}
             size={21}
           />
@@ -106,23 +106,23 @@ const styles = StyleSheet.create({
     ...theme.shadows.card,
   },
   successBanner: {
-    backgroundColor: '#EFFBF3',
-    borderColor: '#CDEFD9',
+    backgroundColor: 'rgba(52,216,112,0.12)',
+    borderColor: 'rgba(52,216,112,0.24)',
   },
   warningBanner: {
-    backgroundColor: '#FFF5E8',
-    borderColor: '#F2D7AA',
+    backgroundColor: 'rgba(245,158,11,0.12)',
+    borderColor: 'rgba(245,158,11,0.24)',
   },
   message: {
     flex: 1,
+    fontFamily: theme.typography.familySemiBold,
     fontSize: theme.typography.small,
-    fontWeight: '700',
     lineHeight: 20,
   },
   successText: {
-    color: '#15733A',
+    color: theme.colors.success,
   },
   warningText: {
-    color: '#7D4B00',
+    color: '#F4BE65',
   },
 });
