@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
+import { operatorFonts, operatorVisual as v } from '@/constants/operatorTheme';
 import { theme } from '@/constants/theme';
 import { slugify } from '@/lib/business';
 import {
@@ -34,58 +35,62 @@ import { OpportunityLinkPreviewCard } from './OpportunityLinkPreviewCard';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
+const maxPromptLength = 1500;
+
 export function CreatePathGrid({
+  draftCount,
   onBusiness,
+  onDrafts,
+  onMagicDraft,
   onOpportunity,
-  onProject,
   reduceMotion,
 }: {
+  draftCount: number;
   onBusiness: () => void;
+  onDrafts: () => void;
+  onMagicDraft: () => void;
   onOpportunity: () => void;
-  onProject: () => void;
   reduceMotion: boolean;
 }) {
   const { width } = useWindowDimensions();
-  const stackSecondary = width < 360;
+  const stackActions = width < 365;
 
   return (
-    <View style={styles.pathGrid}>
-      <CreatePathCard
-        accessibilityHint="Opens the existing guided opportunity creation flow."
-        delay={40}
-        description="Projects, gigs, collabs, internships, and creator work all start here."
-        icon="briefcase-outline"
-        metadata="Create the link, then share it anywhere"
-        onPress={onOpportunity}
-        primary
-        reduceMotion={reduceMotion}
-        title="Make an opportunity link"
-        tone="opportunity"
-      />
-      <View
-        style={[
-          styles.secondaryPaths,
-          stackSecondary && styles.secondaryPathsStacked,
-        ]}>
-        <CreatePathCard
-          accessibilityHint="Opens the business and project form with Project selected."
-          delay={110}
-          description="Only if the idea needs its own logo, page, and identity."
-          icon="rocket-outline"
-          onPress={onProject}
+    <View style={styles.quickSection}>
+      <SectionLabel>Quick actions</SectionLabel>
+      <View style={[styles.actionGrid, stackActions && styles.actionGridStacked]}>
+        <ActionTile
+          delay={40}
+          icon="paper-plane-outline"
+          label="New opportunity"
+          onPress={onOpportunity}
           reduceMotion={reduceMotion}
-          title="Project profile"
-          tone="project"
+          supporting="Open the full editor"
         />
-        <CreatePathCard
-          accessibilityHint="Opens the business and project form with Startup selected."
-          delay={180}
-          description="Post links as a brand instead of your personal profile."
+        <ActionTile
+          delay={90}
+          icon="sparkles-outline"
+          label="Magic draft"
+          onPress={onMagicDraft}
+          reduceMotion={reduceMotion}
+          supporting="Seed the composer"
+        />
+        <ActionTile
+          delay={140}
           icon="business-outline"
+          label="Business profile"
           onPress={onBusiness}
           reduceMotion={reduceMotion}
-          title="Business profile"
-          tone="business"
+          supporting="Post as a brand"
+        />
+        <ActionTile
+          badge={draftCount > 0 ? String(Math.min(draftCount, 99)) : undefined}
+          delay={190}
+          icon="document-text-outline"
+          label="Drafts"
+          onPress={onDrafts}
+          reduceMotion={reduceMotion}
+          supporting={draftCount > 0 ? 'Continue saved drafts' : 'No drafts yet'}
         />
       </View>
     </View>
@@ -113,167 +118,162 @@ export function PromptLinkBuilder({
 }) {
   const promptReady = prompt.trim().length >= 12;
   const urlSlug = slugify(previewDraft.title).slice(0, 48) || 'your-opportunity';
+  const remaining = Math.max(0, maxPromptLength - prompt.length);
 
   return (
     <Animated.View
       entering={reduceMotion ? undefined : FadeInDown.duration(260)}
       style={styles.builder}>
-      <View style={styles.builderHeader}>
-        <View style={styles.builderCopy}>
-          <Text style={styles.builderEyebrow}>Opportunity link maker</Text>
-          <Text style={styles.builderTitle}>Describe what you need.</Text>
-          <Text style={styles.builderBody}>
-            Lance turns the rough idea into a draft link you can edit, publish,
-            and share anywhere.
+      <View style={styles.heroHeader}>
+        <View style={styles.heroCopy}>
+          <SectionLabel>Create</SectionLabel>
+          <Text style={styles.heroTitle}>Post an opportunity</Text>
+          <Text style={styles.heroSubtitle}>
+            Find builders, operators, collaborators, and talent.
           </Text>
         </View>
-        <View style={styles.builderIcon}>
-          <Ionicons color={theme.colors.accentStrong} name="sparkles-outline" size={20} />
+        <View style={styles.heroIcon}>
+          <Ionicons color={v.purpleStrong} name="sparkles-outline" size={19} />
         </View>
       </View>
 
       <View style={styles.composer}>
+        <View style={styles.composerHeader}>
+          <View style={styles.composerLabelRow}>
+            <View style={styles.tinyDot} />
+            <Text style={styles.composerLabel}>Opportunity</Text>
+          </View>
+          <Text style={styles.countText}>{remaining}/{maxPromptLength}</Text>
+        </View>
         <TextInput
+          maxLength={maxPromptLength}
           multiline
           onChangeText={onPromptChange}
-          placeholder="Need a short-form editor for my YouTube clips, paid per video, remote, CapCut preferred..."
-          placeholderTextColor={theme.colors.mutedLight}
+          placeholder="What are you building, and who do you need?"
+          placeholderTextColor={v.muted}
+          selectionColor={v.purple}
           style={styles.promptInput}
           textAlignVertical="top"
           value={prompt}
         />
         <View style={styles.composerFooter}>
-          <Text style={styles.composerHint}>
-            No AI call yet. This creates an editable smart starter draft.
-          </Text>
+          <View style={styles.composerTools}>
+            <ToolButton icon="sparkles-outline" label="Local draft" />
+            <ToolButton icon="link-outline" label="Shareable link" />
+          </View>
           <Pressable
             accessibilityRole="button"
             disabled={!promptReady}
             onPress={onDraft}
             style={({ pressed }) => [
-              styles.draftButton,
-              !promptReady && styles.draftButtonDisabled,
-              pressed && promptReady && styles.pathPressed,
+              styles.previewButton,
+              !promptReady && styles.previewButtonDisabled,
+              pressed && promptReady && styles.pressed,
             ]}>
-            <Text style={styles.draftButtonText}>Draft link</Text>
-            <Ionicons color={theme.colors.white} name="arrow-forward" size={15} />
+            <Text style={styles.previewButtonText}>Preview</Text>
+            <Ionicons color={v.purpleStrong} name="arrow-forward" size={16} />
           </Pressable>
         </View>
       </View>
 
-      <View style={styles.examples}>
-        {promptExamples.map((example) => (
-          <Pressable
-            accessibilityRole="button"
-            key={example}
-            onPress={() => onUseExample(example)}
-            style={({ pressed }) => [styles.exampleChip, pressed && styles.rowPressed]}>
-            <Text numberOfLines={1} style={styles.exampleText}>{example}</Text>
-          </Pressable>
-        ))}
+      <View style={styles.quickStart}>
+        <SectionLabel>Quick start</SectionLabel>
+        <ScrollView
+          contentContainerStyle={styles.exampleRail}
+          horizontal
+          showsHorizontalScrollIndicator={false}>
+          {promptExamples.map((example) => (
+            <Pressable
+              accessibilityRole="button"
+              key={example.label}
+              onPress={() => onUseExample(example.prompt)}
+              style={({ pressed }) => [
+                styles.exampleChip,
+                pressed && styles.rowPressed,
+              ]}>
+              <Ionicons color={v.textSoft} name={example.icon} size={15} />
+              <Text numberOfLines={1} style={styles.exampleText}>
+                {example.label}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
       </View>
 
-      <OpportunityLinkPreviewCard
-        compensationLabel={formatCompensation(previewDraft)}
-        locationLabel={formatOpportunityLocation(previewDraft)}
-        posterImageUrl={posterImageUrl}
-        posterLabel={posterName}
-        skills={previewDraft.skills}
-        summary={previewDraft.shortSummary}
-        title={previewDraft.title}
-        urlLabel={`lance.app/o/${urlSlug}`}
-      />
+      <View style={styles.previewSection}>
+        <SectionLabel>Live preview</SectionLabel>
+        <OpportunityLinkPreviewCard
+          compensationLabel={formatCompensation(previewDraft)}
+          locationLabel={formatOpportunityLocation(previewDraft)}
+          posterImageUrl={posterImageUrl}
+          posterLabel={posterName}
+          skills={previewDraft.skills}
+          summary={previewDraft.shortSummary}
+          title={previewDraft.title}
+          urlLabel={`lance.app/o/${urlSlug}`}
+        />
+      </View>
     </Animated.View>
   );
 }
 
-function CreatePathCard({
-  accessibilityHint,
+function ActionTile({
+  badge,
   delay,
-  description,
   icon,
-  metadata,
+  label,
   onPress,
-  primary,
   reduceMotion,
-  title,
-  tone,
+  supporting,
 }: {
-  accessibilityHint: string;
+  badge?: string;
   delay: number;
-  description: string;
   icon: IconName;
-  metadata?: string;
+  label: string;
   onPress: () => void;
-  primary?: boolean;
   reduceMotion: boolean;
-  title: string;
-  tone: 'business' | 'opportunity' | 'project';
+  supporting: string;
 }) {
-  const palette = pathPalettes[tone];
-
   return (
     <Animated.View
-      entering={
-        reduceMotion ? undefined : FadeInDown.delay(delay).duration(320)
-      }
-      style={primary ? styles.primaryPathWrap : styles.secondaryPathWrap}>
+      entering={reduceMotion ? undefined : FadeInDown.delay(delay).duration(280)}
+      style={styles.actionTileWrap}>
       <Pressable
-        accessibilityHint={accessibilityHint}
-        accessibilityLabel={title}
+        accessibilityLabel={label}
         accessibilityRole="button"
         onPress={onPress}
-        style={({ pressed }) => [
-          styles.pathCard,
-          primary ? styles.primaryPath : styles.secondaryPath,
-          { backgroundColor: palette.background },
-          pressed && styles.pathPressed,
-        ]}>
-        <View
-          pointerEvents="none"
-          style={[
-            styles.artPanel,
-            primary ? styles.primaryArtPanel : styles.secondaryArtPanel,
-            { borderColor: palette.art },
-          ]}
-        />
-        <View
-          pointerEvents="none"
-          style={[
-            styles.artLine,
-            primary ? styles.primaryArtLine : styles.secondaryArtLine,
-            { backgroundColor: palette.art },
-          ]}
-        />
-        <View style={[styles.pathIcon, { backgroundColor: palette.iconSurface }]}>
-          <Ionicons color={palette.accent} name={icon} size={primary ? 27 : 23} />
+        style={({ pressed }) => [styles.actionTile, pressed && styles.pressed]}>
+        <View style={styles.actionIcon}>
+          <Ionicons color={v.purpleStrong} name={icon} size={21} />
         </View>
-        <View style={styles.pathCopy}>
-          <Text
-            numberOfLines={2}
-            style={[
-              styles.pathTitle,
-              primary && styles.primaryPathTitle,
-              { color: palette.text },
-            ]}>
-            {title}
+        <View style={styles.actionCopy}>
+          <Text numberOfLines={1} style={styles.actionTitle}>
+            {label}
           </Text>
-          <Text
-            numberOfLines={primary ? 2 : 3}
-            style={[styles.pathDescription, { color: palette.muted }]}>
-            {description}
+          <Text numberOfLines={1} style={styles.actionSupporting}>
+            {supporting}
           </Text>
-          {metadata ? (
-            <Text numberOfLines={1} style={[styles.pathMeta, { color: palette.muted }]}>
-              {metadata}
-            </Text>
-          ) : null}
         </View>
-        <View style={[styles.pathArrow, { borderColor: palette.arrowBorder }]}>
-          <Ionicons color={palette.accent} name="arrow-forward" size={18} />
-        </View>
+        {badge ? (
+          <View style={styles.actionBadge}>
+            <Text style={styles.actionBadgeText}>{badge}</Text>
+          </View>
+        ) : (
+          <Ionicons color={v.textSoft} name="chevron-forward" size={17} />
+        )}
       </Pressable>
     </Animated.View>
+  );
+}
+
+function ToolButton({ icon, label }: { icon: IconName; label: string }) {
+  return (
+    <View style={styles.toolButton}>
+      <Ionicons color={v.textSoft} name={icon} size={15} />
+      <Text numberOfLines={1} style={styles.toolText}>
+        {label}
+      </Text>
+    </View>
   );
 }
 
@@ -288,7 +288,7 @@ export function DraftContinuation({
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Continue where you left off</Text>
+      <SectionLabel>Continue where you left off</SectionLabel>
       <ScrollView
         contentContainerStyle={styles.draftRail}
         horizontal
@@ -307,9 +307,9 @@ export function DraftContinuation({
             <View style={styles.draftTop}>
               <View style={styles.draftIcon}>
                 <Ionicons
-                  color={theme.colors.accentStrong}
+                  color={v.purpleStrong}
                   name="document-text-outline"
-                  size={20}
+                  size={18}
                 />
               </View>
               <View style={styles.draftStatus}>
@@ -320,16 +320,11 @@ export function DraftContinuation({
               {draft.title}
             </Text>
             <Text numberOfLines={1} style={styles.draftMeta}>
-              {optionLabel(workTypeOptions, draft.workType)} |{' '}
-              {relativeDate(draft.updatedAt)}
+              {optionLabel(workTypeOptions, draft.workType)} | {relativeDate(draft.updatedAt)}
             </Text>
             <View style={styles.continueRow}>
               <Text style={styles.continueLabel}>Continue</Text>
-              <Ionicons
-                color={theme.colors.accentStrong}
-                name="arrow-forward"
-                size={17}
-              />
+              <Ionicons color={v.purpleStrong} name="arrow-forward" size={16} />
             </View>
           </Pressable>
         ))}
@@ -367,7 +362,7 @@ export function YourCreations({
       id: item.id,
       imageUrl: item.logoUrl,
       kind: 'business' as const,
-      label: item.businessType === 'project' ? 'Project' : 'Business',
+      label: 'Business profile',
       status: item.status,
       title: item.name,
       updatedAt: item.updatedAt,
@@ -384,11 +379,24 @@ export function YourCreations({
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Your creations</Text>
+      <View style={styles.sectionHeaderRow}>
+        <SectionLabel>Your posts</SectionLabel>
+        <Pressable
+          accessibilityRole="button"
+          onPress={onManageOpportunities}
+          style={({ pressed }) => [styles.viewAllButton, pressed && styles.rowPressed]}>
+          <Text style={styles.viewAllText}>View all</Text>
+          <Ionicons color={v.purpleStrong} name="chevron-forward" size={15} />
+        </Pressable>
+      </View>
+
       {items.length > 0 ? (
-        <View style={styles.creationList}>
+        <ScrollView
+          contentContainerStyle={styles.creationRail}
+          horizontal
+          showsHorizontalScrollIndicator={false}>
           {items.map((item) => (
-            <CreationRow
+            <CreationTile
               imageUrl={item.imageUrl}
               key={`${item.kind}:${item.id}`}
               kind={item.kind}
@@ -401,12 +409,21 @@ export function YourCreations({
               updatedAt={item.updatedAt}
             />
           ))}
-        </View>
+        </ScrollView>
       ) : (
-        <Text style={styles.emptyCreations}>
-          Your opportunities, projects, and businesses will appear here.
-        </Text>
+        <View style={styles.emptyCreationsCard}>
+          <View style={styles.emptyIcon}>
+            <Ionicons color={v.purpleStrong} name="paper-plane-outline" size={18} />
+          </View>
+          <View style={styles.emptyCopy}>
+            <Text style={styles.emptyTitle}>No posts yet</Text>
+            <Text style={styles.emptyCreations}>
+              Draft or publish your first opportunity and it will show up here.
+            </Text>
+          </View>
+        </View>
       )}
+
       <View style={styles.manageRow}>
         <ManageButton
           icon="briefcase-outline"
@@ -415,7 +432,7 @@ export function YourCreations({
         />
         <ManageButton
           icon="business-outline"
-          label="Businesses"
+          label="Business profiles"
           onPress={onManageBusinesses}
         />
       </View>
@@ -423,7 +440,7 @@ export function YourCreations({
   );
 }
 
-function CreationRow({
+function CreationTile({
   imageUrl,
   kind,
   label,
@@ -447,11 +464,17 @@ function CreationRow({
       accessibilityLabel={`${title}, ${label}, ${statusLabel(status)}`}
       accessibilityRole="button"
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.creationRow,
-        pressed && styles.rowPressed,
-      ]}>
-      <View style={styles.creationIdentity}>
+      style={({ pressed }) => [styles.creationTile, pressed && styles.rowPressed]}>
+      <View style={styles.creationTop}>
+        <View style={styles.creationKind}>
+          <View style={[styles.statusDot, { backgroundColor: statusTone.dot }]} />
+          <Text style={[styles.creationKindText, { color: statusTone.text }]}>
+            {statusLabel(status)}
+          </Text>
+        </View>
+        <Ionicons color={v.textSoft} name="bookmark-outline" size={17} />
+      </View>
+      <View style={styles.creationBody}>
         {imageUrl ? (
           <Image
             contentFit="cover"
@@ -459,28 +482,14 @@ function CreationRow({
             source={imageUrl}
             style={styles.creationImage}
           />
-        ) : (
-          <Ionicons
-            color={theme.colors.accentStrong}
-            name={kind === 'opportunity' ? 'briefcase-outline' : 'business-outline'}
-            size={20}
-          />
-        )}
-      </View>
-      <View style={styles.creationCopy}>
-        <Text numberOfLines={1} style={styles.creationTitle}>
+        ) : null}
+        <Text numberOfLines={2} style={styles.creationTitle}>
           {title}
         </Text>
         <Text numberOfLines={1} style={styles.creationMeta}>
-          {label} | Updated {relativeDate(updatedAt)}
+          {kind === 'opportunity' ? label : 'Business'} | {relativeDate(updatedAt)}
         </Text>
       </View>
-      <View style={[styles.statusChip, { backgroundColor: statusTone.background }]}>
-        <Text style={[styles.statusText, { color: statusTone.text }]}>
-          {statusLabel(status)}
-        </Text>
-      </View>
-      <Ionicons color={theme.colors.muted} name="chevron-forward" size={17} />
     </Pressable>
   );
 }
@@ -498,13 +507,12 @@ function ManageButton({
     <Pressable
       accessibilityRole="button"
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.manageButton,
-        pressed && styles.rowPressed,
-      ]}>
-      <Ionicons color={theme.colors.text} name={icon} size={18} />
-      <Text style={styles.manageLabel}>{label}</Text>
-      <Ionicons color={theme.colors.muted} name="arrow-forward" size={16} />
+      style={({ pressed }) => [styles.manageButton, pressed && styles.rowPressed]}>
+      <Ionicons color={v.textSoft} name={icon} size={17} />
+      <Text numberOfLines={1} style={styles.manageLabel}>
+        {label}
+      </Text>
+      <Ionicons color={v.muted} name="arrow-forward" size={15} />
     </Pressable>
   );
 }
@@ -512,7 +520,7 @@ function ManageButton({
 export function CreateStudioSkeleton() {
   return (
     <View style={styles.skeletonSection}>
-      <View style={[styles.skeletonLine, { width: 150 }]} />
+      <View style={[styles.skeletonLine, { width: 128 }]} />
       {[0, 1].map((item) => (
         <View key={item} style={styles.skeletonRow}>
           <View style={styles.skeletonIcon} />
@@ -526,6 +534,10 @@ export function CreateStudioSkeleton() {
   );
 }
 
+function SectionLabel({ children }: { children: string }) {
+  return <Text style={styles.sectionLabel}>{children}</Text>;
+}
+
 function optionLabel<T extends string>(
   options: readonly { label: string; value: T }[],
   value: T,
@@ -534,18 +546,21 @@ function optionLabel<T extends string>(
 }
 
 function statusLabel(status: BusinessStatus | OpportunityStatus) {
-  if (status === 'published') return 'Live';
+  if (status === 'published' || status === 'active') return 'Active';
   return status.replace(/^\w/, (letter) => letter.toUpperCase());
 }
 
 function creationStatusTone(status: BusinessStatus | OpportunityStatus) {
   if (status === 'published' || status === 'active') {
-    return { background: '#E7F7ED', text: '#15733C' };
+    return { dot: v.purple, text: v.purpleStrong };
   }
   if (status === 'paused') {
-    return { background: '#FFF4D8', text: '#7C5711' };
+    return { dot: '#EAB308', text: '#F2C94C' };
   }
-  return { background: theme.colors.surfaceMuted, text: theme.colors.muted };
+  if (status === 'closed') {
+    return { dot: v.muted, text: v.textSoft };
+  }
+  return { dot: v.muted, text: v.muted };
 }
 
 function relativeDate(value: string) {
@@ -564,278 +579,296 @@ function relativeDate(value: string) {
   });
 }
 
-const pathPalettes = {
-  opportunity: {
-    accent: theme.colors.white,
-    arrowBorder: 'rgba(255,255,255,0.3)',
-    art: 'rgba(255,255,255,0.18)',
-    background: '#5B3EEB',
-    iconSurface: 'rgba(255,255,255,0.16)',
-    muted: 'rgba(255,255,255,0.78)',
-    text: theme.colors.white,
+const promptExamples: { icon: IconName; label: string; prompt: string }[] = [
+  {
+    icon: 'people-outline',
+    label: 'Need a cofounder',
+    prompt:
+      'Looking for a cofounder-type builder to help prototype a creator app, move fast, and think like an owner.',
   },
-  project: {
-    accent: '#B54C39',
-    arrowBorder: 'rgba(181,76,57,0.2)',
-    art: 'rgba(181,76,57,0.14)',
-    background: '#FFF0EA',
-    iconSurface: 'rgba(181,76,57,0.11)',
-    muted: '#72534D',
-    text: '#351E1B',
+  {
+    icon: 'code-slash-outline',
+    label: 'Looking for a dev',
+    prompt:
+      'Need a React Native developer to help ship a polished mobile feature for a founder tool, remote and paid.',
   },
-  business: {
-    accent: '#2F65C8',
-    arrowBorder: 'rgba(47,101,200,0.2)',
-    art: 'rgba(47,101,200,0.13)',
-    background: '#EAF2FF',
-    iconSurface: 'rgba(47,101,200,0.11)',
-    muted: '#50617C',
-    text: '#15233B',
+  {
+    icon: 'trending-up-outline',
+    label: 'Growth operator',
+    prompt:
+      'Need someone to run TikTok growth and short-form experiments for a creator brand launch.',
   },
-};
-
-const promptExamples = [
-  'Need a short-form editor for YouTube clips, paid per video, remote',
-  'Looking for a cofounder-type builder to help prototype a creator app',
-  'Need someone to run TikTok growth for a small brand launch',
+  {
+    icon: 'cut-outline',
+    label: 'Short-form editor',
+    prompt:
+      'Need a short-form editor for YouTube and TikTok clips, paid per video, remote, CapCut preferred.',
+  },
 ];
 
 const styles = StyleSheet.create({
   builder: {
-    gap: theme.spacing.md,
+    gap: 20,
   },
-  builderHeader: {
+  heroHeader: {
     alignItems: 'flex-start',
     flexDirection: 'row',
-    gap: theme.spacing.md,
+    gap: 14,
   },
-  builderCopy: {
+  heroCopy: {
     flex: 1,
-    gap: 4,
+    gap: 6,
     minWidth: 0,
   },
-  builderEyebrow: {
-    color: theme.colors.accentStrong,
-    fontSize: theme.typography.caption,
-    fontWeight: '900',
+  sectionLabel: {
+    color: v.purpleStrong,
+    fontFamily: operatorFonts.monoSemiBold,
+    fontSize: 11,
+    fontWeight: '600',
     textTransform: 'uppercase',
   },
-  builderTitle: {
-    color: theme.colors.text,
-    fontSize: theme.typography.heading,
-    fontWeight: '900',
-    lineHeight: 26,
+  heroTitle: {
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 31,
+    fontWeight: '600',
+    lineHeight: 36,
   },
-  builderBody: {
-    color: theme.colors.muted,
-    fontSize: theme.typography.bodySmall,
-    lineHeight: 20,
+  heroSubtitle: {
+    color: v.textSoft,
+    fontFamily: operatorFonts.sans,
+    fontSize: 15,
+    lineHeight: 21,
   },
-  builderIcon: {
+  heroIcon: {
     alignItems: 'center',
-    backgroundColor: theme.colors.accentSoft,
-    borderRadius: theme.radii.md,
-    height: 40,
+    backgroundColor: v.surface,
+    borderColor: v.borderStrong,
+    borderRadius: 18,
+    borderWidth: 1,
+    height: 56,
     justifyContent: 'center',
-    width: 40,
+    width: 56,
   },
   composer: {
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radii.xl,
+    backgroundColor: v.surface,
+    borderColor: v.borderStrong,
+    borderRadius: 22,
     borderWidth: 1,
-    gap: theme.spacing.sm,
-    padding: theme.spacing.md,
-    ...theme.shadows.card,
+    gap: 14,
+    overflow: 'hidden',
+    padding: 16,
+  },
+  composerHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  composerLabelRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  tinyDot: {
+    backgroundColor: v.purple,
+    borderRadius: 5,
+    height: 10,
+    width: 10,
+  },
+  composerLabel: {
+    color: v.purpleStrong,
+    fontFamily: operatorFonts.monoSemiBold,
+    fontSize: 11,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
+  countText: {
+    color: v.textSoft,
+    fontFamily: operatorFonts.sans,
+    fontSize: 12,
   },
   promptInput: {
-    color: theme.colors.text,
-    fontSize: theme.typography.bodySmall,
-    lineHeight: 21,
-    minHeight: 96,
+    color: v.text,
+    fontFamily: operatorFonts.sans,
+    fontSize: 15,
+    lineHeight: 22,
+    minHeight: 118,
     padding: 0,
   },
   composerFooter: {
     alignItems: 'center',
-    borderTopColor: theme.colors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
-    gap: theme.spacing.sm,
-    paddingTop: theme.spacing.sm,
+    gap: 12,
+    justifyContent: 'space-between',
   },
-  composerHint: {
-    color: theme.colors.muted,
+  composerTools: {
     flex: 1,
-    fontSize: theme.typography.caption,
-    fontWeight: '700',
-    lineHeight: 15,
+    flexDirection: 'row',
+    gap: 8,
+    minWidth: 0,
   },
-  draftButton: {
+  toolButton: {
     alignItems: 'center',
-    backgroundColor: theme.colors.text,
-    borderRadius: theme.radii.pill,
+    borderColor: v.border,
+    borderRadius: 15,
+    borderWidth: 1,
     flexDirection: 'row',
     gap: 6,
-    minHeight: 38,
-    paddingHorizontal: theme.spacing.md,
+    minHeight: 44,
+    maxWidth: 132,
+    paddingHorizontal: 10,
   },
-  draftButtonDisabled: {
-    opacity: 0.42,
+  toolText: {
+    color: v.textSoft,
+    flexShrink: 1,
+    fontFamily: operatorFonts.sans,
+    fontSize: 12,
   },
-  draftButtonText: {
-    color: theme.colors.white,
-    fontSize: theme.typography.caption,
-    fontWeight: '900',
-  },
-  examples: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: theme.spacing.sm,
-  },
-  exampleChip: {
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radii.pill,
-    borderWidth: 1,
-    maxWidth: '100%',
-    minHeight: 34,
-    justifyContent: 'center',
-    paddingHorizontal: theme.spacing.md,
-  },
-  exampleText: {
-    color: theme.colors.textSoft,
-    fontSize: theme.typography.caption,
-    fontWeight: '800',
-  },
-  pathGrid: {
-    gap: theme.spacing.sm,
-  },
-  primaryPathWrap: {
-    width: '100%',
-  },
-  secondaryPaths: {
-    flexDirection: 'row',
-    gap: theme.spacing.sm,
-  },
-  secondaryPathsStacked: {
-    flexDirection: 'column',
-  },
-  secondaryPathWrap: {
-    flex: 1,
-  },
-  pathCard: {
-    borderRadius: theme.radii.xl,
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  primaryPath: {
-    minHeight: 148,
-    padding: theme.spacing.lg,
-  },
-  secondaryPath: {
-    minHeight: 132,
-    padding: theme.spacing.md,
-  },
-  pathPressed: {
-    opacity: 0.9,
-    transform: [{ scale: 0.985 }, { translateY: 1 }],
-  },
-  artPanel: {
-    borderWidth: 18,
-    position: 'absolute',
-    transform: [{ rotate: '24deg' }],
-  },
-  primaryArtPanel: {
-    height: 150,
-    right: -34,
-    top: -42,
-    width: 86,
-  },
-  secondaryArtPanel: {
-    height: 112,
-    right: -44,
-    top: -40,
-    width: 70,
-  },
-  artLine: {
-    height: 3,
-    position: 'absolute',
-    transform: [{ rotate: '-18deg' }],
-  },
-  primaryArtLine: {
-    right: -8,
-    top: 74,
-    width: 120,
-  },
-  secondaryArtLine: {
-    right: -12,
-    top: 62,
-    width: 88,
-  },
-  pathIcon: {
+  previewButton: {
     alignItems: 'center',
-    borderRadius: theme.radii.md,
-    height: 40,
-    justifyContent: 'center',
-    width: 40,
-  },
-  pathCopy: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    marginTop: theme.spacing.md,
-    paddingRight: theme.spacing.xl,
-  },
-  pathTitle: {
-    fontSize: theme.typography.cardTitle,
-    fontWeight: '800',
-    lineHeight: 20,
-  },
-  primaryPathTitle: {
-    fontSize: theme.typography.subheading,
-    lineHeight: 23,
-  },
-  pathDescription: {
-    fontSize: theme.typography.caption,
-    fontWeight: '700',
-    lineHeight: 16,
-    marginTop: theme.spacing.xs,
-  },
-  pathMeta: {
-    fontSize: theme.typography.caption,
-    fontWeight: '700',
-    marginTop: theme.spacing.sm,
-  },
-  pathArrow: {
-    alignItems: 'center',
+    backgroundColor: v.purpleSoft,
+    borderColor: v.borderPurple,
     borderRadius: 22,
     borderWidth: 1,
-    bottom: theme.spacing.md,
-    height: 38,
+    flexDirection: 'row',
+    gap: 7,
+    minHeight: 44,
+    paddingHorizontal: 18,
+  },
+  previewButtonDisabled: {
+    opacity: 0.42,
+  },
+  previewButtonText: {
+    color: v.purpleStrong,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  quickStart: {
+    gap: 10,
+  },
+  exampleRail: {
+    gap: 10,
+    paddingRight: theme.layout.screenPadding,
+  },
+  exampleChip: {
+    alignItems: 'center',
+    backgroundColor: v.surfaceSoft,
+    borderColor: v.border,
+    borderRadius: 19,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 8,
+    maxWidth: 232,
+    minHeight: 38,
+    paddingHorizontal: 13,
+  },
+  exampleText: {
+    color: v.textSoft,
+    fontFamily: operatorFonts.sans,
+    fontSize: 13,
+  },
+  previewSection: {
+    gap: 12,
+  },
+  quickSection: {
+    gap: 12,
+  },
+  actionGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  actionGridStacked: {
+    flexDirection: 'column',
+  },
+  actionTileWrap: {
+    flexBasis: '48%',
+    flexGrow: 1,
+    minWidth: 0,
+  },
+  actionTile: {
+    alignItems: 'center',
+    backgroundColor: v.surface,
+    borderColor: v.border,
+    borderRadius: 18,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 12,
+    minHeight: 82,
+    padding: 12,
+  },
+  actionIcon: {
+    alignItems: 'center',
+    backgroundColor: v.purpleSoft,
+    borderRadius: 14,
+    height: 44,
     justifyContent: 'center',
-    position: 'absolute',
-    right: theme.spacing.md,
-    width: 38,
+    width: 44,
+  },
+  actionCopy: {
+    flex: 1,
+    gap: 3,
+    minWidth: 0,
+  },
+  actionTitle: {
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  actionSupporting: {
+    color: v.textSoft,
+    fontFamily: operatorFonts.sans,
+    fontSize: 12,
+  },
+  actionBadge: {
+    alignItems: 'center',
+    backgroundColor: v.surfaceStrong,
+    borderRadius: 12,
+    minWidth: 26,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+  },
+  actionBadgeText: {
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 12,
+    fontWeight: '600',
   },
   section: {
-    gap: theme.spacing.md,
+    gap: 12,
   },
-  sectionTitle: {
-    color: theme.colors.text,
-    fontSize: theme.typography.sectionHeading,
-    fontWeight: '800',
+  sectionHeaderRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  viewAllButton: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 4,
+    minHeight: 32,
+    paddingLeft: 12,
+  },
+  viewAllText: {
+    color: v.purpleStrong,
+    fontFamily: operatorFonts.sansMedium,
+    fontSize: 13,
+    fontWeight: '500',
   },
   draftRail: {
-    gap: theme.spacing.sm,
+    gap: 10,
     paddingRight: theme.layout.screenPadding,
   },
   draftCard: {
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radii.lg,
+    backgroundColor: v.surface,
+    borderColor: v.border,
+    borderRadius: 18,
     borderWidth: 1,
-    minHeight: 154,
-    padding: theme.spacing.md,
-    width: 268,
+    minHeight: 132,
+    padding: 14,
+    width: 244,
   },
   draftTop: {
     alignItems: 'center',
@@ -844,155 +877,199 @@ const styles = StyleSheet.create({
   },
   draftIcon: {
     alignItems: 'center',
-    backgroundColor: theme.colors.accentSoft,
-    borderRadius: theme.radii.md,
-    height: 40,
+    backgroundColor: v.purpleSoft,
+    borderRadius: 13,
+    height: 38,
     justifyContent: 'center',
-    width: 40,
+    width: 38,
   },
   draftStatus: {
-    backgroundColor: theme.colors.surfaceMuted,
-    borderRadius: theme.radii.pill,
-    paddingHorizontal: 9,
+    backgroundColor: v.surfaceStrong,
+    borderRadius: 12,
+    paddingHorizontal: 8,
     paddingVertical: 5,
   },
   draftStatusText: {
-    color: theme.colors.muted,
-    fontSize: theme.typography.caption,
-    fontWeight: '800',
+    color: v.textSoft,
+    fontFamily: operatorFonts.sansMedium,
+    fontSize: 11,
+    fontWeight: '500',
   },
   draftTitle: {
-    color: theme.colors.text,
-    fontSize: theme.typography.cardTitle,
-    fontWeight: '800',
-    lineHeight: 21,
-    marginTop: theme.spacing.md,
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 15,
+    fontWeight: '600',
+    lineHeight: 20,
+    marginTop: 12,
   },
   draftMeta: {
-    color: theme.colors.muted,
-    fontSize: theme.typography.label,
-    marginTop: theme.spacing.xs,
+    color: v.muted,
+    fontFamily: operatorFonts.sans,
+    fontSize: 12,
+    marginTop: 5,
   },
   continueRow: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: theme.spacing.xs,
+    gap: 5,
     marginTop: 'auto',
-    minHeight: 32,
+    minHeight: 30,
   },
   continueLabel: {
-    color: theme.colors.accentStrong,
-    fontSize: theme.typography.small,
-    fontWeight: '800',
+    color: v.purpleStrong,
+    fontFamily: operatorFonts.sansMedium,
+    fontSize: 13,
+    fontWeight: '500',
   },
-  creationList: {
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radii.lg,
+  creationRail: {
+    gap: 12,
+    paddingRight: theme.layout.screenPadding,
+  },
+  creationTile: {
+    backgroundColor: v.surface,
+    borderColor: v.border,
+    borderRadius: 18,
     borderWidth: 1,
-    overflow: 'hidden',
+    minHeight: 126,
+    padding: 14,
+    width: 214,
   },
-  creationRow: {
+  creationTop: {
     alignItems: 'center',
-    borderBottomColor: theme.colors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
-    gap: theme.spacing.sm,
-    minHeight: 68,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
+    justifyContent: 'space-between',
   },
-  creationIdentity: {
+  creationKind: {
     alignItems: 'center',
-    backgroundColor: theme.colors.accentSoft,
-    borderRadius: theme.radii.md,
-    height: 40,
-    justifyContent: 'center',
-    overflow: 'hidden',
-    width: 40,
-  },
-  creationImage: {
-    height: '100%',
-    width: '100%',
-  },
-  creationCopy: {
-    flex: 1,
+    flexDirection: 'row',
+    gap: 7,
     minWidth: 0,
   },
+  statusDot: {
+    borderRadius: 4,
+    height: 8,
+    width: 8,
+  },
+  creationKindText: {
+    fontFamily: operatorFonts.sansMedium,
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  creationBody: {
+    gap: 8,
+    marginTop: 18,
+  },
+  creationImage: {
+    borderRadius: 15,
+    height: 30,
+    width: 30,
+  },
   creationTitle: {
-    color: theme.colors.text,
-    fontSize: 14,
-    fontWeight: '800',
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 15,
+    fontWeight: '600',
+    lineHeight: 20,
   },
   creationMeta: {
-    color: theme.colors.muted,
-    fontSize: theme.typography.caption,
-    marginTop: 3,
+    color: v.textSoft,
+    fontFamily: operatorFonts.sans,
+    fontSize: 12,
   },
-  statusChip: {
-    borderRadius: theme.radii.pill,
-    paddingHorizontal: 8,
-    paddingVertical: 5,
+  emptyCreationsCard: {
+    alignItems: 'center',
+    backgroundColor: v.surface,
+    borderColor: v.border,
+    borderRadius: 18,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 12,
+    minHeight: 84,
+    padding: 14,
   },
-  statusText: {
-    fontSize: 10,
-    fontWeight: '800',
+  emptyIcon: {
+    alignItems: 'center',
+    backgroundColor: v.purpleSoft,
+    borderRadius: 14,
+    height: 42,
+    justifyContent: 'center',
+    width: 42,
+  },
+  emptyCopy: {
+    flex: 1,
+    gap: 3,
+    minWidth: 0,
+  },
+  emptyTitle: {
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 14,
+    fontWeight: '600',
   },
   emptyCreations: {
-    color: theme.colors.muted,
-    fontSize: theme.typography.bodySmall,
-    lineHeight: 20,
+    color: v.textSoft,
+    fontFamily: operatorFonts.sans,
+    fontSize: 12,
+    lineHeight: 17,
   },
   manageRow: {
     flexDirection: 'row',
-    gap: theme.spacing.sm,
+    gap: 10,
   },
   manageButton: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radii.md,
+    backgroundColor: v.surfaceSoft,
+    borderColor: v.border,
+    borderRadius: 15,
     borderWidth: 1,
     flex: 1,
     flexDirection: 'row',
-    gap: theme.spacing.sm,
-    minHeight: theme.layout.minTouchTarget,
-    paddingHorizontal: theme.spacing.md,
+    gap: 8,
+    minHeight: 44,
+    paddingHorizontal: 12,
   },
   manageLabel: {
-    color: theme.colors.text,
+    color: v.text,
     flex: 1,
-    fontSize: theme.typography.label,
-    fontWeight: '800',
+    fontFamily: operatorFonts.sansMedium,
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  pressed: {
+    opacity: 0.84,
+    transform: [{ scale: 0.99 }],
   },
   rowPressed: {
-    opacity: 0.68,
+    opacity: 0.72,
   },
   skeletonSection: {
-    gap: theme.spacing.md,
+    gap: 12,
   },
   skeletonRow: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.radii.md,
+    backgroundColor: v.surface,
+    borderColor: v.border,
+    borderRadius: 18,
+    borderWidth: 1,
     flexDirection: 'row',
-    gap: theme.spacing.md,
+    gap: 12,
     minHeight: 68,
-    padding: theme.spacing.md,
+    padding: 14,
   },
   skeletonIcon: {
-    backgroundColor: theme.colors.surfaceMuted,
-    borderRadius: theme.radii.md,
-    height: 40,
-    width: 40,
+    backgroundColor: v.surfaceStrong,
+    borderRadius: 13,
+    height: 38,
+    width: 38,
   },
   skeletonCopy: {
     flex: 1,
-    gap: theme.spacing.sm,
+    gap: 8,
   },
   skeletonLine: {
-    backgroundColor: theme.colors.surfaceMuted,
+    backgroundColor: v.surfaceStrong,
     borderRadius: 5,
-    height: 11,
+    height: 10,
   },
 });

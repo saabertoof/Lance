@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { theme } from '@/constants/theme';
+import { operatorFonts, operatorVisual as v } from '@/constants/operatorTheme';
 
 export type OpportunityLinkPreviewCardProps = {
   compensationLabel: string;
@@ -30,28 +30,34 @@ export function OpportunityLinkPreviewCard({
 
   return (
     <View style={styles.shell}>
-      <View style={styles.art}>
-        <View style={styles.glowOne} />
-        <View style={styles.glowTwo} />
-        <View style={styles.poster}>
-          {posterImageUrl ? (
-            <Image contentFit="cover" source={posterImageUrl} style={styles.image} />
-          ) : (
-            <Text style={styles.mark}>{mark}</Text>
-          )}
+      <View pointerEvents="none" style={styles.ambientOne} />
+      <View pointerEvents="none" style={styles.ambientTwo} />
+
+      <View style={styles.posterRow}>
+        <View style={styles.posterIdentity}>
+          <View style={styles.poster}>
+            {posterImageUrl ? (
+              <Image contentFit="cover" source={posterImageUrl} style={styles.image} />
+            ) : (
+              <Text style={styles.mark}>{mark}</Text>
+            )}
+          </View>
+          <View style={styles.posterCopy}>
+            <Text numberOfLines={1} style={styles.posterLabel}>
+              {posterLabel}
+            </Text>
+            <Text numberOfLines={1} style={styles.url}>
+              {urlLabel}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.livePill}>
+          <View style={styles.liveDot} />
+          <Text style={styles.liveText}>Preview</Text>
         </View>
       </View>
 
       <View style={styles.body}>
-        <View style={styles.topline}>
-          <Text numberOfLines={1} style={styles.posterLabel}>
-            {posterLabel}
-          </Text>
-          <View style={styles.livePill}>
-            <View style={styles.liveDot} />
-            <Text style={styles.liveText}>Link preview</Text>
-          </View>
-        </View>
         <Text numberOfLines={2} style={styles.title}>
           {title || 'Creator opportunity link'}
         </Text>
@@ -75,15 +81,18 @@ export function OpportunityLinkPreviewCard({
             ))}
           </View>
         ) : null}
+      </View>
 
-        <View style={styles.ctaRow}>
-          <Text numberOfLines={1} style={styles.url}>
-            {urlLabel}
+      <View style={styles.footer}>
+        <View style={styles.footerHint}>
+          <Ionicons color={v.textSoft} name="link-outline" size={14} />
+          <Text numberOfLines={1} style={styles.footerText}>
+            Shareable opportunity page
           </Text>
-          <View style={styles.cta}>
-            <Text style={styles.ctaText}>Apply</Text>
-            <Ionicons color={theme.colors.white} name="arrow-forward" size={14} />
-          </View>
+        </View>
+        <View style={styles.cta}>
+          <Text style={styles.ctaText}>Apply</Text>
+          <Ionicons color={v.white} name="arrow-forward" size={13} />
         </View>
       </View>
     </View>
@@ -99,7 +108,7 @@ function MetaPill({
 }) {
   return (
     <View style={styles.metaPill}>
-      <Ionicons color="rgba(255,255,255,0.78)" name={icon} size={13} />
+      <Ionicons color={v.textSoft} name={icon} size={14} />
       <Text numberOfLines={1} style={styles.metaText}>
         {label}
       </Text>
@@ -109,168 +118,196 @@ function MetaPill({
 
 const styles = StyleSheet.create({
   shell: {
-    backgroundColor: '#181622',
-    borderColor: 'rgba(255,255,255,0.08)',
-    borderRadius: theme.radii.xl,
+    backgroundColor: v.surface,
+    borderColor: v.borderPurple,
+    borderRadius: 22,
     borderWidth: 1,
+    gap: 16,
     overflow: 'hidden',
-    ...theme.shadows.card,
+    padding: 16,
+    position: 'relative',
   },
-  art: {
-    alignItems: 'center',
-    backgroundColor: '#6E54FF',
-    height: 112,
-    justifyContent: 'center',
-    overflow: 'hidden',
+  ambientOne: {
+    backgroundColor: 'rgba(139,92,246,0.16)',
+    borderRadius: 120,
+    height: 132,
+    position: 'absolute',
+    right: -52,
+    top: -70,
+    width: 132,
   },
-  glowOne: {
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    borderRadius: 80,
+  ambientTwo: {
+    backgroundColor: 'rgba(255,255,255,0.035)',
+    borderRadius: 120,
+    bottom: -78,
     height: 150,
+    left: -72,
     position: 'absolute',
-    right: -36,
-    top: -52,
-    transform: [{ rotate: '18deg' }],
-    width: 86,
+    width: 150,
   },
-  glowTwo: {
-    backgroundColor: 'rgba(255,133,91,0.28)',
-    borderRadius: 70,
-    bottom: -44,
-    height: 126,
-    left: -28,
-    position: 'absolute',
-    transform: [{ rotate: '-20deg' }],
-    width: 82,
+  posterRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'space-between',
+  },
+  posterIdentity: {
+    alignItems: 'center',
+    flex: 1,
+    flexDirection: 'row',
+    gap: 10,
+    minWidth: 0,
   },
   poster: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderColor: 'rgba(255,255,255,0.78)',
+    backgroundColor: v.surfaceStrong,
+    borderColor: v.borderStrong,
     borderRadius: 22,
     borderWidth: 1,
-    height: 72,
+    height: 44,
     justifyContent: 'center',
     overflow: 'hidden',
-    width: 72,
+    width: 44,
   },
   image: { height: '100%', width: '100%' },
   mark: {
-    color: theme.colors.accentStrong,
-    fontSize: 26,
-    fontWeight: '900',
+    color: v.purpleStrong,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 18,
+    fontWeight: '600',
   },
-  body: {
-    gap: theme.spacing.sm,
-    padding: theme.spacing.md,
-  },
-  topline: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: theme.spacing.sm,
-    justifyContent: 'space-between',
+  posterCopy: {
+    flex: 1,
+    gap: 2,
+    minWidth: 0,
   },
   posterLabel: {
-    color: 'rgba(255,255,255,0.66)',
-    flex: 1,
-    fontSize: theme.typography.caption,
-    fontWeight: '900',
-    textTransform: 'uppercase',
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  url: {
+    color: v.muted,
+    fontFamily: operatorFonts.sans,
+    fontSize: 12,
   },
   livePill: {
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.09)',
-    borderRadius: theme.radii.pill,
+    backgroundColor: v.purpleSoft,
+    borderColor: v.borderPurple,
+    borderRadius: 13,
+    borderWidth: 1,
     flexDirection: 'row',
-    gap: 5,
-    paddingHorizontal: 8,
-    paddingVertical: 5,
+    gap: 6,
+    minHeight: 28,
+    paddingHorizontal: 9,
   },
   liveDot: {
-    backgroundColor: theme.colors.success,
+    backgroundColor: v.purple,
     borderRadius: 4,
     height: 7,
     width: 7,
   },
   liveText: {
-    color: 'rgba(255,255,255,0.82)',
-    fontSize: 9,
-    fontWeight: '900',
+    color: v.purpleStrong,
+    fontFamily: operatorFonts.monoSemiBold,
+    fontSize: 10,
+    fontWeight: '600',
     textTransform: 'uppercase',
   },
+  body: {
+    gap: 11,
+  },
   title: {
-    color: theme.colors.white,
-    fontSize: theme.typography.cardTitle,
-    fontWeight: '900',
-    lineHeight: 21,
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 20,
+    fontWeight: '600',
+    lineHeight: 25,
   },
   summary: {
-    color: 'rgba(255,255,255,0.68)',
-    fontSize: theme.typography.caption,
-    fontWeight: '700',
-    lineHeight: 16,
+    color: v.textSoft,
+    fontFamily: operatorFonts.sans,
+    fontSize: 14,
+    lineHeight: 20,
   },
   metaRow: {
     flexDirection: 'row',
-    gap: theme.spacing.sm,
+    flexWrap: 'wrap',
+    gap: 9,
   },
   metaPill: {
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: theme.radii.pill,
-    flex: 1,
+    backgroundColor: v.surfaceSoft,
+    borderColor: v.border,
+    borderRadius: 15,
+    borderWidth: 1,
     flexDirection: 'row',
-    gap: 5,
-    minHeight: 28,
-    paddingHorizontal: 8,
+    gap: 7,
+    minHeight: 32,
+    paddingHorizontal: 10,
   },
   metaText: {
-    color: 'rgba(255,255,255,0.78)',
-    flex: 1,
-    fontSize: theme.typography.caption,
-    fontWeight: '800',
+    color: v.textSoft,
+    fontFamily: operatorFonts.sans,
+    fontSize: 12,
   },
   skills: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: theme.spacing.xs,
+    gap: 7,
   },
   skill: {
-    backgroundColor: 'rgba(124,92,255,0.22)',
-    borderRadius: theme.radii.pill,
+    backgroundColor: v.purpleSoft,
+    borderColor: v.borderPurple,
+    borderRadius: 14,
+    borderWidth: 1,
     maxWidth: '100%',
-    paddingHorizontal: 8,
-    paddingVertical: 5,
+    minHeight: 28,
+    justifyContent: 'center',
+    paddingHorizontal: 9,
   },
   skillText: {
-    color: 'rgba(255,255,255,0.88)',
-    fontSize: theme.typography.caption,
-    fontWeight: '900',
+    color: v.purpleStrong,
+    fontFamily: operatorFonts.sansMedium,
+    fontSize: 12,
+    fontWeight: '500',
   },
-  ctaRow: {
+  footer: {
     alignItems: 'center',
+    borderTopColor: v.border,
+    borderTopWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
-    gap: theme.spacing.sm,
-    marginTop: 2,
+    gap: 12,
+    paddingTop: 14,
   },
-  url: {
-    color: 'rgba(255,255,255,0.48)',
+  footerHint: {
+    alignItems: 'center',
     flex: 1,
-    fontSize: theme.typography.caption,
-    fontWeight: '800',
+    flexDirection: 'row',
+    gap: 7,
+    minWidth: 0,
+  },
+  footerText: {
+    color: v.textSoft,
+    flex: 1,
+    fontFamily: operatorFonts.sans,
+    fontSize: 12,
   },
   cta: {
     alignItems: 'center',
-    backgroundColor: theme.colors.accent,
-    borderRadius: theme.radii.pill,
+    backgroundColor: v.purple,
+    borderRadius: 16,
     flexDirection: 'row',
     gap: 5,
     minHeight: 32,
     paddingHorizontal: 12,
   },
   ctaText: {
-    color: theme.colors.white,
-    fontSize: theme.typography.caption,
-    fontWeight: '900',
+    color: v.white,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 12,
+    fontWeight: '600',
   },
 });

@@ -11,6 +11,7 @@ import {
   YourCreations,
 } from '@/components/create';
 import { Screen } from '@/components/ui';
+import { operatorFonts, operatorVisual as v } from '@/constants/operatorTheme';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { useAdaptiveTabBar } from '@/context/AdaptiveTabBarContext';
@@ -103,8 +104,29 @@ export default function CreateScreen() {
     router.push(routes.newOpportunity(undefined, prompt));
   }
 
+  function useMagicDraftShortcut() {
+    const prompt = ideaPrompt.trim();
+    if (prompt.length >= 12) {
+      router.push(routes.newOpportunity(undefined, prompt));
+      return;
+    }
+
+    setIdeaPrompt(
+      'Need a short-form editor for YouTube and TikTok clips, paid per video, remote, CapCut preferred.',
+    );
+  }
+
+  function openDrafts() {
+    const firstDraft = summary.drafts[0];
+    if (firstDraft) {
+      router.push(routes.editOpportunity(firstDraft.id));
+      return;
+    }
+    router.push(routes.opportunities);
+  }
+
   return (
-    <Screen compact scroll contentStyle={styles.screen}>
+    <Screen compact scroll contentStyle={styles.screen} style={styles.canvas}>
       <PromptLinkBuilder
         onDraft={draftFromPrompt}
         onPromptChange={setIdeaPrompt}
@@ -116,9 +138,11 @@ export default function CreateScreen() {
         reduceMotion={reduceMotion}
       />
       <CreatePathGrid
+        draftCount={summary.drafts.length}
         onBusiness={() => router.push(routes.newBusinessFor('startup'))}
+        onDrafts={openDrafts}
+        onMagicDraft={useMagicDraftShortcut}
         onOpportunity={() => router.push(routes.newOpportunity())}
-        onProject={() => router.push(routes.newBusinessFor('project'))}
         reduceMotion={reduceMotion}
       />
 
@@ -163,21 +187,28 @@ export default function CreateScreen() {
 }
 
 const styles = StyleSheet.create({
+  canvas: {
+    backgroundColor: v.background,
+  },
   screen: {
-    gap: theme.density.sectionGap,
+    gap: 20,
+    paddingHorizontal: 16,
   },
   loadError: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surfaceMuted,
-    borderRadius: theme.radii.md,
+    backgroundColor: v.surface,
+    borderColor: v.border,
+    borderRadius: 18,
+    borderWidth: 1,
     flexDirection: 'row',
-    gap: theme.spacing.md,
-    padding: theme.spacing.md,
+    gap: 12,
+    padding: 14,
   },
   loadErrorText: {
-    color: theme.colors.muted,
+    color: v.textSoft,
     flex: 1,
-    fontSize: theme.typography.label,
+    fontFamily: operatorFonts.sans,
+    fontSize: 12,
     lineHeight: 17,
   },
   retry: {
@@ -187,9 +218,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.sm,
   },
   retryLabel: {
-    color: theme.colors.accentStrong,
-    fontSize: theme.typography.small,
-    fontWeight: '800',
+    color: v.purpleStrong,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 13,
+    fontWeight: '600',
   },
   pressed: {
     opacity: 0.65,

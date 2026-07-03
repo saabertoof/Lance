@@ -24,8 +24,11 @@ test('creator-facing create and profile code uses opportunity naming', async () 
   const createTab = await readFile('app/(tabs)/create.tsx', 'utf8');
   const profileHub = await readFile('src/components/profile/ProfileOwnerHub.tsx', 'utf8');
 
-  assert.match(createStudio, /Make an opportunity link/);
+  assert.match(createStudio, /Post an opportunity/);
+  assert.match(createStudio, /New opportunity/);
   assert.doesNotMatch(createStudio, /onJob|onManageJobs|kind: 'job'|tone="job"/);
+  assert.doesNotMatch(createStudio, /Project profile|onProject|tone="project"/);
   assert.doesNotMatch(createTab, /onJob|onManageJobs/);
+  assert.doesNotMatch(createTab, /newBusinessFor\('project'\)/);
   assert.doesNotMatch(profileHub, /onJobs/);
 });
