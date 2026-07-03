@@ -9,6 +9,7 @@ import {
   useState,
 } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { theme } from '@/constants/theme';
 
@@ -28,6 +29,7 @@ type FeedbackContextValue = {
 const FeedbackContext = createContext<FeedbackContextValue | null>(null);
 
 export function FeedbackProvider({ children }: PropsWithChildren) {
+  const insets = useSafeAreaInsets();
   const [feedback, setFeedback] = useState<FeedbackMessage | null>(null);
 
   const show = useCallback((message: string, tone: FeedbackTone) => {
@@ -59,12 +61,13 @@ export function FeedbackProvider({ children }: PropsWithChildren) {
           accessibilityLiveRegion="polite"
           style={[
             styles.banner,
+            { top: insets.top + 10 },
             feedback.tone === 'warning' ? styles.warningBanner : styles.successBanner,
           ]}>
           <Ionicons
             color={feedback.tone === 'warning' ? '#F4BE65' : theme.colors.success}
             name={feedback.tone === 'warning' ? 'warning-outline' : 'checkmark-circle'}
-            size={21}
+            size={17}
           />
           <Text
             style={[
@@ -95,13 +98,12 @@ const styles = StyleSheet.create({
     borderRadius: theme.radii.md,
     borderWidth: 1,
     flexDirection: 'row',
-    gap: theme.spacing.sm,
+    gap: 8,
     left: theme.spacing.lg,
     paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.md,
+    paddingVertical: 9,
     position: 'absolute',
     right: theme.spacing.lg,
-    top: 54,
     zIndex: 1000,
     ...theme.shadows.card,
   },
@@ -116,8 +118,8 @@ const styles = StyleSheet.create({
   message: {
     flex: 1,
     fontFamily: theme.typography.familySemiBold,
-    fontSize: theme.typography.small,
-    lineHeight: 20,
+    fontSize: 13,
+    lineHeight: 17,
   },
   successText: {
     color: theme.colors.success,

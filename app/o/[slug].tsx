@@ -156,7 +156,7 @@ export default function PublicOpportunityScreen() {
               </Text>
               <Text style={styles.posterType}>
                 {opportunity.poster.identityType === 'business'
-                  ? 'Creator business or project'
+                  ? 'Creator business profile'
                   : 'Creator profile'}
               </Text>
             </View>
@@ -282,7 +282,7 @@ export default function PublicOpportunityScreen() {
           accessibilityRole="link"
           onPress={() => Linking.openURL(opportunity.externalUrl)}
           style={({ pressed }) => [styles.externalLink, pressed && styles.pressed]}>
-          <Text style={styles.externalText}>Open creator project link</Text>
+          <Text style={styles.externalText}>Open creator link</Text>
           <Ionicons color={theme.colors.accentStrong} name="open-outline" size={18} />
         </Pressable>
       ) : null}

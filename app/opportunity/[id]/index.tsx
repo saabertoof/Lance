@@ -243,7 +243,7 @@ export default function OpportunityDetailScreen() {
           <Text style={styles.posterName}>{opportunity.poster.name}</Text>
           <Text style={styles.posterType}>
             {opportunity.poster.identityType === 'business'
-              ? 'Business or project'
+              ? 'Business profile'
               : 'Personal profile'}
           </Text>
         </View>
@@ -367,7 +367,7 @@ export default function OpportunityDetailScreen() {
             accessibilityRole="link"
             onPress={() => Linking.openURL(opportunity.externalUrl)}
             style={styles.link}>
-            <Text style={styles.linkLabel}>External project link</Text>
+            <Text style={styles.linkLabel}>External link</Text>
             <Ionicons color={theme.colors.muted} name="open-outline" size={18} />
           </Pressable>
         ) : null}

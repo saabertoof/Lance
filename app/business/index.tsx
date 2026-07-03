@@ -64,16 +64,16 @@ export default function MyBusinessesScreen() {
         <Text style={styles.title}>My businesses</Text>
         <View style={styles.placeholder} />
       </View>
-      <Text style={styles.subtitle}>Manage businesses and projects you own.</Text>
+      <Text style={styles.subtitle}>Manage business profiles you own.</Text>
       <Button
-        label="Create business or project"
+        label="Create business profile"
         onPress={() => router.push(routes.newBusiness)}
       />
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {businesses.length === 0 ? (
         <EmptyState
           body="Create one to build a public identity and post opportunities under it."
-          title="You have not created a business or project yet."
+          title="No business profiles yet."
         />
       ) : (
         <View style={styles.list}>

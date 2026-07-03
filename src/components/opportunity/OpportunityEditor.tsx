@@ -170,7 +170,7 @@ export function OpportunityEditor({
         <>
           <StepHeader
             title="Who is posting this?"
-            subtitle="Post personally or as a business or project you own."
+            subtitle="Post personally or as a business profile you own."
           />
           <PostingIdentitySelector
             businesses={businesses}
@@ -420,7 +420,7 @@ export function OpportunityEditor({
           <TextField
             autoCapitalize="none"
             inputMode="url"
-            label="External project link (optional)"
+            label="External link (optional)"
             onChangeText={(externalUrl) => set('externalUrl', externalUrl)}
             placeholder="https://"
             value={draft.externalUrl}

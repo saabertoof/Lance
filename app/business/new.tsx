@@ -53,11 +53,9 @@ export default function NewBusinessScreen() {
         showWarning(result.logoWarning);
       } else {
         showSuccess(
-          draft.businessType === 'project'
-            ? 'Project launched.'
-            : draft.localLogoBase64
-              ? 'Business created. Logo uploaded.'
-              : 'Business created.',
+          draft.localLogoBase64
+            ? 'Business profile created. Logo uploaded.'
+            : 'Business profile created.',
         );
       }
 
@@ -80,9 +78,7 @@ export default function NewBusinessScreen() {
           style={styles.iconButton}>
           <Ionicons color={theme.colors.text} name="close" size={24} />
         </Pressable>
-        <Text style={styles.title}>
-          {draft.businessType === 'project' ? 'Launch project' : 'Create business'}
-        </Text>
+        <Text style={styles.title}>Create business profile</Text>
         <View style={styles.placeholder} />
       </View>
       <BusinessForm
@@ -97,9 +93,7 @@ export default function NewBusinessScreen() {
       ) : null}
       <Button
         disabled={urlStatus !== 'available'}
-        label={
-          draft.businessType === 'project' ? 'Launch project' : 'Create business'
-        }
+        label="Create business profile"
         loading={isSaving}
         onPress={createBusiness}
       />

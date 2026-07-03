@@ -22,6 +22,7 @@ import {
 } from '@/constants/countries';
 import { theme } from '@/constants/theme';
 import {
+  compactRegion,
   getLocationCatalogId,
   getLocationCountryCode,
   locationOptionFromParts,
@@ -102,19 +103,23 @@ export function LocationInput({
     region?: string;
   }) {
     const nextCity = next.city ?? city;
-    const nextRegion = next.region ?? region;
     const nextCountryCode =
       normalizeCountryCode(next.countryCode) || countryCode || normalizeCountryCode(defaultCountryCode);
+    const nextRegion = compactRegion(next.region ?? region, nextCountryCode);
 
     setCity(nextCity);
     setRegion(nextRegion);
     setCountryCode(nextCountryCode);
 
-    onChange(locationOptionFromParts({
-      city: nextCity,
-      countryCode: nextCountryCode,
-      region: nextRegion,
-    }));
+    onChange(
+      nextCity.trim() || nextRegion.trim()
+        ? locationOptionFromParts({
+            city: nextCity,
+            countryCode: nextCountryCode,
+            region: nextRegion,
+          })
+        : null,
+    );
   }
 
   function selectSuggestion(location: LocationOption) {
@@ -129,11 +134,15 @@ export function LocationInput({
     setCountryCode(country.code);
     setCountryOpen(false);
     setCountryQuery('');
-    onChange(locationOptionFromParts({
-      city,
-      countryCode: country.code,
-      region,
-    }));
+    onChange(
+      city.trim() || region.trim()
+        ? locationOptionFromParts({
+            city,
+            countryCode: country.code,
+            region: compactRegion(region, country.code),
+          })
+        : null,
+    );
   }
 
   function clear() {
@@ -213,18 +222,22 @@ export function LocationInput({
         ) : null}
       </View>
 
-      <View style={styles.search}>
-        <Ionicons color={theme.colors.muted} name="search-outline" size={18} />
-        <TextInput
-          onChangeText={setQuery}
-          placeholder="Quick search city, state, or country"
-          placeholderTextColor={theme.colors.mutedLight}
-          style={styles.searchInput}
-          value={query}
-        />
-      </View>
+      {!selectedPreview ? (
+        <View style={styles.search}>
+          <Ionicons color={theme.colors.muted} name="search-outline" size={18} />
+          <TextInput
+            autoCapitalize="words"
+            autoCorrect={false}
+            onChangeText={setQuery}
+            placeholder="Search city, state, or country"
+            placeholderTextColor={theme.colors.mutedLight}
+            style={styles.searchInput}
+            value={query}
+          />
+        </View>
+      ) : null}
 
-      {query ? (
+      {query && !selectedPreview ? (
         <View style={styles.results}>
           {suggestions.map((option) => (
             <Pressable

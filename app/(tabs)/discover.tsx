@@ -330,12 +330,19 @@ export default function DiscoverScreen() {
           <Image
             accessibilityLabel="Lance"
             contentFit="contain"
-            source={require('../../assets/images/lance_icon_transparent.png')}
+            source={require('../../assets/images/lance_icon_dark.png')}
             style={styles.mark}
-            tintColor={v.white}
           />
         </View>
-        <View style={styles.headerSpacer} />
+        <View style={styles.headerSegment}>
+          <SegmentedControl
+            compact
+            onChange={setMode}
+            options={discoverModes}
+            value={mode}
+            variant="operator"
+          />
+        </View>
         <FilterButton
           compact
           count={filterCount}
@@ -343,13 +350,6 @@ export default function DiscoverScreen() {
           variant="operator"
         />
       </View>
-
-      <SegmentedControl
-        onChange={setMode}
-        options={discoverModes}
-        value={mode}
-        variant="operator"
-      />
 
       <View style={styles.deckArea}>
         {isLoading ? <DiscoverSkeleton /> : null}
@@ -584,28 +584,30 @@ const styles = StyleSheet.create({
     backgroundColor: v.background,
   },
   screen: {
-    gap: 10,
+    gap: 8,
     paddingHorizontal: 16,
   },
   header: {
     alignItems: 'center',
     flexDirection: 'row',
+    gap: 8,
     justifyContent: 'space-between',
-    minHeight: 46,
+    minHeight: 42,
   },
   mark: {
-    height: 30,
-    width: 30,
+    height: 32,
+    width: 32,
   },
   markSlot: {
     alignItems: 'center',
-    height: 42,
+    height: 40,
     justifyContent: 'center',
     overflow: 'hidden',
-    width: 42,
+    width: 40,
   },
-  headerSpacer: {
+  headerSegment: {
     flex: 1,
+    minWidth: 0,
   },
   deckArea: {
     flex: 1,

@@ -192,6 +192,7 @@ const styles = StyleSheet.create({
   },
   screen: {
     gap: 18,
+    paddingBottom: 56,
     paddingHorizontal: 16,
   },
   loadError: {

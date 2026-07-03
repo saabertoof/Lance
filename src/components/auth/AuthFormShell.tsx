@@ -17,8 +17,8 @@ export function AuthFormShell({ children, footer, subtitle, title }: AuthFormShe
         <Image
           accessibilityLabel="Lance"
           resizeMode="contain"
-          source={require('../../../assets/images/lance_wordmark_transparent.png')}
-          style={[styles.wordmark, styles.wordmarkTint]}
+          source={require('../../../assets/images/lance_wordmark_dark.png')}
+          style={styles.wordmark}
         />
       </View>
 
@@ -45,9 +45,6 @@ const styles = StyleSheet.create({
   wordmark: {
     width: 170,
     height: 54,
-  },
-  wordmarkTint: {
-    tintColor: theme.colors.text,
   },
   copy: {
     gap: theme.spacing.sm,

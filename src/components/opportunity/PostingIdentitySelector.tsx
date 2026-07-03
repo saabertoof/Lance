@@ -40,7 +40,7 @@ export function PostingIdentitySelector({
           imageUrl={business.logoUrl}
           key={business.id}
           label={business.name}
-          meta="Business or project"
+          meta="Business profile"
           onPress={() => onSelectBusiness(business.id)}
           selected={
             selectedIdentity === 'business' && selectedBusinessId === business.id
@@ -52,7 +52,7 @@ export function PostingIdentitySelector({
           accessibilityRole="button"
           onPress={onCreateBusiness}
           style={({ pressed }) => [styles.create, pressed && styles.pressed]}>
-          <Text style={styles.createLabel}>Create a business or project</Text>
+          <Text style={styles.createLabel}>Create business profile</Text>
         </Pressable>
       ) : null}
     </View>

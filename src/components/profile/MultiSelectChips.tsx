@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
   },
   chip: {
-    backgroundColor: theme.colors.surface,
+    backgroundColor: theme.colors.chip,
     borderColor: theme.colors.border,
     borderRadius: theme.radii.pill,
     borderWidth: 1,
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
   },
   selectedChip: {
     backgroundColor: theme.colors.accentSoft,
-    borderColor: theme.colors.accent,
+    borderColor: 'rgba(139,92,246,0.65)',
   },
   pressed: {
     opacity: 0.72,

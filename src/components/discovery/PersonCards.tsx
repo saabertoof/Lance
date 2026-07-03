@@ -78,7 +78,6 @@ export function PersonCard({
         <View style={styles.fadeBottom} />
 
         <View style={styles.topStatus}>
-          <View style={styles.statusDot} />
           <Text numberOfLines={1} style={styles.topStatusText}>
             {availabilityLabel}
           </Text>
@@ -265,7 +264,7 @@ const intentLabels: Record<string, string> = {
   looking_for_internships: 'Looking for internships',
   looking_for_job: 'Looking for opportunities',
   hiring: 'Hiring',
-  looking_for_projects: 'Looking for projects',
+  looking_for_projects: 'Looking for opportunities',
   offering_skills: 'Offering my skills',
   just_networking: 'Just networking',
   offering_mentorship: 'Offering mentorship',
@@ -431,12 +430,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 11,
     position: 'absolute',
     top: 18,
-  },
-  statusDot: {
-    backgroundColor: v.green,
-    borderRadius: 5,
-    height: 9,
-    width: 9,
   },
   topStatusText: {
     color: v.text,

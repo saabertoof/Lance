@@ -125,7 +125,6 @@ export function PromptLinkBuilder({
       style={styles.builder}>
       <View style={styles.heroHeader}>
         <View style={styles.heroCopy}>
-          <SectionLabel>Create</SectionLabel>
           <Text style={styles.heroTitle}>Post an opportunity</Text>
           <Text style={styles.heroSubtitle}>
             Find builders, operators, collaborators, and talent.

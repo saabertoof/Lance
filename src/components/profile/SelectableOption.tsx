@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
   },
   selected: {
     backgroundColor: theme.colors.accentSoft,
-    borderColor: theme.colors.accent,
+    borderColor: 'rgba(139,92,246,0.65)',
   },
   pressed: {
     opacity: 0.75,

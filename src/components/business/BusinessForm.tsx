@@ -226,7 +226,7 @@ export function BusinessForm({
           maxLength={180}
           multiline
           onChangeText={(shortDescription) => set('shortDescription', shortDescription)}
-          placeholder="A concise explanation of what this business or project does."
+          placeholder="A concise explanation of what this business profile does."
           style={styles.shortTextArea}
           textAlignVertical="top"
           value={draft.shortDescription}
@@ -236,7 +236,7 @@ export function BusinessForm({
           maxLength={2000}
           multiline
           onChangeText={(fullDescription) => set('fullDescription', fullDescription)}
-          placeholder="Add useful context, focus, customers, or project goals."
+          placeholder="Add useful context, focus, customers, or business goals."
           style={styles.textArea}
           textAlignVertical="top"
           value={draft.fullDescription}
@@ -355,7 +355,7 @@ export function BusinessForm({
 
       <FormSection title="Preview">
         <Card style={styles.preview}>
-          <Text style={styles.previewName}>{draft.name || 'Business or project name'}</Text>
+          <Text style={styles.previewName}>{draft.name || 'Business profile name'}</Text>
           <Text style={styles.previewMeta}>
             {draft.industry} | {draft.location || 'Location not set'}
           </Text>

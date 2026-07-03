@@ -45,11 +45,12 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/lance_icon_transparent.png",
+          "image": "./assets/images/lance_icon_dark.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#05050A",
           "dark": {
+            "image": "./assets/images/lance_icon_dark.png",
             "backgroundColor": "#05050A"
           }
         }

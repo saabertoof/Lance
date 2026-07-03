@@ -8,7 +8,7 @@ export const currentIntentOptions = [
   { label: 'Looking for internships', value: 'looking_for_internships' },
   { label: 'Looking for opportunities', value: 'looking_for_job' },
   { label: 'Hiring', value: 'hiring' },
-  { label: 'Looking for projects', value: 'looking_for_projects' },
+  { label: 'Looking for opportunities', value: 'looking_for_projects' },
   { label: 'Offering my skills', value: 'offering_skills' },
   { label: 'Just networking', value: 'just_networking' },
   { label: 'Offering mentorship', value: 'offering_mentorship' },
@@ -23,7 +23,7 @@ export const profilePromptOptions = [
   { label: 'An idea I cannot stop thinking about...', value: 'idea' },
   { label: 'My unfair advantage is...', value: 'advantage' },
   { label: 'The kind of opportunity I want next...', value: 'next_opportunity' },
-  { label: 'A project I am proud of...', value: 'proud_project' },
+  { label: 'Work I am proud of...', value: 'proud_project' },
 ] as const;
 
 export const profileTemplateOptions = ['clean', 'creator', 'studio', 'bold'] as const;

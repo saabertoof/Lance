@@ -247,13 +247,13 @@ export function ProfileFeaturedWorkCard({
 
 export function ProfileProofOfWorkCard({
   onApplied,
+  onBusinesses,
   onOpportunities,
-  onProjects,
   summary,
 }: {
   onApplied: () => void;
+  onBusinesses: () => void;
   onOpportunities: () => void;
-  onProjects: () => void;
   summary: OwnerProfileSummary | null;
 }) {
   return (
@@ -265,7 +265,7 @@ export function ProfileProofOfWorkCard({
       <View style={styles.proofStats}>
         <ProofStat label="Applications" onPress={onApplied} value={summary?.applied ?? 0} />
         <ProofStat label="Opportunities" onPress={onOpportunities} value={summary?.opportunities ?? 0} />
-        <ProofStat label="Projects" onPress={onProjects} value={summary?.businesses ?? 0} />
+        <ProofStat label="Businesses" onPress={onBusinesses} value={summary?.businesses ?? 0} />
       </View>
     </View>
   );

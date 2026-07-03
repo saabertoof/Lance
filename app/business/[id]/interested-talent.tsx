@@ -104,7 +104,7 @@ export default function InterestedTalentScreen() {
       </View>
       {business ? (
         <View style={styles.context}>
-          <Text style={styles.contextLabel}>Business or project</Text>
+          <Text style={styles.contextLabel}>Business profile</Text>
           <Text style={styles.contextTitle}>{business.name}</Text>
         </View>
       ) : null}

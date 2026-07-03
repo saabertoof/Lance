@@ -212,7 +212,10 @@ const styles = StyleSheet.create({
     minHeight: theme.layout.minTouchTarget,
     paddingHorizontal: theme.spacing.md,
   },
-  optionSelected: { backgroundColor: theme.colors.accentSoft, borderColor: theme.colors.accent },
+  optionSelected: {
+    backgroundColor: theme.colors.accentSoft,
+    borderColor: 'rgba(139,92,246,0.65)',
+  },
   optionText: {
     color: theme.colors.textSoft,
     fontFamily: theme.typography.familySemiBold,

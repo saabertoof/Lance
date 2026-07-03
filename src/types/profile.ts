@@ -60,7 +60,7 @@ export const availabilityOptions = [
 export const opportunityInterestOptions = [
   { label: 'Paid gigs', value: 'paid_freelance' },
   { label: 'Ongoing part-time', value: 'ongoing_part_time' },
-  { label: 'One-time project', value: 'one_time_project' },
+  { label: 'One-time opportunity', value: 'one_time_project' },
   { label: 'Retainer work', value: 'retainer_work' },
   { label: 'Cofounder opportunities', value: 'cofounder' },
   { label: 'Collabs', value: 'project_collaboration' },

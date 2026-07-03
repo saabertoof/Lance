@@ -3,7 +3,7 @@ export const connectReasonOptions = [
   { label: 'Looking for a cofounder', value: 'cofounder' },
   { label: 'Hire or find help', value: 'hire_or_help' },
   { label: 'Offer my skills', value: 'offer_skills' },
-  { label: 'Work on a project', value: 'project' },
+  { label: 'Work on an opportunity', value: 'project' },
   { label: 'Network', value: 'network' },
   { label: 'Ask about their work', value: 'ask_about_work' },
   { label: 'Mentorship', value: 'mentorship' },

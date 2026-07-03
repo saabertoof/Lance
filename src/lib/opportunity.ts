@@ -200,7 +200,7 @@ export function getOpportunityShareCopy(opportunity: OpportunityRecord) {
 
 export function validateOpportunityDraft(draft: OpportunityDraft, publishing: boolean) {
   if (draft.postingIdentity === 'business' && !draft.businessId) {
-    return 'Choose the business or project posting this opportunity.';
+    return 'Choose the business profile posting this opportunity.';
   }
 
   if (!publishing) {
@@ -243,10 +243,10 @@ export function validateOpportunityDraft(draft: OpportunityDraft, publishing: bo
     try {
       const url = new URL(draft.externalUrl);
       if (url.protocol !== 'https:') {
-        return 'The external project link must use HTTPS.';
+        return 'The external link must use HTTPS.';
       }
     } catch {
-      return 'Enter a valid external project link.';
+      return 'Enter a valid external link.';
     }
   }
 

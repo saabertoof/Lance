@@ -91,7 +91,7 @@ function inferOpportunityTitle(text: string, lower: string) {
     return context ? `Designer for ${context}` : 'Designer';
   }
   if (/\bdeveloper|react|app|website|landing page|builder|coding\b/.test(lower)) {
-    return context ? `Builder for ${context}` : 'Builder for a creator project';
+    return context ? `Builder for ${context}` : 'Builder for a creator opportunity';
   }
   if (/\bsocial|growth|tiktok|instagram|twitter|x\b/.test(lower)) {
     return context ? `Growth help for ${context}` : 'Social growth help';

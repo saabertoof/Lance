@@ -347,6 +347,25 @@ export async function uploadBanner(
   return uploadProfileImage(profileId, base64, mimeType, 'banner');
 }
 
+export async function saveProfileBannerPath(
+  profileId: string,
+  bannerPath: string,
+  obsoleteBannerPath?: string | null,
+) {
+  const { error } = await supabase
+    .from('profiles')
+    .update({ banner_path: bannerPath })
+    .eq('id', profileId);
+  if (error) throw error;
+
+  if (obsoleteBannerPath && obsoleteBannerPath !== bannerPath) {
+    const { error: removeError } = await supabase.storage
+      .from('profile-media')
+      .remove([obsoleteBannerPath]);
+    if (removeError) throw removeError;
+  }
+}
+
 export function normalizeSafeUrl(value: string, optional = false) {
   const trimmed = value.trim();
   if (!trimmed && optional) return null;

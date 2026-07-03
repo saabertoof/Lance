@@ -24,12 +24,12 @@ export const opportunityCategoryOptions = [
 ] as const;
 
 export const workTypeOptions = [
-  { label: 'One-time project', value: 'one_time_project' },
+  { label: 'One-time opportunity', value: 'one_time_project' },
   { label: 'Ongoing freelance', value: 'ongoing_freelance' },
   { label: 'Part-time', value: 'part_time' },
   { label: 'Full-time', value: 'full_time' },
   { label: 'Cofounder', value: 'cofounder' },
-  { label: 'Project collaboration', value: 'project_collaboration' },
+  { label: 'Collaboration', value: 'project_collaboration' },
   { label: 'Retainer', value: 'retainer' },
   { label: 'Internship', value: 'internship' },
   { label: 'Commission-based', value: 'commission_based' },
@@ -38,7 +38,7 @@ export const workTypeOptions = [
 
 export const compensationTypeOptions = [
   { label: 'Hourly', value: 'hourly' },
-  { label: 'Fixed project', value: 'fixed_project' },
+  { label: 'Fixed scope', value: 'fixed_project' },
   { label: 'Weekly', value: 'weekly' },
   { label: 'Monthly', value: 'monthly' },
   { label: 'Retainer', value: 'retainer' },
@@ -53,7 +53,7 @@ export const compensationTypeOptions = [
 
 export const ratePeriodOptions = [
   { label: 'Per hour', value: 'per_hour' },
-  { label: 'Per project', value: 'per_project' },
+  { label: 'Per opportunity', value: 'per_project' },
   { label: 'Per week', value: 'per_week' },
   { label: 'Per month', value: 'per_month' },
   { label: 'Per year', value: 'per_year' },

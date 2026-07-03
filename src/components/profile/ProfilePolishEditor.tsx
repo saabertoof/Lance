@@ -361,7 +361,7 @@ function PortfolioEditor({
             label="Title"
             maxLength={100}
             onChangeText={(title) => onChange(updateAt(items, index, { title }))}
-            placeholder="Project or work title"
+            placeholder="Work title"
             value={item.title}
           />
           <TextField
@@ -377,7 +377,7 @@ function PortfolioEditor({
             <TextField
               autoCapitalize="none"
               inputMode="url"
-              label={item.itemType === 'external_video' ? 'Video URL' : 'Project URL'}
+              label={item.itemType === 'external_video' ? 'Video URL' : 'Work URL'}
               onChangeText={(externalUrl) => onChange(updateAt(items, index, { externalUrl }))}
               placeholder="https://"
               value={item.externalUrl ?? ''}
@@ -415,7 +415,7 @@ function PortfolioEditor({
       <View style={styles.inlineActions}>
         <Button label="Add image" onPress={() => void addImage()} variant="secondary" />
         <Button label="Add video link" onPress={() => addLink('external_video')} variant="secondary" />
-        <Button label="Add project link" onPress={() => addLink('project_link')} variant="ghost" />
+        <Button label="Add work link" onPress={() => addLink('project_link')} variant="ghost" />
       </View>
     </FormSection>
   );

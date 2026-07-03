@@ -1,7 +1,8 @@
 import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
   BasicProfileFields,
@@ -23,9 +24,23 @@ import {
   uploadAvatar,
   validateProfileDraft,
 } from '@/lib/profile';
+import {
+  loadProfilePolish,
+  saveProfileBannerPath,
+  uploadBanner,
+  validateProfileImage,
+} from '@/lib/profilePolish';
 import { createEmptyProfileDraft, intentOptions, ProfileDraft } from '@/types/profile';
 
 const TOTAL_STEPS = 6;
+
+type BannerDraft = {
+  base64: string | null;
+  mimeType: string | null;
+  obsoletePath: string | null;
+  path: string | null;
+  uri: string | null;
+};
 
 export default function OnboardingScreen() {
   const { refreshProfileStatus, user } = useAuth();
@@ -38,6 +53,13 @@ export default function OnboardingScreen() {
   const [isPreparing, setIsPreparing] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [bannerDraft, setBannerDraft] = useState<BannerDraft>({
+    base64: null,
+    mimeType: null,
+    obsoletePath: null,
+    path: null,
+    uri: null,
+  });
 
   useEffect(() => {
     let active = true;
@@ -48,10 +70,22 @@ export default function OnboardingScreen() {
       }
 
       try {
-        const existing = await loadPersonalProfile(user.id, user.email ?? null);
+        const [existing, polish] = await Promise.all([
+          loadPersonalProfile(user.id, user.email ?? null),
+          loadProfilePolish(user.id),
+        ]);
 
         if (active && existing) {
           setDraft(profileToDraft(existing));
+        }
+        if (active) {
+          setBannerDraft({
+            base64: null,
+            mimeType: null,
+            obsoletePath: null,
+            path: polish.bannerPath,
+            uri: polish.bannerUrl,
+          });
         }
       } catch (error) {
         if (active) {
@@ -75,6 +109,32 @@ export default function OnboardingScreen() {
     setFeedback(message);
   }
 
+  async function chooseBanner() {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        allowsEditing: true,
+        aspect: [3, 1],
+        base64: true,
+        mediaTypes: ['images'],
+        quality: 0.82,
+      });
+
+      if (result.canceled) return;
+
+      const asset = result.assets[0];
+      validateProfileImage(asset);
+      setBannerDraft({
+        base64: asset.base64 ?? null,
+        mimeType: asset.mimeType ?? null,
+        obsoletePath: bannerDraft.path,
+        path: bannerDraft.path,
+        uri: asset.uri,
+      });
+    } catch (error) {
+      showError(error instanceof Error ? error.message : 'The banner could not be selected.');
+    }
+  }
+
   function continueToNextStep() {
     setFeedback(null);
 
@@ -87,6 +147,9 @@ export default function OnboardingScreen() {
       }
       if (draft.city.trim().length < 2) {
         return showError('Choose a city and country.');
+      }
+      if (!bannerDraft.uri && !bannerDraft.path) {
+        return showError('Choose a profile banner so your profile has a real first impression.');
       }
       if (!draft.confirmedAdult) {
         return showError('Confirm that you are at least 18 to continue.');
@@ -124,9 +187,18 @@ export default function OnboardingScreen() {
     try {
       const normalizedLinks = normalizeProfileLinks(draft.links);
       let avatarUrl = draft.avatarUrl;
+      let bannerPath = bannerDraft.path;
 
       if (draft.localAvatarBase64) {
         avatarUrl = await uploadAvatar(user.id, draft.localAvatarBase64);
+      }
+
+      if (bannerDraft.base64) {
+        bannerPath = await uploadBanner(
+          user.id,
+          bannerDraft.base64,
+          bannerDraft.mimeType ?? 'image/jpeg',
+        );
       }
 
       await savePersonalProfile(
@@ -137,6 +209,9 @@ export default function OnboardingScreen() {
         },
         true,
       );
+      if (bannerPath) {
+        await saveProfileBannerPath(user.id, bannerPath, bannerDraft.obsoletePath);
+      }
       await refreshProfileStatus();
       router.replace('/discover');
     } catch (error) {
@@ -181,8 +256,8 @@ export default function OnboardingScreen() {
           <Image
             accessibilityLabel="Lance"
             contentFit="contain"
-            source={require('../../assets/images/lance_wordmark_transparent.png')}
-            style={[styles.logo, styles.logoTint]}
+            source={require('../../assets/images/lance_wordmark_dark.png')}
+            style={styles.logo}
           />
           <Text style={styles.display}>Find people worth building with.</Text>
           <Text style={styles.subtitle}>
@@ -222,6 +297,10 @@ export default function OnboardingScreen() {
             subtitle="A simple identity people can recognize when you apply, connect, or post."
           />
           <BasicProfileFields draft={draft} onChange={setDraft} onError={showError} />
+          <OnboardingBannerPicker
+            imageUri={bannerDraft.uri}
+            onChoose={() => void chooseBanner()}
+          />
         </>
       );
     }
@@ -257,10 +336,44 @@ export default function OnboardingScreen() {
           subtitle="You can keep improving this later from your Profile tab."
         />
         <ProfilePreviewCard profile={draft} />
-        {isSaving ? <Text style={styles.uploading}>Saving your profile and photo...</Text> : null}
+        {isSaving ? <Text style={styles.uploading}>Saving your profile, photo, and banner...</Text> : null}
       </>
     );
   }
+}
+
+function OnboardingBannerPicker({
+  imageUri,
+  onChoose,
+}: {
+  imageUri: string | null;
+  onChoose: () => void;
+}) {
+  return (
+    <View style={styles.bannerBlock}>
+      <View style={styles.bannerHeader}>
+        <Text style={styles.bannerTitle}>Profile banner</Text>
+        <Text style={styles.bannerRequired}>Required</Text>
+      </View>
+      <Pressable
+        accessibilityLabel={imageUri ? 'Replace profile banner' : 'Choose profile banner'}
+        accessibilityRole="button"
+        onPress={onChoose}
+        style={({ pressed }) => [styles.bannerPicker, pressed && styles.pressed]}>
+        {imageUri ? (
+          <Image contentFit="cover" source={imageUri} style={styles.bannerImage} />
+        ) : (
+          <View style={styles.bannerEmpty}>
+            <Text style={styles.bannerEmptyMark}>L</Text>
+            <Text style={styles.bannerEmptyText}>Choose a wide image</Text>
+          </View>
+        )}
+      </Pressable>
+      <Text style={styles.bannerHint}>
+        This sits behind your profile photo when people discover or review your profile.
+      </Text>
+    </View>
+  );
 }
 
 function StepHeader({ subtitle, title }: { subtitle: string; title: string }) {
@@ -288,9 +401,6 @@ const styles = StyleSheet.create({
     height: 42,
     width: 140,
   },
-  logoTint: {
-    tintColor: theme.colors.text,
-  },
   display: {
     color: theme.colors.text,
     fontFamily: theme.typography.familySemiBold,
@@ -314,6 +424,59 @@ const styles = StyleSheet.create({
   optionList: {
     gap: theme.spacing.md,
   },
+  bannerBlock: {
+    gap: theme.spacing.sm,
+  },
+  bannerHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  bannerTitle: {
+    color: theme.colors.textSoft,
+    fontFamily: theme.typography.familyMonoSemiBold,
+    fontSize: theme.typography.caption,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
+  bannerRequired: {
+    color: theme.colors.accentStrong,
+    fontFamily: theme.typography.familySemiBold,
+    fontSize: theme.typography.tiny,
+  },
+  bannerPicker: {
+    aspectRatio: 3,
+    backgroundColor: theme.colors.surface,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radii.lg,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  bannerImage: {
+    height: '100%',
+    width: '100%',
+  },
+  bannerEmpty: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.accentSoft,
+    flex: 1,
+    gap: theme.spacing.xs,
+    justifyContent: 'center',
+  },
+  bannerEmptyMark: {
+    color: theme.colors.accentStrong,
+    fontFamily: theme.typography.familySemiBold,
+    fontSize: 38,
+  },
+  bannerEmptyText: {
+    color: theme.colors.textSoft,
+    fontSize: theme.typography.small,
+  },
+  bannerHint: {
+    color: theme.colors.muted,
+    fontSize: theme.typography.tiny,
+    lineHeight: 18,
+  },
   actions: {
     alignItems: 'center',
     flexDirection: 'row',
@@ -336,5 +499,8 @@ const styles = StyleSheet.create({
     color: theme.colors.muted,
     fontSize: theme.typography.small,
     textAlign: 'center',
+  },
+  pressed: {
+    opacity: 0.75,
   },
 });

@@ -224,7 +224,6 @@ export default function MessagesScreen() {
       style={styles.canvas}
       contentStyle={styles.screen}>
       <View style={styles.console}>
-        <Text style={styles.kicker}>Inbox</Text>
         <View style={styles.topRow}>
           <SearchBar
             accessibilityLabel="Search messages"
@@ -562,18 +561,11 @@ const styles = StyleSheet.create({
     backgroundColor: v.background,
   },
   screen: {
-    gap: 12,
-    paddingBottom: 28,
+    gap: 10,
+    paddingBottom: 44,
   },
   console: {
-    gap: 8,
-  },
-  kicker: {
-    color: v.purpleStrong,
-    fontFamily: operatorFonts.monoSemiBold,
-    fontSize: 10,
-    fontWeight: '600',
-    textTransform: 'uppercase',
+    gap: 0,
   },
   topRow: {
     alignItems: 'center',

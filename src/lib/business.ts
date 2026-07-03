@@ -22,7 +22,7 @@ const optionalHttpsUrl = z
   });
 
 const businessSchema = z.object({
-  name: z.string().trim().min(2, 'Enter a business or project name.').max(100),
+  name: z.string().trim().min(2, 'Enter a business profile name.').max(100),
   slug: z
     .string()
     .trim()

@@ -87,7 +87,7 @@ const searchModes = [
 const placeholders: Record<SearchMode, string> = {
   people: 'Search people, skills, roles...',
   opportunities: 'Search opportunities, creators...',
-  businesses: 'Search businesses, projects...',
+  businesses: 'Search business profiles...',
 };
 
 export default function SearchScreen() {
@@ -334,7 +334,6 @@ export default function SearchScreen() {
   return (
     <Screen compact scroll contentStyle={styles.screen} style={styles.canvas}>
       <View style={styles.console}>
-        <Text style={styles.kicker}>Search</Text>
         <View style={styles.controls}>
         <SearchBar
           onChangeText={handleQueryChange}
@@ -790,7 +789,6 @@ function SearchBusinessResultCard({
           </Text>
         </View>
         <View style={styles.statusPill}>
-          <View style={[styles.statusDot, active ? styles.activeDot : styles.mutedDot]} />
           <Text style={styles.statusText}>{active ? 'Active' : 'Archived'}</Text>
         </View>
         <Ionicons color={v.muted} name="chevron-forward" size={18} />
@@ -956,17 +954,10 @@ const styles = StyleSheet.create({
   },
   screen: {
     gap: 11,
-    paddingBottom: 28,
+    paddingBottom: 52,
   },
   console: {
-    gap: 8,
-  },
-  kicker: {
-    color: v.purpleStrong,
-    fontFamily: operatorFonts.monoSemiBold,
-    fontSize: 10,
-    fontWeight: '600',
-    textTransform: 'uppercase',
+    gap: 0,
   },
   controls: {
     alignItems: 'center',
@@ -1254,17 +1245,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     gap: 5,
-  },
-  statusDot: {
-    borderRadius: 4,
-    height: 7,
-    width: 7,
-  },
-  activeDot: {
-    backgroundColor: v.green,
-  },
-  mutedDot: {
-    backgroundColor: v.muted,
   },
   statusText: {
     color: v.textSoft,

@@ -98,7 +98,7 @@ export const theme = {
     controlGap: 8,
     contentGap: 12,
     sectionGap: 24,
-    screenTop: 8,
+    screenTop: 12,
   },
   icons: {
     small: 16,

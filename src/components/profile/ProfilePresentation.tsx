@@ -119,7 +119,6 @@ export function ProfileIdentityBlock({
       ) : (
         <Text style={[styles.initials, { color: accent }]}>{initials}</Text>
       )}
-      <View style={styles.avatarOnlineDot} />
       {onEditAvatar ? (
         <View style={styles.avatarEdit}>
           <Ionicons color={profileVisual.white} name="camera" size={14} />
@@ -697,17 +696,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 4,
     width: 26,
-  },
-  avatarOnlineDot: {
-    backgroundColor: profileVisual.green,
-    borderColor: profileVisual.black,
-    borderRadius: 7,
-    borderWidth: 2,
-    bottom: 6,
-    height: 14,
-    position: 'absolute',
-    right: 8,
-    width: 14,
   },
   initials: {
     fontFamily: profileFonts.sansSemiBold,

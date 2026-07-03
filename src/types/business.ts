@@ -6,7 +6,7 @@ export const businessTypeOptions = [
   { label: 'Small business', value: 'small_business' },
   { label: 'Local business', value: 'local_business' },
   { label: 'Nonprofit', value: 'nonprofit' },
-  { label: 'Project', value: 'project' },
+  { label: 'Creator brand', value: 'project' },
   { label: 'Community', value: 'community' },
   { label: 'Other', value: 'other' },
 ] as const;

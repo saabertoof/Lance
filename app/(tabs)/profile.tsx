@@ -229,8 +229,8 @@ export default function ProfileScreen() {
           />
           <ProfileProofOfWorkCard
             onApplied={() => router.push(routes.applications)}
+            onBusinesses={() => router.push(routes.businesses)}
             onOpportunities={() => router.push(routes.opportunities)}
-            onProjects={() => router.push(routes.businesses)}
             summary={summary}
           />
         </View>

@@ -326,7 +326,7 @@ function BusinessFilterFields({
 }) {
   return (
     <>
-      <FormSection title="Business or project type">
+      <FormSection title="Business profile type">
         <SingleSelectChips
           onChange={(businessType) => onChange({ ...draft, businessType })}
           options={[{ label: 'Any type', value: '' }, ...businessTypeOptions]}

@@ -207,7 +207,6 @@ export function AdaptiveTabBar({
                     <Text style={styles.badgeText}>{badge}</Text>
                   </View>
                 ) : null}
-                {selected ? <View style={styles.activeDot} /> : null}
               </View>
             </Pressable>
           );
@@ -257,15 +256,9 @@ const styles = StyleSheet.create({
     width: 44,
   },
   activeSurfaceSelected: {
-    backgroundColor: 'rgba(139,92,246,0.10)',
-  },
-  activeDot: {
-    backgroundColor: theme.colors.accentStrong,
-    borderRadius: 3,
-    bottom: 2,
-    height: 5,
-    position: 'absolute',
-    width: 5,
+    backgroundColor: 'rgba(139,92,246,0.16)',
+    borderColor: 'rgba(167,139,250,0.28)',
+    borderWidth: 1,
   },
   avatar: {
     borderColor: 'rgba(255,255,255,0.48)',
@@ -276,7 +269,7 @@ const styles = StyleSheet.create({
     width: 32,
   },
   avatarSelected: {
-    borderColor: theme.colors.white,
+    borderColor: theme.colors.accentStrong,
     borderWidth: 2,
   },
   image: {

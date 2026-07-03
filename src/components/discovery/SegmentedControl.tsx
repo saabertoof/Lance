@@ -5,6 +5,7 @@ import { operatorFonts, operatorVisual as v } from '@/constants/operatorTheme';
 import { theme } from '@/constants/theme';
 
 type SegmentedControlProps<T extends string> = {
+  compact?: boolean;
   onChange: (value: T) => void;
   options: readonly {
     icon?: keyof typeof Ionicons.glyphMap;
@@ -16,6 +17,7 @@ type SegmentedControlProps<T extends string> = {
 };
 
 export function SegmentedControl<T extends string>({
+  compact,
   onChange,
   options,
   value,
@@ -26,7 +28,11 @@ export function SegmentedControl<T extends string>({
   return (
     <View
       accessibilityRole="tablist"
-      style={[styles.control, operator && styles.operatorControl]}>
+      style={[
+        styles.control,
+        operator && styles.operatorControl,
+        compact && styles.compactControl,
+      ]}>
       {options.map((option) => {
         const selected = option.value === value;
         return (
@@ -38,6 +44,7 @@ export function SegmentedControl<T extends string>({
             style={({ pressed }) => [
               styles.option,
               operator && styles.operatorOption,
+              compact && styles.compactOption,
               selected && styles.selected,
               operator && selected && styles.operatorSelected,
               pressed && styles.pressed,
@@ -54,7 +61,7 @@ export function SegmentedControl<T extends string>({
                       : theme.colors.muted
                 }
                 name={option.icon}
-                size={operator ? 18 : 16}
+                size={compact ? 15 : operator ? 18 : 16}
               />
             ) : null}
             <Text
@@ -64,6 +71,7 @@ export function SegmentedControl<T extends string>({
               style={[
                 styles.label,
                 operator && styles.operatorLabel,
+                compact && styles.compactLabel,
                 selected && styles.selectedLabel,
                 operator && selected && styles.operatorSelectedLabel,
               ]}>
@@ -92,6 +100,12 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     padding: 3,
   },
+  compactControl: {
+    borderRadius: 18,
+    flex: 1,
+    minWidth: 0,
+    padding: 2,
+  },
   option: {
     alignItems: 'center',
     borderRadius: theme.radii.sm,
@@ -107,6 +121,12 @@ const styles = StyleSheet.create({
     borderRadius: 19,
     minHeight: 40,
     overflow: 'hidden',
+  },
+  compactOption: {
+    borderRadius: 15,
+    gap: 4,
+    minHeight: 34,
+    paddingHorizontal: 6,
   },
   selected: {
     backgroundColor: theme.colors.surface,
@@ -132,6 +152,10 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     textTransform: 'uppercase',
+  },
+  compactLabel: {
+    fontSize: 10,
+    letterSpacing: 0.7,
   },
   selectedLabel: {
     color: theme.colors.text,
