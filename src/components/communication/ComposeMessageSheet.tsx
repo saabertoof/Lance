@@ -11,7 +11,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Button, EmptyState } from '@/components/ui';
+import { Button } from '@/components/ui';
+import { operatorFonts, operatorVisual as v } from '@/constants/operatorTheme';
 import { theme } from '@/constants/theme';
 import {
   COMMUNICATION_PAGE_SIZE,
@@ -106,29 +107,35 @@ export function ComposeMessageSheet({
     <Modal
       animationType="slide"
       onRequestClose={close}
-      presentationStyle="pageSheet"
+      transparent
       visible={visible}>
+      <View style={styles.modalRoot}>
+        <Pressable accessibilityRole="button" onPress={close} style={styles.backdrop} />
       <SafeAreaView style={styles.safe}>
+        <View style={styles.handle} />
         <View style={styles.header}>
-          <Text style={styles.title}>New message</Text>
+          <View>
+            <Text style={styles.kicker}>New message</Text>
+            <Text style={styles.title}>Start a chat</Text>
+          </View>
           <Pressable
             accessibilityLabel="Close new message"
             accessibilityRole="button"
             onPress={close}
             style={styles.close}>
-            <Ionicons color={theme.colors.text} name="close" size={24} />
+            <Ionicons color={v.text} name="close" size={18} />
           </Pressable>
         </View>
 
         <View style={styles.search}>
-          <Ionicons color={theme.colors.muted} name="search-outline" size={20} />
+          <Ionicons color={v.textSoft} name="search-outline" size={18} />
           <TextInput
             accessibilityLabel="Search connections"
             autoCapitalize="none"
             autoCorrect={false}
             onChangeText={setQuery}
             placeholder="Search connections"
-            placeholderTextColor={theme.colors.mutedLight}
+            placeholderTextColor={v.muted}
             style={styles.input}
             value={query}
           />
@@ -137,7 +144,7 @@ export function ComposeMessageSheet({
               accessibilityLabel="Clear connection search"
               onPress={() => setQuery('')}
               style={styles.clear}>
-              <Ionicons color={theme.colors.muted} name="close-circle" size={20} />
+              <Ionicons color={v.textSoft} name="close" size={18} />
             </Pressable>
           ) : null}
         </View>
@@ -149,9 +156,10 @@ export function ComposeMessageSheet({
           {isLoading ? <ConnectionSkeletons /> : null}
           {!isLoading && error ? (
             <View style={styles.errorState}>
-              <Text style={styles.error}>{error}</Text>
+              <SheetState body={error} icon="warning-outline" title="Connections unavailable" />
               <Button
                 label="Retry"
+                labelStyle={styles.secondaryButtonLabel}
                 onPress={() => {
                   setConnections([]);
                   setIsLoading(true);
@@ -166,6 +174,7 @@ export function ComposeMessageSheet({
                     )
                     .finally(() => setIsLoading(false));
                 }}
+                style={styles.secondaryButton}
                 variant="secondary"
               />
             </View>
@@ -208,7 +217,7 @@ export function ComposeMessageSheet({
                     </Text>
                   </View>
                   <Ionicons
-                    color={theme.colors.accentStrong}
+                    color={v.purpleStrong}
                     name="paper-plane-outline"
                     size={21}
                   />
@@ -216,7 +225,7 @@ export function ComposeMessageSheet({
               ))
             : null}
           {!isLoading && !error && filtered.length === 0 ? (
-            <EmptyState
+            <SheetState
               body={
                 debouncedQuery
                   ? 'Try another connection name or username.'
@@ -227,6 +236,7 @@ export function ComposeMessageSheet({
                   ? 'No connections found'
                   : 'No connections yet'
               }
+              icon="people-outline"
             />
           ) : null}
           {!isLoading && !error && hasMore ? (
@@ -236,14 +246,37 @@ export function ComposeMessageSheet({
                   ? 'Search more connections'
                   : 'Load more connections'
               }
+              labelStyle={styles.ghostButtonLabel}
               loading={isLoadingMore}
               onPress={() => void loadMore()}
+              style={styles.ghostButton}
               variant="ghost"
             />
           ) : null}
         </ScrollView>
       </SafeAreaView>
+      </View>
     </Modal>
+  );
+}
+
+function SheetState({
+  body,
+  icon,
+  title,
+}: {
+  body: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  title: string;
+}) {
+  return (
+    <View style={styles.sheetState}>
+      <View style={styles.sheetStateIcon}>
+        <Ionicons color={v.purpleStrong} name={icon} size={20} />
+      </View>
+      <Text style={styles.sheetStateTitle}>{title}</Text>
+      <Text style={styles.sheetStateBody}>{body}</Text>
+    </View>
   );
 }
 
@@ -270,42 +303,80 @@ function mergeById(current: ConnectionRecord[], next: ConnectionRecord[]) {
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    backgroundColor: theme.colors.background,
+  modalRoot: {
     flex: 1,
+    justifyContent: 'flex-end',
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.58)',
+  },
+  safe: {
+    backgroundColor: v.surface,
+    borderColor: v.borderStrong,
+    borderTopLeftRadius: 26,
+    borderTopRightRadius: 26,
+    borderWidth: 1,
+    maxHeight: '86%',
+    paddingTop: 9,
+  },
+  handle: {
+    alignSelf: 'center',
+    backgroundColor: v.borderStrong,
+    borderRadius: 2,
+    height: 4,
+    marginBottom: 10,
+    width: 42,
   },
   header: {
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    minHeight: 58,
-    paddingHorizontal: theme.layout.screenPadding,
+    minHeight: 48,
+    paddingHorizontal: 18,
+  },
+  kicker: {
+    color: v.purpleStrong,
+    fontFamily: operatorFonts.monoSemiBold,
+    fontSize: 10,
+    fontWeight: '600',
+    marginBottom: 5,
+    textTransform: 'uppercase',
   },
   title: {
-    color: theme.colors.text,
-    fontSize: theme.typography.heading,
-    fontWeight: '900',
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 20,
+    fontWeight: '600',
   },
   close: {
     alignItems: 'center',
-    height: 44,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderColor: v.border,
+    borderRadius: 16,
+    borderWidth: 1,
+    height: 38,
     justifyContent: 'center',
-    width: 44,
+    width: 38,
   },
   search: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surfaceMuted,
-    borderRadius: theme.radii.lg,
+    backgroundColor: '#0E0E16',
+    borderColor: v.borderStrong,
+    borderRadius: 16,
+    borderWidth: 1,
     flexDirection: 'row',
-    marginHorizontal: theme.layout.screenPadding,
-    minHeight: 50,
-    paddingHorizontal: theme.spacing.md,
+    marginHorizontal: 18,
+    marginTop: 12,
+    minHeight: 44,
+    paddingHorizontal: 12,
   },
   input: {
-    color: theme.colors.text,
+    color: v.text,
     flex: 1,
-    fontSize: theme.typography.body,
-    minHeight: 50,
+    fontFamily: operatorFonts.sans,
+    fontSize: 14,
+    minHeight: 44,
     paddingHorizontal: theme.spacing.sm,
     paddingVertical: 0,
   },
@@ -317,16 +388,22 @@ const styles = StyleSheet.create({
   },
   content: {
     flexGrow: 1,
-    paddingBottom: theme.spacing.xxxl,
-    paddingHorizontal: theme.layout.screenPadding,
-    paddingTop: theme.spacing.lg,
+    gap: 8,
+    paddingBottom: 34,
+    paddingHorizontal: 18,
+    paddingTop: 14,
   },
   connection: {
     alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.035)',
+    borderColor: v.border,
+    borderRadius: 18,
+    borderWidth: 1,
     flexDirection: 'row',
-    gap: theme.spacing.md,
-    minHeight: 76,
-    paddingVertical: theme.spacing.sm,
+    gap: 12,
+    minHeight: 72,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
   },
   connectionCopy: {
     flex: 1,
@@ -334,46 +411,111 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   name: {
-    color: theme.colors.text,
-    fontSize: theme.typography.body,
-    fontWeight: '800',
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 15,
+    fontWeight: '600',
   },
   meta: {
-    color: theme.colors.muted,
-    fontSize: theme.typography.small,
+    color: v.textSoft,
+    fontFamily: operatorFonts.sans,
+    fontSize: 12,
   },
   errorState: {
-    gap: theme.spacing.md,
+    gap: 10,
   },
   error: {
-    color: theme.colors.danger,
+    color: v.danger,
+    fontFamily: operatorFonts.sans,
     fontSize: theme.typography.small,
     lineHeight: 20,
     textAlign: 'center',
   },
   skeletonList: {
-    gap: theme.spacing.md,
+    gap: 8,
   },
   skeletonRow: {
     alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.035)',
+    borderColor: v.border,
+    borderRadius: 18,
+    borderWidth: 1,
     flexDirection: 'row',
-    gap: theme.spacing.md,
+    gap: 12,
     minHeight: 72,
+    paddingHorizontal: 12,
   },
   skeletonAvatar: {
-    backgroundColor: theme.colors.surfaceMuted,
-    borderRadius: 28,
-    height: 56,
-    width: 56,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderRadius: 23,
+    height: 46,
+    width: 46,
   },
   skeletonCopy: {
     flex: 1,
     gap: theme.spacing.sm,
   },
   skeletonLine: {
-    backgroundColor: theme.colors.surfaceMuted,
+    backgroundColor: 'rgba(255,255,255,0.07)',
     borderRadius: 5,
-    height: 12,
+    height: 10,
+  },
+  sheetState: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.035)',
+    borderColor: v.border,
+    borderRadius: 18,
+    borderWidth: 1,
+    gap: 8,
+    padding: 18,
+  },
+  sheetStateIcon: {
+    alignItems: 'center',
+    backgroundColor: v.purpleSoft,
+    borderColor: v.borderPurple,
+    borderRadius: 18,
+    borderWidth: 1,
+    height: 40,
+    justifyContent: 'center',
+    width: 40,
+  },
+  sheetStateTitle: {
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  sheetStateBody: {
+    color: v.textSoft,
+    fontFamily: operatorFonts.sans,
+    fontSize: 12,
+    lineHeight: 18,
+    textAlign: 'center',
+  },
+  secondaryButton: {
+    backgroundColor: v.surfaceStrong,
+    borderColor: v.borderPurple,
+    borderWidth: 1,
+    minHeight: 42,
+  },
+  ghostButton: {
+    backgroundColor: 'transparent',
+    borderColor: v.border,
+    borderWidth: 1,
+    minHeight: 40,
+  },
+  secondaryButtonLabel: {
+    color: v.purpleStrong,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  ghostButtonLabel: {
+    color: v.textSoft,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 13,
+    fontWeight: '600',
   },
   pressed: {
     opacity: 0.65,

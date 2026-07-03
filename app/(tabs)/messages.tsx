@@ -22,7 +22,8 @@ import {
   OpportunityResponseRow,
 } from '@/components/communication';
 import { SearchBar } from '@/components/discovery';
-import { Button, EmptyState, Screen } from '@/components/ui';
+import { Button, Screen } from '@/components/ui';
+import { operatorFonts, operatorVisual as v } from '@/constants/operatorTheme';
 import { theme } from '@/constants/theme';
 import { useAdaptiveTabBar } from '@/context/AdaptiveTabBarContext';
 import { useMessaging } from '@/context/MessagingContext';
@@ -220,28 +221,33 @@ export default function MessagesScreen() {
       onRefresh={() => void load(true)}
       refreshing={isRefreshing}
       scroll
+      style={styles.canvas}
       contentStyle={styles.screen}>
-      <View style={styles.topRow}>
-        <SearchBar
-          accessibilityLabel="Search messages"
-          clearAccessibilityLabel="Clear message search"
-          onChangeText={(value) => {
-            setQuery(value);
-            if (value && mainTab !== 'chats') setMainTab('chats');
-          }}
-          placeholder="Search messages"
-          value={query}
-        />
-        <Pressable
-          accessibilityLabel="New message"
-          accessibilityRole="button"
-          onPress={() => setComposeOpen(true)}
-          style={({ pressed }) => [
-            styles.compose,
-            pressed && styles.pressed,
-          ]}>
-          <Ionicons color={theme.colors.text} name="create-outline" size={24} />
-        </Pressable>
+      <View style={styles.console}>
+        <Text style={styles.kicker}>Inbox</Text>
+        <View style={styles.topRow}>
+          <SearchBar
+            accessibilityLabel="Search messages"
+            clearAccessibilityLabel="Clear message search"
+            onChangeText={(value) => {
+              setQuery(value);
+              if (value && mainTab !== 'chats') setMainTab('chats');
+            }}
+            placeholder="Search messages"
+            value={query}
+            variant="operator"
+          />
+          <Pressable
+            accessibilityLabel="New message"
+            accessibilityRole="button"
+            onPress={() => setComposeOpen(true)}
+            style={({ pressed }) => [
+              styles.compose,
+              pressed && styles.pressed,
+            ]}>
+            <Ionicons color={v.purpleStrong} name="create-outline" size={20} />
+          </Pressable>
+        </View>
       </View>
 
       <View accessibilityRole="tablist" style={styles.sections}>
@@ -284,8 +290,13 @@ export default function MessagesScreen() {
 
         {!isLoading && error ? (
           <View style={styles.state}>
-            <Text style={styles.error}>{error}</Text>
-            <Button label="Retry" onPress={() => void load()} />
+            <InboxState body={error} icon="warning-outline" title="Inbox unavailable" />
+            <Button
+              label="Retry"
+              labelStyle={styles.primaryButtonLabel}
+              onPress={() => void load()}
+              style={styles.primaryButton}
+            />
           </View>
         ) : null}
 
@@ -302,31 +313,39 @@ export default function MessagesScreen() {
               {hasMoreChats && !debouncedQuery ? (
                 <Button
                   label="Load more conversations"
+                  labelStyle={styles.ghostButtonLabel}
                   loading={isLoadingMore}
                   onPress={() => void loadMoreChats()}
+                  style={styles.ghostButton}
                   variant="ghost"
                 />
               ) : null}
             </View>
           ) : debouncedQuery ? (
-            <EmptyState
+            <InboxState
               body="Try another name, username, opportunity, business, or message phrase."
-              title="No conversations found."
+              icon="search-outline"
+              title="No conversations found"
             />
           ) : (
             <View style={styles.state}>
-              <EmptyState
-                body="Connect with someone or apply to an opportunity to start talking."
+              <InboxState
+                body="Start with a builder, applicant, or opportunity match."
+                icon="chatbubble-ellipses-outline"
                 title="No conversations yet"
               />
               <View style={styles.emptyActions}>
                 <Button
                   label="Discover people"
+                  labelStyle={styles.primaryButtonLabel}
                   onPress={() => router.push('/discover')}
+                  style={styles.primaryButton}
                 />
                 <Button
                   label="Browse opportunities"
+                  labelStyle={styles.secondaryButtonLabel}
                   onPress={() => router.push('/search')}
+                  style={styles.secondaryButton}
                   variant="secondary"
                 />
               </View>
@@ -352,8 +371,10 @@ export default function MessagesScreen() {
                   {hasMoreRequests ? (
                     <Button
                       label="Load more Connect requests"
+                      labelStyle={styles.ghostButtonLabel}
                       loading={isLoadingMore}
                       onPress={() => void loadMoreRequests()}
+                      style={styles.ghostButton}
                       variant="ghost"
                     />
                   ) : null}
@@ -374,8 +395,10 @@ export default function MessagesScreen() {
                   {hasMoreResponses ? (
                     <Button
                       label="Load more opportunity applications"
+                      labelStyle={styles.ghostButtonLabel}
                       loading={isLoadingMore}
                       onPress={() => void loadMoreResponses()}
+                      style={styles.ghostButton}
                       variant="ghost"
                     />
                   ) : null}
@@ -383,13 +406,14 @@ export default function MessagesScreen() {
               ) : null}
             </View>
           ) : (
-            <EmptyState
+            <InboxState
               body={
                 direction === 'received'
-                  ? 'New Connect requests and opportunity applications will appear here.'
+                  ? 'Requests and applications will show up here.'
                   : 'Connect requests and opportunity applications you send will appear here.'
               }
-              title={`No ${direction} requests`}
+              icon="file-tray-outline"
+              title={direction === 'received' ? 'No requests yet' : 'No sent requests'}
             />
           )
         ) : null}
@@ -476,6 +500,26 @@ function DirectionTab({
   );
 }
 
+function InboxState({
+  body,
+  icon,
+  title,
+}: {
+  body: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  title: string;
+}) {
+  return (
+    <View style={styles.inboxState}>
+      <View style={styles.stateIcon}>
+        <Ionicons color={v.purpleStrong} name={icon} size={20} />
+      </View>
+      <Text style={styles.stateTitle}>{title}</Text>
+      <Text style={styles.stateBody}>{body}</Text>
+    </View>
+  );
+}
+
 function RequestSection({
   children,
   title,
@@ -486,7 +530,7 @@ function RequestSection({
   return (
     <View style={styles.requestSection}>
       <Text style={styles.requestTitle}>{title}</Text>
-      {children}
+      <View style={styles.requestGroup}>{children}</View>
     </View>
   );
 }
@@ -514,30 +558,53 @@ function mergeById<T extends { id: string }>(current: T[], next: T[]) {
 }
 
 const styles = StyleSheet.create({
+  canvas: {
+    backgroundColor: v.background,
+  },
   screen: {
-    gap: theme.density.contentGap,
+    gap: 12,
+    paddingBottom: 28,
+  },
+  console: {
+    gap: 8,
+  },
+  kicker: {
+    color: v.purpleStrong,
+    fontFamily: operatorFonts.monoSemiBold,
+    fontSize: 10,
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
   topRow: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: theme.spacing.sm,
+    gap: 8,
   },
   compose: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radii.md,
+    backgroundColor: '#0E0E16',
+    borderColor: v.borderStrong,
+    borderRadius: 16,
     borderWidth: 1,
-    height: theme.layout.inputHeight,
+    height: 44,
     justifyContent: 'center',
-    width: theme.layout.inputHeight,
+    width: 44,
   },
   sections: {
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderColor: v.borderStrong,
+    borderRadius: 18,
+    borderWidth: 1,
     flexDirection: 'row',
+    padding: 3,
   },
   sectionTab: {
+    alignItems: 'center',
+    borderRadius: 15,
     flex: 1,
-    minHeight: 44,
+    minHeight: 40,
+    overflow: 'hidden',
+    position: 'relative',
   },
   sectionLabelRow: {
     alignItems: 'center',
@@ -547,25 +614,32 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   sectionLabel: {
-    color: theme.colors.muted,
-    fontSize: 15,
-    fontWeight: '700',
+    color: v.textSoft,
+    fontFamily: operatorFonts.monoSemiBold,
+    fontSize: 11,
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
   sectionLabelSelected: {
-    color: theme.colors.text,
-    fontWeight: '900',
+    color: v.purpleStrong,
   },
   sectionIndicator: {
     backgroundColor: 'transparent',
     borderRadius: 2,
-    height: 3,
+    bottom: 0,
+    height: 2,
+    left: 18,
+    position: 'absolute',
+    right: 18,
   },
   sectionIndicatorSelected: {
-    backgroundColor: theme.colors.text,
+    backgroundColor: v.purple,
   },
   requestBadge: {
     alignItems: 'center',
-    backgroundColor: theme.colors.accent,
+    backgroundColor: v.purple,
+    borderColor: 'rgba(255,255,255,0.18)',
+    borderWidth: 1,
     borderRadius: theme.radii.pill,
     justifyContent: 'center',
     minHeight: 20,
@@ -573,96 +647,179 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
   },
   requestBadgeText: {
-    color: theme.colors.white,
+    color: v.white,
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '600',
   },
   direction: {
     alignSelf: 'center',
-    backgroundColor: theme.colors.surfaceMuted,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderColor: v.border,
     borderRadius: theme.radii.pill,
+    borderWidth: 1,
     flexDirection: 'row',
     marginBottom: theme.spacing.xs,
-    marginTop: theme.spacing.xs,
+    marginTop: 0,
     padding: 3,
   },
   directionTab: {
     alignItems: 'center',
     borderRadius: theme.radii.pill,
     justifyContent: 'center',
-    minHeight: theme.layout.minTouchTarget,
-    minWidth: 104,
-    paddingHorizontal: theme.spacing.md,
+    minHeight: 32,
+    minWidth: 96,
+    paddingHorizontal: 14,
   },
   directionTabSelected: {
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
+    backgroundColor: v.purpleSoft,
+    borderColor: v.borderPurple,
     borderWidth: 1,
   },
   directionLabel: {
-    color: theme.colors.muted,
-    fontSize: theme.typography.small,
-    fontWeight: '700',
+    color: v.textSoft,
+    fontFamily: operatorFonts.sansMedium,
+    fontSize: 12,
+    fontWeight: '500',
   },
   directionLabelSelected: {
-    color: theme.colors.text,
+    color: v.purpleStrong,
   },
   contentFill: {
     flex: 1,
     justifyContent: 'center',
   },
   list: {
-    paddingTop: theme.spacing.sm,
+    gap: 8,
+    paddingTop: 2,
   },
   requestList: {
-    gap: theme.spacing.lg,
-    paddingTop: theme.spacing.md,
+    gap: 14,
+    paddingTop: 2,
   },
   requestSection: {
-    gap: theme.spacing.xs,
+    gap: 8,
+  },
+  requestGroup: {
+    gap: 8,
   },
   requestTitle: {
-    color: theme.colors.text,
-    fontSize: theme.typography.cardTitle,
-    fontWeight: '900',
-    marginBottom: theme.spacing.xs,
+    color: v.purpleStrong,
+    fontFamily: operatorFonts.monoSemiBold,
+    fontSize: 10,
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
   state: {
-    gap: theme.spacing.md,
+    gap: 10,
   },
   emptyActions: {
-    gap: theme.spacing.sm,
+    gap: 8,
   },
   error: {
-    color: theme.colors.danger,
+    color: v.danger,
+    fontFamily: operatorFonts.sans,
     fontSize: theme.typography.small,
     lineHeight: 20,
     textAlign: 'center',
   },
+  inboxState: {
+    alignItems: 'center',
+    backgroundColor: v.surface,
+    borderColor: v.border,
+    borderRadius: 20,
+    borderWidth: 1,
+    gap: 8,
+    padding: 18,
+  },
+  stateIcon: {
+    alignItems: 'center',
+    backgroundColor: v.purpleSoft,
+    borderColor: v.borderPurple,
+    borderRadius: 18,
+    borderWidth: 1,
+    height: 40,
+    justifyContent: 'center',
+    width: 40,
+  },
+  stateTitle: {
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  stateBody: {
+    color: v.textSoft,
+    fontFamily: operatorFonts.sans,
+    fontSize: 12,
+    lineHeight: 18,
+    textAlign: 'center',
+  },
+  primaryButton: {
+    backgroundColor: v.purple,
+    borderColor: v.purple,
+    borderWidth: 1,
+    minHeight: 42,
+  },
+  secondaryButton: {
+    backgroundColor: v.surface,
+    borderColor: v.borderPurple,
+    borderWidth: 1,
+    minHeight: 42,
+  },
+  ghostButton: {
+    backgroundColor: 'transparent',
+    borderColor: v.border,
+    borderWidth: 1,
+    minHeight: 40,
+  },
+  primaryButtonLabel: {
+    color: v.white,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  secondaryButtonLabel: {
+    color: v.purpleStrong,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  ghostButtonLabel: {
+    color: v.textSoft,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 13,
+    fontWeight: '600',
+  },
   skeletonList: {
-    gap: theme.spacing.sm,
-    paddingTop: theme.spacing.md,
+    gap: 8,
+    paddingTop: 2,
   },
   skeletonRow: {
     alignItems: 'center',
+    backgroundColor: v.surface,
+    borderColor: v.border,
+    borderRadius: 18,
+    borderWidth: 1,
     flexDirection: 'row',
-    gap: theme.spacing.md,
-    minHeight: 78,
+    gap: 12,
+    minHeight: 74,
+    paddingHorizontal: 12,
   },
   skeletonAvatar: {
-    backgroundColor: theme.colors.surfaceMuted,
-    borderRadius: 29,
-    height: 58,
-    width: 58,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderRadius: 23,
+    height: 46,
+    width: 46,
   },
   skeletonCopy: {
     flex: 1,
-    gap: theme.spacing.sm,
+    gap: 8,
   },
   skeletonLine: {
-    backgroundColor: theme.colors.surfaceMuted,
+    backgroundColor: 'rgba(255,255,255,0.07)',
     borderRadius: 5,
-    height: 12,
+    height: 10,
   },
   pressed: {
     opacity: 0.65,

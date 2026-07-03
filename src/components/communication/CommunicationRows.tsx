@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { operatorFonts, operatorVisual as v } from '@/constants/operatorTheme';
 import { theme } from '@/constants/theme';
 import type {
   ConnectionRequestRecord,
@@ -98,7 +99,7 @@ export function ChatRow({
         {chat.type === 'opportunity' ? (
           <View style={styles.opportunityThumb}>
             <Ionicons
-              color={theme.colors.accentStrong}
+              color={v.purpleStrong}
               name={chat.businessName ? 'business-outline' : 'briefcase-outline'}
               size={20}
             />
@@ -154,7 +155,7 @@ export function ConnectionRequestRow({
             : sentenceCase(request.status)}
         </Text>
       </View>
-      <Ionicons color={theme.colors.muted} name="chevron-forward" size={18} />
+      <Ionicons color={v.muted} name="chevron-forward" size={17} />
     </Pressable>
   );
 }
@@ -203,7 +204,7 @@ export function OpportunityResponseRow({
       <View style={styles.trailing}>
         <View style={styles.opportunityThumb}>
           <Ionicons
-            color={theme.colors.accentStrong}
+            color={v.purpleStrong}
             name="briefcase-outline"
             size={20}
           />
@@ -262,7 +263,9 @@ function connectReasonLabel(value: string) {
 const styles = StyleSheet.create({
   avatar: {
     alignItems: 'center',
-    backgroundColor: theme.colors.accentSoft,
+    backgroundColor: v.purpleSoft,
+    borderColor: v.borderPurple,
+    borderWidth: 1,
     justifyContent: 'center',
     overflow: 'hidden',
   },
@@ -271,15 +274,21 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   initials: {
-    color: theme.colors.accentStrong,
+    color: v.purpleStrong,
+    fontFamily: operatorFonts.sansSemiBold,
     fontSize: theme.typography.small,
-    fontWeight: '900',
+    fontWeight: '600',
   },
   chatRow: {
     alignItems: 'center',
+    backgroundColor: v.surface,
+    borderColor: v.border,
+    borderRadius: 18,
+    borderWidth: 1,
     flexDirection: 'row',
-    gap: theme.spacing.md,
-    minHeight: 80,
+    gap: 12,
+    minHeight: 72,
+    paddingHorizontal: 12,
     paddingVertical: 10,
   },
   chatCopy: {
@@ -293,31 +302,35 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
   },
   chatName: {
-    color: theme.colors.text,
+    color: v.text,
     flex: 1,
-    fontSize: 16,
-    fontWeight: '700',
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 15,
+    fontWeight: '600',
   },
   preview: {
-    color: theme.colors.muted,
-    fontSize: theme.typography.small,
+    color: v.textSoft,
+    fontFamily: operatorFonts.sans,
+    fontSize: 12,
   },
   opportunityContext: {
-    color: theme.colors.accentStrong,
-    fontSize: 12,
-    fontWeight: '700',
+    color: v.purpleStrong,
+    fontFamily: operatorFonts.sansMedium,
+    fontSize: 11,
+    fontWeight: '500',
   },
   time: {
-    color: theme.colors.mutedLight,
-    fontSize: 12,
+    color: v.muted,
+    fontFamily: operatorFonts.sans,
+    fontSize: 11,
   },
   unreadTime: {
-    color: theme.colors.accentStrong,
-    fontWeight: '800',
+    color: v.purpleStrong,
+    fontWeight: '600',
   },
   unreadText: {
-    color: theme.colors.text,
-    fontWeight: '900',
+    color: v.text,
+    fontWeight: '600',
   },
   trailing: {
     alignItems: 'center',
@@ -327,21 +340,23 @@ const styles = StyleSheet.create({
   },
   opportunityThumb: {
     alignItems: 'center',
-    backgroundColor: theme.colors.accentSoft,
-    borderRadius: theme.radii.md,
-    height: 42,
+    backgroundColor: v.purpleSoft,
+    borderColor: v.borderPurple,
+    borderRadius: 14,
+    borderWidth: 1,
+    height: 38,
     justifyContent: 'center',
-    width: 42,
+    width: 38,
   },
   unreadDot: {
-    backgroundColor: theme.colors.accent,
+    backgroundColor: v.purpleStrong,
     borderRadius: 5,
     height: 9,
     width: 9,
   },
   unreadBadge: {
     alignItems: 'center',
-    backgroundColor: theme.colors.accent,
+    backgroundColor: v.purple,
     borderRadius: theme.radii.pill,
     justifyContent: 'center',
     minHeight: 20,
@@ -349,18 +364,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
   },
   unreadBadgeText: {
-    color: theme.colors.white,
+    color: v.white,
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '600',
   },
   requestRow: {
     alignItems: 'center',
-    borderBottomColor: theme.colors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    backgroundColor: v.surface,
+    borderColor: v.border,
+    borderRadius: 18,
+    borderWidth: 1,
     flexDirection: 'row',
-    gap: theme.spacing.md,
-    minHeight: 82,
-    paddingVertical: 11,
+    gap: 12,
+    minHeight: 76,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
   },
   requestCopy: {
     flex: 1,
@@ -368,19 +386,22 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   requestName: {
-    color: theme.colors.text,
+    color: v.text,
     flex: 1,
-    fontSize: 16,
-    fontWeight: '800',
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 15,
+    fontWeight: '600',
   },
   requestContext: {
-    color: theme.colors.accentStrong,
-    fontSize: 12,
-    fontWeight: '700',
+    color: v.purpleStrong,
+    fontFamily: operatorFonts.sansMedium,
+    fontSize: 11,
+    fontWeight: '500',
   },
   statusText: {
-    color: theme.colors.muted,
-    fontSize: 12,
+    color: v.textSoft,
+    fontFamily: operatorFonts.sans,
+    fontSize: 11,
   },
   pressed: {
     opacity: 0.62,
