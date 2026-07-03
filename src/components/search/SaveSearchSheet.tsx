@@ -4,11 +4,13 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import { useEffect, useState } from 'react';
 
-import { Button, TextField } from '@/components/ui';
+import { Button } from '@/components/ui';
+import { operatorFonts, operatorVisual as v } from '@/constants/operatorTheme';
 import { theme } from '@/constants/theme';
 import type { SavedSearchAlertFrequency } from '@/types/searchPhase6';
 
@@ -77,6 +79,7 @@ export function SaveSearchSheet({
         <Pressable style={styles.sheet} onPress={() => undefined}>
           <View style={styles.header}>
             <View>
+              <Text style={styles.kicker}>Saved lane</Text>
               <Text style={styles.title}>Save search</Text>
               <Text style={styles.subtitle}>
                 Return to these exact filters anytime.
@@ -87,21 +90,28 @@ export function SaveSearchSheet({
               accessibilityRole="button"
               onPress={onClose}
               style={styles.close}>
-              <Ionicons color={theme.colors.text} name="close" size={22} />
+              <Ionicons color={v.text} name="close" size={21} />
             </Pressable>
           </View>
-          <TextField
-            autoCapitalize="sentences"
-            error={error ?? undefined}
-            label="Search name"
-            maxLength={80}
-            onChangeText={setName}
-            value={name}
-          />
+          <View style={styles.field}>
+            <Text style={styles.label}>Search name</Text>
+            <TextInput
+              accessibilityLabel="Search name"
+              autoCapitalize="sentences"
+              maxLength={80}
+              onChangeText={setName}
+              placeholder="Growth marketers in Chicago"
+              placeholderTextColor={v.muted}
+              style={styles.input}
+              value={name}
+            />
+            <Text style={styles.counter}>{name.length}/80</Text>
+            {error ? <Text style={styles.error}>{error}</Text> : null}
+          </View>
 
           {canAlert ? (
             <View style={styles.alerts}>
-              <Text style={styles.label}>New opportunity alerts</Text>
+              <Text style={styles.label}>Opportunity alerts</Text>
               <View style={styles.frequencyRow}>
                 {frequencies.map((option) => {
                   const unavailable =
@@ -146,9 +156,11 @@ export function SaveSearchSheet({
           ) : null}
 
           <Button
+            labelStyle={styles.buttonLabel}
             label="Save search"
             loading={loading}
             onPress={() => void submit()}
+            style={styles.saveButton}
           />
         </Pressable>
       </Pressable>
@@ -158,17 +170,19 @@ export function SaveSearchSheet({
 
 const styles = StyleSheet.create({
   backdrop: {
-    backgroundColor: 'rgba(8,10,18,0.42)',
+    backgroundColor: 'rgba(0,0,0,0.58)',
     flex: 1,
     justifyContent: 'flex-end',
   },
   sheet: {
-    backgroundColor: theme.colors.canvas,
-    borderTopLeftRadius: theme.radii.lg,
-    borderTopRightRadius: theme.radii.lg,
-    gap: theme.spacing.lg,
-    padding: theme.spacing.xl,
-    paddingBottom: theme.spacing.xxxl,
+    backgroundColor: v.surface,
+    borderColor: v.borderStrong,
+    borderTopLeftRadius: 26,
+    borderTopRightRadius: 26,
+    borderWidth: 1,
+    gap: 18,
+    padding: 18,
+    paddingBottom: 34,
   },
   header: {
     alignItems: 'center',
@@ -176,13 +190,23 @@ const styles = StyleSheet.create({
     gap: theme.spacing.md,
   },
   title: {
-    color: theme.colors.text,
-    fontSize: theme.typography.subheading,
-    fontWeight: '800',
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 20,
+    fontWeight: '600',
+  },
+  kicker: {
+    color: v.purpleStrong,
+    fontFamily: operatorFonts.monoSemiBold,
+    fontSize: 11,
+    fontWeight: '600',
+    marginBottom: 6,
+    textTransform: 'uppercase',
   },
   subtitle: {
-    color: theme.colors.muted,
-    fontSize: theme.typography.caption,
+    color: v.textSoft,
+    fontFamily: operatorFonts.sans,
+    fontSize: 12,
     marginTop: theme.spacing.xs,
   },
   close: {
@@ -195,10 +219,38 @@ const styles = StyleSheet.create({
   alerts: {
     gap: theme.spacing.sm,
   },
+  field: {
+    gap: 7,
+  },
   label: {
-    color: theme.colors.text,
-    fontSize: theme.typography.small,
-    fontWeight: '700',
+    color: v.textSoft,
+    fontFamily: operatorFonts.monoSemiBold,
+    fontSize: 11,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
+  input: {
+    backgroundColor: '#0E0E16',
+    borderColor: v.borderStrong,
+    borderRadius: 16,
+    borderWidth: 1,
+    color: v.text,
+    fontFamily: operatorFonts.sans,
+    fontSize: 14,
+    minHeight: 46,
+    paddingHorizontal: 13,
+  },
+  counter: {
+    alignSelf: 'flex-end',
+    color: v.muted,
+    fontFamily: operatorFonts.monoMedium,
+    fontSize: 10,
+    fontWeight: '500',
+  },
+  error: {
+    color: v.danger,
+    fontFamily: operatorFonts.sans,
+    fontSize: 12,
   },
   frequencyRow: {
     flexDirection: 'row',
@@ -206,8 +258,8 @@ const styles = StyleSheet.create({
   },
   frequency: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderColor: v.border,
     borderRadius: theme.radii.pill,
     borderWidth: 1,
     flex: 1,
@@ -216,23 +268,35 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.sm,
   },
   frequencySelected: {
-    backgroundColor: theme.colors.accentSoft,
-    borderColor: '#D8CEFF',
+    backgroundColor: v.purpleSoft,
+    borderColor: v.borderPurple,
   },
   frequencyText: {
-    color: theme.colors.text,
-    fontSize: theme.typography.label,
-    fontWeight: '700',
+    color: v.textSoft,
+    fontFamily: operatorFonts.sansMedium,
+    fontSize: 12,
+    fontWeight: '500',
   },
   frequencyTextSelected: {
-    color: theme.colors.accentStrong,
+    color: v.purpleStrong,
   },
   disabled: {
     opacity: 0.42,
   },
   note: {
-    color: theme.colors.muted,
-    fontSize: theme.typography.tiny,
+    color: v.muted,
+    fontFamily: operatorFonts.sans,
+    fontSize: 11,
     lineHeight: 17,
+  },
+  saveButton: {
+    backgroundColor: v.purple,
+    minHeight: 44,
+  },
+  buttonLabel: {
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 13,
+    fontWeight: '600',
   },
 });

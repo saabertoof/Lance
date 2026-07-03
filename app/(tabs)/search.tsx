@@ -1,9 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { BusinessCard } from '@/components/business';
 import {
   OpportunityInterestAction,
   RelationshipAction,
@@ -11,18 +11,17 @@ import {
 import {
   FilterButton,
   FilterModal,
-  PersonCard,
   SearchBar,
   SegmentedControl,
 } from '@/components/discovery';
-import { OpportunityCard } from '@/components/opportunity';
 import {
   AskLanceSheet,
   MatchReasons,
   SaveSearchSheet,
   SearchPlanReview,
 } from '@/components/search';
-import { Button, EmptyState, LoadingState, Screen } from '@/components/ui';
+import { Button, Screen } from '@/components/ui';
+import { operatorFonts, operatorVisual as v } from '@/constants/operatorTheme';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { useFeedback } from '@/context/FeedbackContext';
@@ -43,6 +42,7 @@ import {
   markSavedSearchOpened,
   saveSearch,
 } from '@/lib/searchPhase6';
+import { formatCompensation, formatOpportunityLocation } from '@/lib/opportunity';
 import {
   getPlanMatchReasons,
   planToSearchState,
@@ -52,7 +52,6 @@ import {
   type SearchExecutionState,
   type SearchPlanChip,
 } from '@/lib/searchPlan';
-import type { BusinessRecord } from '@/types/business';
 import {
   countBusinessFilters,
   countOpportunityFilters,
@@ -65,20 +64,30 @@ import {
   type PeopleFilters,
   type SearchMode,
 } from '@/types/discovery';
-import type { OpportunityRecord } from '@/types/opportunity';
-import type { PublicProfile } from '@/types/profile';
+import type { BusinessRecord } from '@/types/business';
+import { businessSizeOptions, businessTypeOptions } from '@/types/business';
+import {
+  OpportunityRecord,
+  timeCommitmentOptions,
+  workTypeOptions,
+} from '@/types/opportunity';
+import {
+  getOptionLabel,
+  remotePreferenceOptions,
+  type PublicProfile,
+} from '@/types/profile';
 import type { SearchPlanV1 } from '../../supabase/functions/_shared/search-plan';
 
 const searchModes = [
-  { label: 'People', value: 'people' },
-  { label: 'Opportunities', value: 'opportunities' },
-  { label: 'Businesses', value: 'businesses' },
+  { icon: 'people-outline', label: 'People', value: 'people' },
+  { icon: 'briefcase-outline', label: 'Opportunities', value: 'opportunities' },
+  { icon: 'business-outline', label: 'Businesses', value: 'businesses' },
 ] as const;
 
 const placeholders: Record<SearchMode, string> = {
-  people: 'Search people, roles, skills, or location',
-  opportunities: 'Search opportunities, skills, or creators',
-  businesses: 'Search businesses, projects, or industries',
+  people: 'Search people, skills, roles...',
+  opportunities: 'Search opportunities, creators...',
+  businesses: 'Search businesses, projects...',
 };
 
 export default function SearchScreen() {
@@ -323,11 +332,14 @@ export default function SearchScreen() {
   }
 
   return (
-    <Screen compact scroll contentStyle={styles.screen}>
-      <View style={styles.controls}>
+    <Screen compact scroll contentStyle={styles.screen} style={styles.canvas}>
+      <View style={styles.console}>
+        <Text style={styles.kicker}>Search</Text>
+        <View style={styles.controls}>
         <SearchBar
           onChangeText={handleQueryChange}
           placeholder={placeholders[mode]}
+          variant="operator"
           value={query}
         />
         <Pressable
@@ -340,24 +352,28 @@ export default function SearchScreen() {
             pressed && styles.pressed,
           ]}>
           <Ionicons
-            color={theme.colors.accentStrong}
+            color={v.purpleStrong}
             name="sparkles"
-            size={20}
+            size={18}
           />
         </Pressable>
         <FilterButton
           compact
           count={activeCount}
           onPress={() => setFiltersOpen(true)}
+          variant="operator"
         />
+        </View>
       </View>
       <SegmentedControl
         onChange={handleModeChange}
         options={searchModes}
         value={mode}
+        variant="operator"
       />
 
-      <View style={styles.searchActions}>
+      <View style={styles.utilityRow}>
+        <View style={styles.searchActions}>
         <Pressable
           accessibilityLabel="Save this search"
           accessibilityRole="button"
@@ -367,9 +383,9 @@ export default function SearchScreen() {
             pressed && styles.pressed,
           ]}>
           <Ionicons
-            color={theme.colors.text}
+            color={v.textSoft}
             name="bookmark-outline"
-            size={17}
+            size={15}
           />
           <Text style={styles.compactActionText}>Save search</Text>
         </Pressable>
@@ -387,9 +403,9 @@ export default function SearchScreen() {
           ]}>
           <View>
             <Ionicons
-              color={theme.colors.text}
+              color={v.textSoft}
               name="notifications-outline"
-              size={17}
+              size={15}
             />
             {alertUnreadCount > 0 ? (
               <View style={styles.alertDot}>
@@ -399,25 +415,30 @@ export default function SearchScreen() {
               </View>
             ) : null}
           </View>
-          <Text style={styles.compactActionText}>Saved & alerts</Text>
+          <Text style={styles.compactActionText}>Alerts</Text>
         </Pressable>
+        </View>
+        {!isLoading && !error ? (
+          <Text style={styles.resultCount}>
+            {total === 1 ? '1 result' : `${total} results`}
+          </Text>
+        ) : null}
       </View>
 
       {activePlan ? (
         <SearchPlanReview onRemove={removePlanChip} plan={activePlan} />
       ) : null}
 
-      {!isLoading && !error ? (
-        <Text style={styles.resultCount}>
-          {total === 1 ? '1 result' : `${total} results`}
-        </Text>
-      ) : null}
-
-      {isLoading ? <LoadingState message={`Searching ${mode}`} /> : null}
+      {isLoading ? <TerminalState loading title={`Searching ${mode}`} /> : null}
       {!isLoading && error ? (
         <View style={styles.state}>
-          <EmptyState body={error} title="Search is unavailable" />
-          <Button label="Retry" onPress={() => void load(true, 0)} />
+          <TerminalState body={error} icon="warning-outline" title="Search is unavailable" />
+          <Button
+            label="Retry"
+            labelStyle={styles.darkButtonLabel}
+            onPress={() => void load(true, 0)}
+            style={styles.darkButton}
+          />
         </View>
       ) : null}
 
@@ -425,7 +446,17 @@ export default function SearchScreen() {
         <View style={styles.results}>
           {people.map((profile) => (
             <View key={profile.id} style={styles.resultGroup}>
-              <PersonCard
+              <SearchPersonResultCard
+                action={
+                  <RelationshipAction
+                    buttonLabelStyle={styles.resultActionLabel}
+                    buttonStyle={styles.resultActionButton}
+                    compact
+                    deferLoad
+                    onError={setError}
+                    profile={profile}
+                  />
+                }
                 isSaved={isProfileSaved(profile.id)}
                 onPress={() => router.push(routes.profile(profile.id))}
                 onSave={() =>
@@ -436,12 +467,6 @@ export default function SearchScreen() {
               <MatchReasons
                 reasons={getPlanMatchReasons(activePlan, profile)}
               />
-              <RelationshipAction
-                compact
-                deferLoad
-                onError={setError}
-                profile={profile}
-              />
             </View>
           ))}
         </View>
@@ -451,7 +476,18 @@ export default function SearchScreen() {
         <View style={styles.results}>
           {opportunities.map((opportunity) => (
             <View key={opportunity.id} style={styles.resultGroup}>
-              <OpportunityCard
+              <SearchOpportunityResultCard
+                action={
+                  opportunity.ownerProfileId !== user?.id ? (
+                    <OpportunityInterestAction
+                      buttonLabelStyle={styles.resultActionLabel}
+                      buttonStyle={styles.resultActionButton}
+                      deferLoad
+                      onError={setError}
+                      opportunity={opportunity}
+                    />
+                  ) : null
+                }
                 isSaved={isOpportunitySaved(opportunity.id)}
                 onPress={() => router.push(routes.opportunity(opportunity.id))}
                 onSavePress={
@@ -468,13 +504,6 @@ export default function SearchScreen() {
               <MatchReasons
                 reasons={getPlanMatchReasons(activePlan, opportunity)}
               />
-              {opportunity.ownerProfileId !== user?.id ? (
-                <OpportunityInterestAction
-                  deferLoad
-                  onError={setError}
-                  opportunity={opportunity}
-                />
-              ) : null}
             </View>
           ))}
         </View>
@@ -484,10 +513,9 @@ export default function SearchScreen() {
         <View style={styles.results}>
           {businesses.map((business) => (
             <View key={business.id} style={styles.resultGroup}>
-              <BusinessCard
+              <SearchBusinessResultCard
                 business={business}
                 onPress={() => router.push(routes.business(business.id))}
-                showDrafts={false}
               />
               <MatchReasons
                 reasons={getPlanMatchReasons(activePlan, business)}
@@ -499,12 +527,19 @@ export default function SearchScreen() {
 
       {!isLoading && !error && currentCount === 0 ? (
         <View style={styles.state}>
-          <EmptyState
+          <TerminalState
             body="Try a broader phrase or clear filters that may be hiding results."
-            title="No results"
+            icon="radio-outline"
+            title="No signal yet"
           />
           {activeCount > 0 ? (
-            <Button label="Clear filters" onPress={clearActiveFilters} variant="secondary" />
+            <Button
+              label="Clear filters"
+              labelStyle={styles.darkButtonLabel}
+              onPress={clearActiveFilters}
+              style={styles.darkSecondaryButton}
+              variant="secondary"
+            />
           ) : null}
         </View>
       ) : null}
@@ -512,8 +547,10 @@ export default function SearchScreen() {
       {!isLoading && !error && currentCount < total ? (
         <Button
           label="Load more"
+          labelStyle={styles.darkButtonLabel}
           loading={isLoadingMore}
           onPress={() => void load(false, currentCount)}
+          style={styles.darkSecondaryButton}
           variant="secondary"
         />
       ) : null}
@@ -559,6 +596,354 @@ export default function SearchScreen() {
   );
 }
 
+function SearchPersonResultCard({
+  action,
+  isSaved,
+  onPress,
+  onSave,
+  profile,
+}: {
+  action: ReactNode;
+  isSaved: boolean;
+  onPress: () => void;
+  onSave: () => void;
+  profile: PublicProfile;
+}) {
+  const location = profile.polish.location?.label ?? profile.city;
+  const remote = getOptionLabel(remotePreferenceOptions, profile.remotePreference);
+  const visibleSkills = profile.skills.slice(0, 3);
+  const extraSkills = Math.max(profile.skills.length - visibleSkills.length, 0);
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [styles.searchCard, pressed && styles.pressed]}>
+      <View style={styles.personTop}>
+        <AvatarMark
+          imageUrl={profile.avatarUrl}
+          label={profile.displayName}
+          size={50}
+        />
+        <View style={styles.cardCopy}>
+          <View style={styles.nameLine}>
+            <Text numberOfLines={1} style={styles.personName}>
+              {profile.displayName}
+            </Text>
+            <Ionicons color={v.purpleStrong} name="checkmark-circle" size={14} />
+          </View>
+          {profile.username ? (
+            <Text numberOfLines={1} style={styles.handle}>
+              @{profile.username}
+            </Text>
+          ) : null}
+          <Text numberOfLines={1} style={styles.purpleMeta}>
+            {profile.primaryRole || 'Builder'}
+          </Text>
+        </View>
+        <BookmarkControl
+          accessibilityLabel={
+            isSaved ? `Remove ${profile.displayName} from saved` : `Save ${profile.displayName}`
+          }
+          isSaved={isSaved}
+          onPress={onSave}
+        />
+      </View>
+
+      {profile.headline ? (
+        <Text numberOfLines={2} style={styles.resultBody}>
+          {profile.headline}
+        </Text>
+      ) : null}
+
+      <View style={styles.metaLine}>
+        {location ? <MiniMeta icon="location-outline" label={location} /> : null}
+        {remote ? <MiniMeta icon="navigate-outline" label={remote} /> : null}
+      </View>
+
+      <View style={styles.cardFooter}>
+        <View style={styles.chipRow}>
+          {visibleSkills.map((skill) => (
+            <SearchChip key={skill.toLowerCase()} label={skill} />
+          ))}
+          {extraSkills > 0 ? <SearchChip label={`+${extraSkills}`} /> : null}
+        </View>
+        <View style={styles.actionSlot}>{action}</View>
+      </View>
+    </Pressable>
+  );
+}
+
+function SearchOpportunityResultCard({
+  action,
+  isSaved,
+  onPress,
+  onSavePress,
+  opportunity,
+}: {
+  action: ReactNode;
+  isSaved: boolean;
+  onPress: () => void;
+  onSavePress?: () => void;
+  opportunity: OpportunityRecord;
+}) {
+  const mark = opportunity.poster.name.charAt(0).toUpperCase() || 'L';
+  const skill = opportunity.skills[0];
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [styles.searchCard, styles.opportunityCard, pressed && styles.pressed]}>
+      <View style={styles.posterRow}>
+        <AvatarMark
+          fallback={mark}
+          imageUrl={opportunity.poster.imageUrl}
+          label={opportunity.poster.name}
+          size={42}
+        />
+        <View style={styles.cardCopy}>
+          <Text numberOfLines={1} style={styles.posterName}>
+            {opportunity.poster.name}
+          </Text>
+          <Text numberOfLines={1} style={styles.handle}>
+            {opportunity.poster.identityType === 'business'
+              ? 'Business profile'
+              : 'Personal profile'}
+          </Text>
+        </View>
+        <View style={styles.hiringPill}>
+          <View style={styles.purpleDot} />
+          <Text style={styles.hiringText}>Hiring</Text>
+        </View>
+        {onSavePress ? (
+          <BookmarkControl
+            accessibilityLabel={
+              isSaved ? `Remove ${opportunity.title} from saved` : `Save ${opportunity.title}`
+            }
+            isSaved={isSaved}
+            onPress={onSavePress}
+          />
+        ) : null}
+      </View>
+
+      <Text numberOfLines={2} style={styles.opportunityTitle}>
+        {opportunity.title}
+      </Text>
+      <Text numberOfLines={2} style={styles.resultBody}>
+        {opportunity.shortSummary}
+      </Text>
+
+      <View style={styles.chipRow}>
+        <SearchChip icon="cash-outline" label={formatCompensation(opportunity)} />
+        <SearchChip icon="location-outline" label={formatOpportunityLocation(opportunity)} />
+        <SearchChip
+          icon="time-outline"
+          label={getOptionLabel(timeCommitmentOptions, opportunity.timeCommitment)}
+        />
+        {skill ? <SearchChip accent label={skill} /> : null}
+      </View>
+
+      <View style={styles.cardFooter}>
+        <Text numberOfLines={1} style={styles.footerMeta}>
+          {getOptionLabel(workTypeOptions, opportunity.workType)}
+        </Text>
+        {action ? <View style={styles.actionSlot}>{action}</View> : null}
+      </View>
+    </Pressable>
+  );
+}
+
+function SearchBusinessResultCard({
+  business,
+  onPress,
+}: {
+  business: BusinessRecord;
+  onPress: () => void;
+}) {
+  const active = business.status === 'active';
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [styles.searchCard, pressed && styles.pressed]}>
+      <View style={styles.posterRow}>
+        <AvatarMark
+          fallback={business.name.charAt(0).toUpperCase()}
+          imageUrl={business.logoUrl}
+          label={business.name}
+          size={46}
+          square
+        />
+        <View style={styles.cardCopy}>
+          <View style={styles.nameLine}>
+            <Text numberOfLines={1} style={styles.personName}>
+              {business.name}
+            </Text>
+            {active ? <Ionicons color={v.purpleStrong} name="checkmark-circle" size={14} /> : null}
+          </View>
+          <Text numberOfLines={1} style={styles.handle}>
+            @{business.slug}
+          </Text>
+          <Text numberOfLines={1} style={styles.purpleMeta}>
+            {getOptionLabel(businessTypeOptions, business.businessType)}
+          </Text>
+        </View>
+        <View style={styles.statusPill}>
+          <View style={[styles.statusDot, active ? styles.activeDot : styles.mutedDot]} />
+          <Text style={styles.statusText}>{active ? 'Active' : 'Archived'}</Text>
+        </View>
+        <Ionicons color={v.muted} name="chevron-forward" size={18} />
+      </View>
+
+      <Text numberOfLines={2} style={styles.resultBody}>
+        {business.shortDescription}
+      </Text>
+      <View style={styles.chipRow}>
+        <SearchChip label={business.industry} />
+        <SearchChip label={getOptionLabel(businessSizeOptions, business.businessSize)} />
+        {business.location ? <SearchChip icon="location-outline" label={business.location} /> : null}
+        {business.activeOpportunityCount > 0 ? (
+          <SearchChip accent label={`${business.activeOpportunityCount} active`} />
+        ) : null}
+      </View>
+    </Pressable>
+  );
+}
+
+function AvatarMark({
+  fallback,
+  imageUrl,
+  label,
+  size,
+  square,
+}: {
+  fallback?: string;
+  imageUrl: string | null;
+  label: string;
+  size: number;
+  square?: boolean;
+}) {
+  return (
+    <View
+      style={[
+        styles.avatar,
+        {
+          borderRadius: square ? 13 : size / 2,
+          height: size,
+          width: size,
+        },
+      ]}>
+      {imageUrl ? (
+        <Image contentFit="cover" source={imageUrl} style={styles.avatarImage} />
+      ) : (
+        <Text style={styles.avatarText}>
+          {fallback ?? getInitials(label)}
+        </Text>
+      )}
+    </View>
+  );
+}
+
+function BookmarkControl({
+  accessibilityLabel,
+  isSaved,
+  onPress,
+}: {
+  accessibilityLabel: string;
+  isSaved: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      accessibilityLabel={accessibilityLabel}
+      accessibilityRole="button"
+      onPress={(event) => {
+        event.stopPropagation();
+        onPress();
+      }}
+      style={({ pressed }) => [styles.bookmark, pressed && styles.pressed]}>
+      <Ionicons
+        color={isSaved ? v.purpleStrong : v.textSoft}
+        name={isSaved ? 'bookmark' : 'bookmark-outline'}
+        size={18}
+      />
+    </Pressable>
+  );
+}
+
+function SearchChip({
+  accent,
+  icon,
+  label,
+}: {
+  accent?: boolean;
+  icon?: keyof typeof Ionicons.glyphMap;
+  label: string;
+}) {
+  return (
+    <View style={[styles.searchChip, accent && styles.searchChipAccent]}>
+      {icon ? <Ionicons color={accent ? v.purpleStrong : v.textSoft} name={icon} size={12} /> : null}
+      <Text numberOfLines={1} style={[styles.searchChipText, accent && styles.searchChipTextAccent]}>
+        {label}
+      </Text>
+    </View>
+  );
+}
+
+function MiniMeta({
+  icon,
+  label,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+}) {
+  return (
+    <View style={styles.miniMeta}>
+      <Ionicons color={v.muted} name={icon} size={13} />
+      <Text numberOfLines={1} style={styles.miniMetaText}>
+        {label}
+      </Text>
+    </View>
+  );
+}
+
+function TerminalState({
+  body,
+  icon = 'search-outline',
+  loading,
+  title,
+}: {
+  body?: string;
+  icon?: keyof typeof Ionicons.glyphMap;
+  loading?: boolean;
+  title: string;
+}) {
+  return (
+    <View style={styles.terminalState}>
+      <View style={styles.stateIcon}>
+        {loading ? (
+          <ActivityIndicator color={v.purpleStrong} />
+        ) : (
+          <Ionicons color={v.purpleStrong} name={icon} size={19} />
+        )}
+      </View>
+      <Text style={styles.stateTitle}>{title}</Text>
+      {body ? <Text style={styles.stateBody}>{body}</Text> : null}
+    </View>
+  );
+}
+
+function getInitials(value: string) {
+  return (
+    value
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join('') || 'L'
+  );
+}
+
 function mergeById<T extends { id: string }>(current: T[], next: T[]) {
   const byId = new Map(current.map((item) => [item.id, item]));
   next.forEach((item) => byId.set(item.id, item));
@@ -566,55 +951,77 @@ function mergeById<T extends { id: string }>(current: T[], next: T[]) {
 }
 
 const styles = StyleSheet.create({
+  canvas: {
+    backgroundColor: v.background,
+  },
   screen: {
-    gap: theme.density.contentGap,
+    gap: 11,
+    paddingBottom: 28,
+  },
+  console: {
+    gap: 8,
+  },
+  kicker: {
+    color: v.purpleStrong,
+    fontFamily: operatorFonts.monoSemiBold,
+    fontSize: 10,
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
   controls: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: theme.spacing.sm,
+    gap: 8,
   },
   iconButton: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: 22,
+    backgroundColor: '#0E0E16',
+    borderColor: v.borderStrong,
+    borderRadius: 16,
     borderWidth: 1,
     height: 44,
     justifyContent: 'center',
     width: 44,
   },
   askButton: {
-    backgroundColor: theme.colors.accentSoft,
-    borderColor: '#D8CEFF',
+    backgroundColor: v.purpleWash,
+    borderColor: v.borderPurple,
+  },
+  utilityRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 8,
+    justifyContent: 'space-between',
   },
   searchActions: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: theme.spacing.sm,
+    flexShrink: 1,
+    gap: 8,
   },
   compactAction: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
+    backgroundColor: v.surface,
+    borderColor: v.border,
     borderRadius: theme.radii.pill,
     borderWidth: 1,
     flexDirection: 'row',
-    gap: theme.spacing.sm,
-    minHeight: 40,
-    paddingHorizontal: theme.spacing.md,
+    gap: 7,
+    minHeight: 34,
+    paddingHorizontal: 11,
   },
   compactActionText: {
-    color: theme.colors.text,
-    fontSize: theme.typography.label,
-    fontWeight: '700',
+    color: v.textSoft,
+    fontFamily: operatorFonts.sansMedium,
+    fontSize: 12,
+    fontWeight: '500',
   },
   alertDot: {
     alignItems: 'center',
-    backgroundColor: '#E34949',
-    borderColor: theme.colors.surface,
+    backgroundColor: v.purple,
+    borderColor: v.surface,
     borderRadius: 8,
-    borderWidth: 1,
+    borderWidth: 2,
     minHeight: 16,
     minWidth: 16,
     paddingHorizontal: 3,
@@ -623,23 +1030,296 @@ const styles = StyleSheet.create({
     top: -7,
   },
   alertDotText: {
-    color: theme.colors.white,
+    color: v.white,
     fontSize: 8,
-    fontWeight: '900',
+    fontWeight: '600',
   },
   resultCount: {
-    color: theme.colors.muted,
-    fontSize: theme.typography.label,
+    color: v.muted,
+    fontFamily: operatorFonts.monoMedium,
+    fontSize: 11,
+    fontWeight: '500',
+    textTransform: 'uppercase',
   },
   results: {
-    gap: theme.density.contentGap,
+    gap: 10,
   },
   resultGroup: {
-    gap: theme.spacing.sm,
+    gap: 8,
+  },
+  searchCard: {
+    backgroundColor: v.surface,
+    borderColor: v.borderStrong,
+    borderRadius: 19,
+    borderWidth: 1,
+    gap: 10,
+    overflow: 'hidden',
+    padding: 13,
+  },
+  opportunityCard: {
+    borderColor: v.borderPurple,
+  },
+  personTop: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 11,
+  },
+  posterRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 10,
+  },
+  cardCopy: {
+    flex: 1,
+    gap: 3,
+    minWidth: 0,
+  },
+  nameLine: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 5,
+    minWidth: 0,
+  },
+  personName: {
+    color: v.text,
+    flexShrink: 1,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  posterName: {
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  handle: {
+    color: v.textSoft,
+    fontFamily: operatorFonts.sans,
+    fontSize: 12,
+  },
+  purpleMeta: {
+    color: v.purpleStrong,
+    fontFamily: operatorFonts.sansMedium,
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  resultBody: {
+    color: v.textSoft,
+    fontFamily: operatorFonts.sans,
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  opportunityTitle: {
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 18,
+    fontWeight: '600',
+    lineHeight: 23,
+  },
+  metaLine: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  miniMeta: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 4,
+    maxWidth: '58%',
+  },
+  miniMetaText: {
+    color: v.textSoft,
+    flexShrink: 1,
+    fontFamily: operatorFonts.sans,
+    fontSize: 11,
+  },
+  chipRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexShrink: 1,
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  searchChip: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.045)',
+    borderColor: v.border,
+    borderRadius: theme.radii.pill,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 4,
+    minHeight: 26,
+    paddingHorizontal: 9,
+  },
+  searchChipAccent: {
+    backgroundColor: v.purpleSoft,
+    borderColor: v.borderPurple,
+  },
+  searchChipText: {
+    color: v.textSoft,
+    fontFamily: operatorFonts.sansMedium,
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  searchChipTextAccent: {
+    color: v.purpleStrong,
+  },
+  cardFooter: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'space-between',
+  },
+  footerMeta: {
+    color: v.muted,
+    flex: 1,
+    fontFamily: operatorFonts.monoMedium,
+    fontSize: 11,
+    fontWeight: '500',
+    textTransform: 'uppercase',
+  },
+  actionSlot: {
+    minWidth: 106,
+  },
+  resultActionButton: {
+    backgroundColor: v.purpleSoft,
+    borderColor: v.borderPurple,
+    borderWidth: 1,
+    height: 36,
+    minHeight: 36,
+    paddingHorizontal: 13,
+    paddingVertical: 0,
+  },
+  resultActionLabel: {
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  avatar: {
+    alignItems: 'center',
+    backgroundColor: v.purpleSoft,
+    borderColor: v.borderPurple,
+    borderWidth: 1,
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    height: '100%',
+    width: '100%',
+  },
+  avatarText: {
+    color: v.purpleStrong,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  bookmark: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.035)',
+    borderColor: v.border,
+    borderRadius: 14,
+    borderWidth: 1,
+    height: 36,
+    justifyContent: 'center',
+    width: 36,
+  },
+  hiringPill: {
+    alignItems: 'center',
+    backgroundColor: v.purpleSoft,
+    borderColor: v.borderPurple,
+    borderRadius: theme.radii.pill,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 5,
+    minHeight: 26,
+    paddingHorizontal: 9,
+  },
+  purpleDot: {
+    backgroundColor: v.purpleStrong,
+    borderRadius: 4,
+    height: 7,
+    width: 7,
+  },
+  hiringText: {
+    color: v.purpleStrong,
+    fontFamily: operatorFonts.monoSemiBold,
+    fontSize: 10,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
+  statusPill: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 5,
+  },
+  statusDot: {
+    borderRadius: 4,
+    height: 7,
+    width: 7,
+  },
+  activeDot: {
+    backgroundColor: v.green,
+  },
+  mutedDot: {
+    backgroundColor: v.muted,
+  },
+  statusText: {
+    color: v.textSoft,
+    fontFamily: operatorFonts.sansMedium,
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  terminalState: {
+    alignItems: 'center',
+    backgroundColor: v.surface,
+    borderColor: v.border,
+    borderRadius: 18,
+    borderWidth: 1,
+    gap: 7,
+    padding: 18,
+  },
+  stateIcon: {
+    alignItems: 'center',
+    backgroundColor: v.purpleSoft,
+    borderRadius: 18,
+    height: 36,
+    justifyContent: 'center',
+    width: 36,
+  },
+  stateTitle: {
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  stateBody: {
+    color: v.textSoft,
+    fontFamily: operatorFonts.sans,
+    fontSize: 12,
+    lineHeight: 18,
+    textAlign: 'center',
+  },
+  darkButton: {
+    backgroundColor: v.purple,
+    minHeight: 42,
+  },
+  darkSecondaryButton: {
+    backgroundColor: v.surfaceStrong,
+    borderColor: v.borderStrong,
+    minHeight: 42,
+  },
+  darkButtonLabel: {
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 13,
+    fontWeight: '600',
   },
   state: {
-    gap: theme.spacing.sm,
-    paddingVertical: theme.spacing.lg,
+    gap: 10,
+    paddingVertical: 8,
   },
   pressed: {
     opacity: 0.72,

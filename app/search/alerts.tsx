@@ -1,11 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { OpportunityInterestAction } from '@/components/communication';
 import { OpportunityCard } from '@/components/opportunity';
-import { Button, Card, EmptyState, LoadingState, Screen } from '@/components/ui';
+import { Button, Card, Screen } from '@/components/ui';
+import { operatorFonts, operatorVisual as v } from '@/constants/operatorTheme';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { useFeedback } from '@/context/FeedbackContext';
@@ -129,6 +130,7 @@ export default function SearchAlertInboxScreen() {
       }}
       refreshing={refreshing}
       scroll
+      style={styles.canvas}
       contentStyle={styles.screen}>
       <View style={styles.header}>
         <Pressable
@@ -136,7 +138,7 @@ export default function SearchAlertInboxScreen() {
           accessibilityRole="button"
           onPress={() => router.back()}
           style={styles.headerButton}>
-          <Ionicons color={theme.colors.text} name="arrow-back" size={22} />
+          <Ionicons color={v.text} name="arrow-back" size={21} />
         </Pressable>
         <View style={styles.headerCopy}>
           <Text style={styles.title}>New opportunity matches</Text>
@@ -145,16 +147,22 @@ export default function SearchAlertInboxScreen() {
         <View style={styles.headerButton} />
       </View>
 
-      {loading ? <LoadingState message="Loading opportunity alerts" /> : null}
+      {loading ? <AlertPageState loading title="Loading opportunity alerts" /> : null}
       {!loading && error ? (
         <View style={styles.state}>
-          <EmptyState body={error} title="Alerts unavailable" />
-          <Button label="Retry" onPress={() => void load()} />
+          <AlertPageState body={error} icon="warning-outline" title="Alerts unavailable" />
+          <Button
+            label="Retry"
+            labelStyle={styles.buttonLabel}
+            onPress={() => void load()}
+            style={styles.primaryButton}
+          />
         </View>
       ) : null}
       {!loading && !error && events.length === 0 ? (
-        <EmptyState
+        <AlertPageState
           body="Newly published opportunities matching an active alert will appear here."
+          icon="notifications-outline"
           title="No new opportunity matches yet"
         />
       ) : null}
@@ -181,7 +189,7 @@ export default function SearchAlertInboxScreen() {
                     onPress={() => dismiss(event)}
                     style={styles.dismiss}>
                     <Ionicons
-                      color={theme.colors.muted}
+                      color={v.muted}
                       name="close"
                       size={20}
                     />
@@ -203,13 +211,14 @@ export default function SearchAlertInboxScreen() {
                               )
                       }
                       opportunity={opportunity}
+                      variant="terminal"
                     />
                     {event.matchSummary.length > 0 ? (
                       <View style={styles.reasons}>
                         {event.matchSummary.map((reason) => (
                           <View key={reason} style={styles.reason}>
                             <Ionicons
-                              color={theme.colors.accentStrong}
+                              color={v.purpleStrong}
                               name="checkmark-circle-outline"
                               size={15}
                             />
@@ -220,6 +229,8 @@ export default function SearchAlertInboxScreen() {
                     ) : null}
                     {opportunity.ownerProfileId !== user?.id ? (
                       <OpportunityInterestAction
+                        buttonLabelStyle={styles.buttonLabel}
+                        buttonStyle={styles.primaryButton}
                         deferLoad
                         onError={() =>
                           showWarning('Apply is temporarily unavailable.')
@@ -242,7 +253,9 @@ export default function SearchAlertInboxScreen() {
                     {!event.readAt ? (
                       <Button
                         label="Mark as read"
+                        labelStyle={styles.buttonLabel}
                         onPress={() => void openEvent(event)}
+                        style={styles.secondaryButton}
                         variant="secondary"
                       />
                     ) : null}
@@ -257,12 +270,40 @@ export default function SearchAlertInboxScreen() {
       {!loading && !error && hasMore ? (
         <Button
           label="Load more"
+          labelStyle={styles.buttonLabel}
           loading={loadingMore}
           onPress={() => void load(false, events.length)}
+          style={styles.secondaryButton}
           variant="secondary"
         />
       ) : null}
     </Screen>
+  );
+}
+
+function AlertPageState({
+  body,
+  icon = 'search-outline',
+  loading,
+  title,
+}: {
+  body?: string;
+  icon?: keyof typeof Ionicons.glyphMap;
+  loading?: boolean;
+  title: string;
+}) {
+  return (
+    <View style={styles.pageState}>
+      <View style={styles.pageStateIcon}>
+        {loading ? (
+          <ActivityIndicator color={v.purpleStrong} />
+        ) : (
+          <Ionicons color={v.purpleStrong} name={icon} size={19} />
+        )}
+      </View>
+      <Text style={styles.pageStateTitle}>{title}</Text>
+      {body ? <Text style={styles.pageStateBody}>{body}</Text> : null}
+    </View>
   );
 }
 
@@ -282,8 +323,12 @@ function formatTimestamp(value: string) {
 }
 
 const styles = StyleSheet.create({
+  canvas: {
+    backgroundColor: v.background,
+  },
   screen: {
-    gap: theme.spacing.lg,
+    gap: 16,
+    paddingBottom: 28,
   },
   header: {
     alignItems: 'center',
@@ -302,12 +347,14 @@ const styles = StyleSheet.create({
     gap: theme.spacing.xs,
   },
   title: {
-    color: theme.colors.text,
-    fontSize: theme.typography.subheading,
-    fontWeight: '800',
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 20,
+    fontWeight: '600',
   },
   subtitle: {
-    color: theme.colors.muted,
+    color: v.textSoft,
+    fontFamily: operatorFonts.sans,
     fontSize: theme.typography.caption,
     textAlign: 'center',
   },
@@ -321,7 +368,9 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
   },
   unreadEvent: {
-    backgroundColor: '#F4F1FF',
+    backgroundColor: v.purpleWash,
+    borderColor: v.borderPurple,
+    borderWidth: 1,
     borderRadius: theme.radii.md,
     marginHorizontal: -theme.spacing.sm,
     padding: theme.spacing.sm,
@@ -337,16 +386,18 @@ const styles = StyleSheet.create({
     gap: theme.spacing.xs,
   },
   savedName: {
-    color: theme.colors.text,
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
     fontSize: theme.typography.small,
-    fontWeight: '800',
+    fontWeight: '600',
   },
   time: {
-    color: theme.colors.muted,
+    color: v.muted,
+    fontFamily: operatorFonts.sans,
     fontSize: theme.typography.caption,
   },
   unreadDot: {
-    backgroundColor: theme.colors.accent,
+    backgroundColor: v.purpleStrong,
     borderRadius: 5,
     height: 10,
     width: 10,
@@ -367,26 +418,77 @@ const styles = StyleSheet.create({
     gap: theme.spacing.xs,
   },
   reasonText: {
-    color: theme.colors.muted,
+    color: v.textSoft,
     flex: 1,
+    fontFamily: operatorFonts.sansMedium,
     fontSize: theme.typography.tiny,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   unavailable: {
-    borderRadius: theme.radii.md,
+    backgroundColor: v.surface,
+    borderColor: v.border,
+    borderRadius: 18,
     gap: theme.spacing.sm,
   },
   unavailableTitle: {
-    color: theme.colors.text,
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
     fontSize: theme.typography.cardTitle,
-    fontWeight: '800',
+    fontWeight: '600',
   },
   unavailablePoster: {
-    color: theme.colors.muted,
+    color: v.textSoft,
+    fontFamily: operatorFonts.sans,
     fontSize: theme.typography.small,
   },
   unavailableBody: {
-    color: theme.colors.muted,
+    color: v.textSoft,
+    fontFamily: operatorFonts.sans,
     fontSize: theme.typography.body,
+  },
+  pageState: {
+    alignItems: 'center',
+    backgroundColor: v.surface,
+    borderColor: v.border,
+    borderRadius: 18,
+    borderWidth: 1,
+    gap: 7,
+    padding: 18,
+  },
+  pageStateIcon: {
+    alignItems: 'center',
+    backgroundColor: v.purpleSoft,
+    borderRadius: 18,
+    height: 36,
+    justifyContent: 'center',
+    width: 36,
+  },
+  pageStateTitle: {
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  pageStateBody: {
+    color: v.textSoft,
+    fontFamily: operatorFonts.sans,
+    fontSize: 12,
+    lineHeight: 18,
+    textAlign: 'center',
+  },
+  primaryButton: {
+    backgroundColor: v.purple,
+    minHeight: 42,
+  },
+  secondaryButton: {
+    backgroundColor: v.surfaceStrong,
+    borderColor: v.borderStrong,
+    minHeight: 42,
+  },
+  buttonLabel: {
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 13,
+    fontWeight: '600',
   },
 });

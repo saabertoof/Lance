@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleProp, StyleSheet, TextStyle, View, ViewStyle } from 'react-native';
 
 import { Button } from '@/components/ui';
 import {
@@ -28,9 +28,13 @@ const emptyStatus: RelationshipStatus = {
 export function RelationshipAction({
   compact,
   deferLoad,
+  buttonLabelStyle,
+  buttonStyle,
   onError,
   profile,
 }: {
+  buttonLabelStyle?: StyleProp<TextStyle>;
+  buttonStyle?: StyleProp<ViewStyle>;
   compact?: boolean;
   deferLoad?: boolean;
   onError?: (message: string) => void;
@@ -116,7 +120,9 @@ export function RelationshipAction({
       <Button
         disabled={isLoading || status.state === 'blocked'}
         label={label}
+        labelStyle={buttonLabelStyle}
         onPress={() => void handlePress()}
+        style={buttonStyle}
         variant={status.state === 'connected' ? 'primary' : 'secondary'}
       />
       <ConnectSheet

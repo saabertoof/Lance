@@ -14,6 +14,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui';
+import { operatorFonts, operatorVisual as v } from '@/constants/operatorTheme';
 import { theme } from '@/constants/theme';
 import { parseAskLance } from '@/lib/searchPhase6';
 import type { SearchMode } from '@/types/discovery';
@@ -107,7 +108,7 @@ export function AskLanceSheet({
         <View style={[styles.header, { paddingTop: Math.max(insets.top, 12) }]}>
           <View style={styles.mark}>
             <Ionicons
-              color={theme.colors.accentStrong}
+              color={v.purpleStrong}
               name="sparkles"
               size={20}
             />
@@ -123,7 +124,7 @@ export function AskLanceSheet({
             accessibilityRole="button"
             onPress={onClose}
             style={styles.close}>
-            <Ionicons color={theme.colors.text} name="close" size={24} />
+            <Ionicons color={v.text} name="close" size={24} />
           </Pressable>
         </View>
 
@@ -144,7 +145,7 @@ export function AskLanceSheet({
               multiline
               onChangeText={setQuery}
               placeholder="Example: Remote CapCut editor with crypto experience"
-              placeholderTextColor={theme.colors.mutedLight}
+              placeholderTextColor={v.muted}
               style={styles.input}
               textAlignVertical="top"
               value={query}
@@ -161,7 +162,7 @@ export function AskLanceSheet({
                 maxLength={300}
                 onChangeText={setClarification}
                 placeholder="Your answer"
-                placeholderTextColor={theme.colors.mutedLight}
+                placeholderTextColor={v.muted}
                 style={styles.answer}
                 value={clarification}
               />
@@ -181,7 +182,7 @@ export function AskLanceSheet({
                   ]}>
                   <Text style={styles.exampleText}>{example}</Text>
                   <Ionicons
-                    color={theme.colors.muted}
+                    color={v.muted}
                     name="arrow-up-outline"
                     size={17}
                   />
@@ -203,8 +204,10 @@ export function AskLanceSheet({
           <Button
             disabled={Boolean(clarificationQuestion && !clarification.trim())}
             label={clarificationQuestion ? 'Apply answer' : 'Create filters'}
+            labelStyle={styles.buttonLabel}
             loading={loading}
             onPress={() => void submit()}
+            style={styles.button}
           />
         </ScrollView>
       </KeyboardAvoidingView>
@@ -214,13 +217,13 @@ export function AskLanceSheet({
 
 const styles = StyleSheet.create({
   page: {
-    backgroundColor: theme.colors.canvas,
+    backgroundColor: v.background,
     flex: 1,
   },
   header: {
     alignItems: 'center',
-    backgroundColor: theme.colors.canvas,
-    borderBottomColor: theme.colors.border,
+    backgroundColor: v.background,
+    borderBottomColor: v.border,
     borderBottomWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     gap: theme.spacing.md,
@@ -229,7 +232,9 @@ const styles = StyleSheet.create({
   },
   mark: {
     alignItems: 'center',
-    backgroundColor: theme.colors.accentSoft,
+    backgroundColor: v.purpleSoft,
+    borderColor: v.borderPurple,
+    borderWidth: 1,
     borderRadius: 22,
     height: 44,
     justifyContent: 'center',
@@ -240,12 +245,14 @@ const styles = StyleSheet.create({
     gap: theme.spacing.xs,
   },
   title: {
-    color: theme.colors.text,
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
     fontSize: theme.typography.subheading,
-    fontWeight: '800',
+    fontWeight: '600',
   },
   subtitle: {
-    color: theme.colors.muted,
+    color: v.textSoft,
+    fontFamily: operatorFonts.sans,
     fontSize: theme.typography.caption,
   },
   close: {
@@ -263,40 +270,45 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
   },
   prompt: {
-    color: theme.colors.text,
-    fontSize: theme.typography.heading,
-    fontWeight: '800',
-    lineHeight: 29,
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 20,
+    fontWeight: '600',
+    lineHeight: 26,
   },
   input: {
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radii.md,
+    backgroundColor: '#0E0E16',
+    borderColor: v.borderStrong,
+    borderRadius: 18,
     borderWidth: 1,
-    color: theme.colors.text,
-    fontSize: theme.typography.body,
+    color: v.text,
+    fontFamily: operatorFonts.sans,
+    fontSize: 14,
     minHeight: 128,
     padding: theme.spacing.lg,
   },
   counter: {
     alignSelf: 'flex-end',
-    color: theme.colors.muted,
-    fontSize: theme.typography.caption,
+    color: v.muted,
+    fontFamily: operatorFonts.monoMedium,
+    fontSize: 10,
+    fontWeight: '500',
   },
   examples: {
     gap: theme.spacing.sm,
   },
   sectionLabel: {
-    color: theme.colors.muted,
-    fontSize: theme.typography.label,
-    fontWeight: '800',
+    color: v.purpleStrong,
+    fontFamily: operatorFonts.monoSemiBold,
+    fontSize: 11,
+    fontWeight: '600',
     textTransform: 'uppercase',
   },
   example: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radii.md,
+    backgroundColor: v.surface,
+    borderColor: v.border,
+    borderRadius: 16,
     borderWidth: 1,
     flexDirection: 'row',
     gap: theme.spacing.md,
@@ -304,46 +316,61 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.md,
   },
   exampleText: {
-    color: theme.colors.text,
+    color: v.text,
     flex: 1,
+    fontFamily: operatorFonts.sansMedium,
     fontSize: theme.typography.small,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   clarification: {
-    backgroundColor: theme.colors.accentSoft,
-    borderColor: '#D8CEFF',
-    borderRadius: theme.radii.md,
+    backgroundColor: v.purpleWash,
+    borderColor: v.borderPurple,
+    borderRadius: 18,
     borderWidth: 1,
     gap: theme.spacing.sm,
     padding: theme.spacing.md,
   },
   question: {
-    color: theme.colors.text,
-    fontSize: theme.typography.body,
-    fontWeight: '700',
+    color: v.text,
+    fontFamily: operatorFonts.sansMedium,
+    fontSize: 14,
+    fontWeight: '500',
     lineHeight: 22,
   },
   answer: {
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radii.md,
+    backgroundColor: '#0E0E16',
+    borderColor: v.borderStrong,
+    borderRadius: 16,
     borderWidth: 1,
-    color: theme.colors.text,
-    fontSize: theme.typography.body,
+    color: v.text,
+    fontFamily: operatorFonts.sans,
+    fontSize: 14,
     minHeight: theme.layout.inputHeight,
     paddingHorizontal: theme.spacing.md,
   },
   error: {
-    color: theme.colors.danger,
+    color: v.danger,
+    fontFamily: operatorFonts.sans,
     fontSize: theme.typography.small,
     lineHeight: 20,
   },
   privacy: {
-    color: theme.colors.muted,
+    color: v.muted,
+    fontFamily: operatorFonts.sans,
     fontSize: theme.typography.tiny,
     lineHeight: 18,
   },
   pressed: {
     opacity: 0.7,
+  },
+  button: {
+    backgroundColor: v.purple,
+    minHeight: 44,
+  },
+  buttonLabel: {
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 13,
+    fontWeight: '600',
   },
 });

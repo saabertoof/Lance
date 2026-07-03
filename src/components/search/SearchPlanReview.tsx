@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { operatorFonts, operatorVisual as v } from '@/constants/operatorTheme';
 import { theme } from '@/constants/theme';
 import {
   getSearchPlanChips,
@@ -20,7 +21,7 @@ export function SearchPlanReview({
     <View style={styles.wrap}>
       <View style={styles.headingRow}>
         <Ionicons
-          color={theme.colors.accentStrong}
+          color={v.purpleStrong}
           name="sparkles"
           size={16}
         />
@@ -37,7 +38,7 @@ export function SearchPlanReview({
               style={styles.chip}>
               <Text style={styles.chipText}>{chip.label}</Text>
               <Ionicons
-                color={theme.colors.accentStrong}
+                color={v.purpleStrong}
                 name="close"
                 size={14}
               />
@@ -64,7 +65,7 @@ export function MatchReasons({ reasons }: { reasons: string[] }) {
       {reasons.map((reason) => (
         <View key={reason} style={styles.reason}>
           <Ionicons
-            color={theme.colors.accentStrong}
+            color={v.purpleStrong}
             name="checkmark-circle-outline"
             size={15}
           />
@@ -77,12 +78,12 @@ export function MatchReasons({ reasons }: { reasons: string[] }) {
 
 const styles = StyleSheet.create({
   wrap: {
-    backgroundColor: theme.colors.accentSoft,
-    borderColor: '#D8CEFF',
-    borderRadius: theme.radii.md,
+    backgroundColor: v.purpleWash,
+    borderColor: v.borderPurple,
+    borderRadius: 18,
     borderWidth: 1,
-    gap: theme.spacing.sm,
-    padding: theme.spacing.md,
+    gap: 9,
+    padding: 12,
   },
   headingRow: {
     alignItems: 'center',
@@ -90,9 +91,11 @@ const styles = StyleSheet.create({
     gap: theme.spacing.xs,
   },
   heading: {
-    color: theme.colors.text,
-    fontSize: theme.typography.small,
-    fontWeight: '800',
+    color: v.text,
+    fontFamily: operatorFonts.monoSemiBold,
+    fontSize: 11,
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
   chips: {
     flexDirection: 'row',
@@ -101,25 +104,30 @@ const styles = StyleSheet.create({
   },
   chip: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surface,
+    backgroundColor: v.surface,
+    borderColor: v.border,
+    borderWidth: 1,
     borderRadius: theme.radii.pill,
     flexDirection: 'row',
     gap: theme.spacing.xs,
-    minHeight: 36,
+    minHeight: 28,
     paddingHorizontal: 10,
   },
   chipText: {
-    color: theme.colors.accentStrong,
-    fontSize: theme.typography.label,
-    fontWeight: '700',
+    color: v.purpleStrong,
+    fontFamily: operatorFonts.sansMedium,
+    fontSize: 11,
+    fontWeight: '500',
   },
   empty: {
-    color: theme.colors.muted,
-    fontSize: theme.typography.small,
+    color: v.textSoft,
+    fontFamily: operatorFonts.sans,
+    fontSize: 12,
   },
   safety: {
-    color: theme.colors.muted,
-    fontSize: theme.typography.tiny,
+    color: v.textSoft,
+    fontFamily: operatorFonts.sans,
+    fontSize: 11,
     lineHeight: 17,
   },
   reasons: {
@@ -132,9 +140,10 @@ const styles = StyleSheet.create({
     gap: theme.spacing.xs,
   },
   reasonText: {
-    color: theme.colors.muted,
+    color: v.textSoft,
     flex: 1,
+    fontFamily: operatorFonts.sansMedium,
     fontSize: theme.typography.tiny,
-    fontWeight: '600',
+    fontWeight: '500',
   },
 });

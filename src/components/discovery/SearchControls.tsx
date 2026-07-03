@@ -10,19 +10,23 @@ export function SearchBar({
   onChangeText,
   placeholder,
   value,
+  variant = 'default',
 }: {
   accessibilityLabel?: string;
   clearAccessibilityLabel?: string;
   onChangeText: (value: string) => void;
   placeholder: string;
   value: string;
+  variant?: 'default' | 'operator';
 }) {
+  const operator = variant === 'operator';
+
   return (
-    <View style={styles.search}>
+    <View style={[styles.search, operator && styles.operatorSearch]}>
       <Ionicons
-        color={theme.colors.muted}
+        color={operator ? v.textSoft : theme.colors.muted}
         name="search-outline"
-        size={theme.icons.standard}
+        size={operator ? 18 : theme.icons.standard}
       />
       <TextInput
         accessibilityLabel={accessibilityLabel}
@@ -30,9 +34,9 @@ export function SearchBar({
         autoCorrect={false}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor={theme.colors.mutedLight}
+        placeholderTextColor={operator ? v.muted : theme.colors.mutedLight}
         returnKeyType="search"
-        style={styles.input}
+        style={[styles.input, operator && styles.operatorInput]}
         value={value}
       />
       {value ? (
@@ -42,9 +46,9 @@ export function SearchBar({
           onPress={() => onChangeText('')}
           style={styles.clear}>
           <Ionicons
-            color={theme.colors.muted}
-            name="close-circle"
-            size={theme.icons.standard}
+            color={operator ? v.textSoft : theme.colors.muted}
+            name={operator ? 'close' : 'close-circle'}
+            size={operator ? 18 : theme.icons.standard}
           />
         </Pressable>
       ) : null}
@@ -128,6 +132,19 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.body,
     minHeight: theme.layout.inputHeight,
     paddingVertical: 0,
+  },
+  operatorSearch: {
+    backgroundColor: '#0E0E16',
+    borderColor: v.borderStrong,
+    borderRadius: 16,
+    minHeight: 44,
+    paddingHorizontal: 13,
+  },
+  operatorInput: {
+    color: v.text,
+    fontFamily: operatorFonts.sans,
+    fontSize: 14,
+    minHeight: 44,
   },
   clear: {
     alignItems: 'center',

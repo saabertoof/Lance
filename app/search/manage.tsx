@@ -1,16 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import {
+  ActivityIndicator,
   Alert,
   Modal,
   Pressable,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import { useCallback, useEffect, useState } from 'react';
 
-import { Button, Card, EmptyState, LoadingState, Screen, TextField } from '@/components/ui';
+import { Button, Card, Screen } from '@/components/ui';
+import { operatorFonts, operatorVisual as v } from '@/constants/operatorTheme';
 import { theme } from '@/constants/theme';
 import { useFeedback } from '@/context/FeedbackContext';
 import { useSearchAlerts } from '@/context/SearchAlertsContext';
@@ -140,6 +143,7 @@ export default function SavedSearchManagementScreen() {
       onRefresh={() => void load(true)}
       refreshing={refreshing}
       scroll
+      style={styles.canvas}
       contentStyle={styles.screen}>
       <PageHeader title="Saved searches" />
 
@@ -157,7 +161,7 @@ export default function SavedSearchManagementScreen() {
         ]}>
         <View style={styles.inboxMark}>
           <Ionicons
-            color={theme.colors.accentStrong}
+            color={v.purpleStrong}
             name="notifications-outline"
             size={22}
           />
@@ -178,17 +182,22 @@ export default function SavedSearchManagementScreen() {
           </Text>
         </View>
         <Ionicons
-          color={theme.colors.muted}
+          color={v.muted}
           name="chevron-forward"
           size={20}
         />
       </Pressable>
 
-      {loading ? <LoadingState message="Loading saved searches" /> : null}
+      {loading ? <SavedPageState loading title="Loading saved searches" /> : null}
       {!loading && error ? (
         <View style={styles.state}>
-          <EmptyState body={error} title="Saved searches unavailable" />
-          <Button label="Retry" onPress={() => void load()} />
+          <SavedPageState body={error} icon="warning-outline" title="Saved searches unavailable" />
+          <Button
+            label="Retry"
+            labelStyle={styles.buttonLabel}
+            onPress={() => void load()}
+            style={styles.primaryButton}
+          />
         </View>
       ) : null}
 
@@ -199,8 +208,9 @@ export default function SavedSearchManagementScreen() {
             title="Saved searches"
           />
           {searches.length === 0 ? (
-            <EmptyState
+            <SavedPageState
               body="Save a search to return to it quickly."
+              icon="bookmark-outline"
               title="Nothing saved yet"
             />
           ) : (
@@ -253,8 +263,8 @@ export default function SavedSearchManagementScreen() {
                     <Ionicons
                       color={
                         schedulerEnabled && search.alertEnabled
-                          ? theme.colors.accentStrong
-                          : theme.colors.muted
+                          ? v.purpleStrong
+                          : v.muted
                       }
                       name={
                         schedulerEnabled && search.alertEnabled
@@ -277,7 +287,7 @@ export default function SavedSearchManagementScreen() {
                     </Text>
                   </View>
                   <Ionicons
-                    color={theme.colors.muted}
+                    color={v.muted}
                     name="chevron-down"
                     size={18}
                   />
@@ -311,10 +321,36 @@ function PageHeader({ title }: { title: string }) {
         accessibilityRole="button"
         onPress={() => router.back()}
         style={styles.headerButton}>
-        <Ionicons color={theme.colors.text} name="arrow-back" size={22} />
+        <Ionicons color={v.text} name="arrow-back" size={21} />
       </Pressable>
       <Text style={styles.headerTitle}>{title}</Text>
       <View style={styles.headerButton} />
+    </View>
+  );
+}
+
+function SavedPageState({
+  body,
+  icon = 'search-outline',
+  loading,
+  title,
+}: {
+  body?: string;
+  icon?: keyof typeof Ionicons.glyphMap;
+  loading?: boolean;
+  title: string;
+}) {
+  return (
+    <View style={styles.pageState}>
+      <View style={styles.pageStateIcon}>
+        {loading ? (
+          <ActivityIndicator color={v.purpleStrong} />
+        ) : (
+          <Ionicons color={v.purpleStrong} name={icon} size={19} />
+        )}
+      </View>
+      <Text style={styles.pageStateTitle}>{title}</Text>
+      {body ? <Text style={styles.pageStateBody}>{body}</Text> : null}
     </View>
   );
 }
@@ -354,7 +390,7 @@ function SavedSearchCard({
           accessibilityRole="button"
           onPress={onDelete}
           style={styles.smallButton}>
-          <Ionicons color={theme.colors.danger} name="trash-outline" size={18} />
+          <Ionicons color={v.danger} name="trash-outline" size={18} />
         </Pressable>
       </View>
       {chips.length > 0 ? (
@@ -378,7 +414,7 @@ function SavedSearchCard({
           accessibilityRole="button"
           onPress={onRename}
           style={styles.renameButton}>
-          <Ionicons color={theme.colors.text} name="pencil-outline" size={18} />
+          <Ionicons color={v.text} name="pencil-outline" size={18} />
         </Pressable>
       </View>
     </Card>
@@ -423,16 +459,33 @@ function RenameSearchModal({
       <Pressable onPress={onClose} style={styles.modalBackdrop}>
         <Pressable onPress={() => undefined} style={styles.modalCard}>
           <Text style={styles.sectionTitle}>Rename saved search</Text>
-          <TextField
-            error={error ?? undefined}
-            label="Name"
-            maxLength={80}
-            onChangeText={setName}
-            value={name}
-          />
+          <View style={styles.renameField}>
+            <Text style={styles.renameLabel}>Name</Text>
+            <TextInput
+              accessibilityLabel="Saved search name"
+              maxLength={80}
+              onChangeText={setName}
+              placeholder="Search name"
+              placeholderTextColor={v.muted}
+              style={styles.renameInput}
+              value={name}
+            />
+            {error ? <Text style={styles.renameError}>{error}</Text> : null}
+          </View>
           <View style={styles.modalActions}>
-            <Button label="Cancel" onPress={onClose} variant="ghost" />
-            <Button label="Save" loading={saving} onPress={() => void save()} />
+            <Button
+              label="Cancel"
+              labelStyle={styles.ghostButtonLabel}
+              onPress={onClose}
+              variant="ghost"
+            />
+            <Button
+              label="Save"
+              labelStyle={styles.buttonLabel}
+              loading={saving}
+              onPress={() => void save()}
+              style={styles.primaryButton}
+            />
           </View>
         </Pressable>
       </Pressable>
@@ -460,8 +513,12 @@ function capitalize(value: string) {
 }
 
 const styles = StyleSheet.create({
+  canvas: {
+    backgroundColor: v.background,
+  },
   screen: {
-    gap: theme.spacing.lg,
+    gap: 16,
+    paddingBottom: 28,
   },
   header: {
     alignItems: 'center',
@@ -475,15 +532,16 @@ const styles = StyleSheet.create({
     width: 44,
   },
   headerTitle: {
-    color: theme.colors.text,
-    fontSize: theme.typography.subheading,
-    fontWeight: '800',
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 20,
+    fontWeight: '600',
   },
   inbox: {
     alignItems: 'center',
-    backgroundColor: theme.colors.accentSoft,
-    borderColor: '#D8CEFF',
-    borderRadius: theme.radii.md,
+    backgroundColor: v.purpleWash,
+    borderColor: v.borderPurple,
+    borderRadius: 18,
     borderWidth: 1,
     flexDirection: 'row',
     gap: theme.spacing.md,
@@ -492,7 +550,9 @@ const styles = StyleSheet.create({
   },
   inboxMark: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surface,
+    backgroundColor: v.surface,
+    borderColor: v.border,
+    borderWidth: 1,
     borderRadius: 22,
     height: 44,
     justifyContent: 'center',
@@ -505,8 +565,8 @@ const styles = StyleSheet.create({
   },
   badge: {
     alignItems: 'center',
-    backgroundColor: '#E34949',
-    borderColor: theme.colors.surface,
+    backgroundColor: v.purple,
+    borderColor: v.surface,
     borderRadius: 9,
     borderWidth: 2,
     minHeight: 18,
@@ -517,21 +577,24 @@ const styles = StyleSheet.create({
     top: -5,
   },
   badgeText: {
-    color: theme.colors.white,
+    color: v.white,
     fontSize: 8,
-    fontWeight: '900',
+    fontWeight: '600',
   },
   sectionHeading: {
     gap: theme.spacing.xs,
     marginTop: theme.spacing.sm,
   },
   sectionTitle: {
-    color: theme.colors.text,
-    fontSize: theme.typography.sectionHeading,
-    fontWeight: '800',
+    color: v.purpleStrong,
+    fontFamily: operatorFonts.monoSemiBold,
+    fontSize: 11,
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
   meta: {
-    color: theme.colors.muted,
+    color: v.textSoft,
+    fontFamily: operatorFonts.sans,
     fontSize: theme.typography.tiny,
     lineHeight: 17,
   },
@@ -542,8 +605,12 @@ const styles = StyleSheet.create({
     gap: theme.spacing.md,
   },
   card: {
-    borderRadius: theme.radii.md,
-    gap: theme.spacing.md,
+    backgroundColor: v.surface,
+    borderColor: v.border,
+    borderRadius: 18,
+    elevation: 0,
+    gap: 12,
+    shadowOpacity: 0,
   },
   cardTop: {
     alignItems: 'center',
@@ -555,14 +622,16 @@ const styles = StyleSheet.create({
     gap: theme.spacing.xs,
   },
   cardTitle: {
-    color: theme.colors.text,
-    fontSize: theme.typography.cardTitle,
-    fontWeight: '800',
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 15,
+    fontWeight: '600',
   },
   target: {
-    color: theme.colors.accentStrong,
+    color: v.purpleStrong,
+    fontFamily: operatorFonts.sansMedium,
     fontSize: theme.typography.label,
-    fontWeight: '700',
+    fontWeight: '500',
   },
   smallButton: {
     alignItems: 'center',
@@ -576,15 +645,18 @@ const styles = StyleSheet.create({
     gap: theme.spacing.xs,
   },
   chip: {
-    backgroundColor: theme.colors.chip,
+    backgroundColor: 'rgba(255,255,255,0.045)',
+    borderColor: v.border,
+    borderWidth: 1,
     borderRadius: theme.radii.pill,
     paddingHorizontal: 9,
     paddingVertical: 5,
   },
   chipText: {
-    color: theme.colors.textSoft,
+    color: v.textSoft,
+    fontFamily: operatorFonts.sansMedium,
     fontSize: theme.typography.caption,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   cardActions: {
     alignItems: 'center',
@@ -596,7 +668,7 @@ const styles = StyleSheet.create({
   },
   renameButton: {
     alignItems: 'center',
-    borderColor: theme.colors.border,
+    borderColor: v.border,
     borderRadius: 22,
     borderWidth: 1,
     height: 44,
@@ -605,9 +677,9 @@ const styles = StyleSheet.create({
   },
   alertRow: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radii.md,
+    backgroundColor: v.surface,
+    borderColor: v.border,
+    borderRadius: 17,
     borderWidth: 1,
     flexDirection: 'row',
     gap: theme.spacing.md,
@@ -616,7 +688,7 @@ const styles = StyleSheet.create({
   },
   alertIcon: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surfaceMuted,
+    backgroundColor: v.purpleSoft,
     borderRadius: 20,
     height: 40,
     justifyContent: 'center',
@@ -627,23 +699,27 @@ const styles = StyleSheet.create({
     gap: theme.spacing.xs,
   },
   rowTitle: {
-    color: theme.colors.text,
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
     fontSize: theme.typography.small,
-    fontWeight: '800',
+    fontWeight: '600',
   },
   emptyLine: {
-    color: theme.colors.muted,
+    color: v.textSoft,
+    fontFamily: operatorFonts.sans,
     fontSize: theme.typography.small,
   },
   modalBackdrop: {
     alignItems: 'center',
-    backgroundColor: 'rgba(8,10,18,0.42)',
+    backgroundColor: 'rgba(0,0,0,0.58)',
     flex: 1,
     justifyContent: 'center',
     padding: theme.spacing.xl,
   },
   modalCard: {
-    backgroundColor: theme.colors.surface,
+    backgroundColor: v.surface,
+    borderColor: v.borderStrong,
+    borderWidth: 1,
     borderRadius: theme.radii.lg,
     gap: theme.spacing.lg,
     maxWidth: 440,
@@ -653,6 +729,78 @@ const styles = StyleSheet.create({
   modalActions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
+  },
+  renameField: {
+    gap: 7,
+  },
+  renameLabel: {
+    color: v.textSoft,
+    fontFamily: operatorFonts.monoSemiBold,
+    fontSize: 11,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
+  renameInput: {
+    backgroundColor: '#0E0E16',
+    borderColor: v.borderStrong,
+    borderRadius: 16,
+    borderWidth: 1,
+    color: v.text,
+    fontFamily: operatorFonts.sans,
+    fontSize: 14,
+    minHeight: 46,
+    paddingHorizontal: 13,
+  },
+  renameError: {
+    color: v.danger,
+    fontFamily: operatorFonts.sans,
+    fontSize: 12,
+  },
+  pageState: {
+    alignItems: 'center',
+    backgroundColor: v.surface,
+    borderColor: v.border,
+    borderRadius: 18,
+    borderWidth: 1,
+    gap: 7,
+    padding: 18,
+  },
+  pageStateIcon: {
+    alignItems: 'center',
+    backgroundColor: v.purpleSoft,
+    borderRadius: 18,
+    height: 36,
+    justifyContent: 'center',
+    width: 36,
+  },
+  pageStateTitle: {
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  pageStateBody: {
+    color: v.textSoft,
+    fontFamily: operatorFonts.sans,
+    fontSize: 12,
+    lineHeight: 18,
+    textAlign: 'center',
+  },
+  primaryButton: {
+    backgroundColor: v.purple,
+    minHeight: 42,
+  },
+  buttonLabel: {
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  ghostButtonLabel: {
+    color: v.textSoft,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 13,
+    fontWeight: '600',
   },
   pressed: {
     opacity: 0.72,

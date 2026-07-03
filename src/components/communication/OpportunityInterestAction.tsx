@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { StyleProp, TextStyle, ViewStyle } from 'react-native';
 
 import { Button } from '@/components/ui';
 import {
@@ -14,9 +15,13 @@ import { ExpressInterestSheet } from './ExpressInterestSheet';
 
 export function OpportunityInterestAction({
   deferLoad,
+  buttonLabelStyle,
+  buttonStyle,
   onError,
   opportunity,
 }: {
+  buttonLabelStyle?: StyleProp<TextStyle>;
+  buttonStyle?: StyleProp<ViewStyle>;
   deferLoad?: boolean;
   onError?: (message: string) => void;
   opportunity: OpportunityRecord;
@@ -94,7 +99,9 @@ export function OpportunityInterestAction({
           !['none', 'submitted', 'in_discussion'].includes(state.status)
         }
         label={label}
+        labelStyle={buttonLabelStyle}
         onPress={() => void handlePress()}
+        style={buttonStyle}
       />
       <ExpressInterestSheet
         onClose={() => setSheetOpen(false)}
