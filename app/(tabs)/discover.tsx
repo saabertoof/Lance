@@ -332,19 +332,10 @@ export default function DiscoverScreen() {
             contentFit="contain"
             source={require('../../assets/images/lance_icon_transparent.png')}
             style={styles.mark}
+            tintColor={v.white}
           />
         </View>
-        <View style={styles.headerCopy}>
-          <Text style={styles.kicker}>Discover</Text>
-          <Text numberOfLines={2} style={styles.title}>
-            {mode === 'people'
-              ? 'Find your next builder'
-              : 'Find your next opportunity'}
-          </Text>
-          <Text numberOfLines={1} style={styles.subtitle}>
-            Work on what matters. Build with the right people.
-          </Text>
-        </View>
+        <View style={styles.headerSpacer} />
         <FilterButton
           compact
           count={filterCount}
@@ -593,56 +584,32 @@ const styles = StyleSheet.create({
     backgroundColor: v.background,
   },
   screen: {
-    gap: 12,
+    gap: 10,
     paddingHorizontal: 16,
   },
   header: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: 12,
-    minHeight: 54,
+    justifyContent: 'space-between',
+    minHeight: 46,
   },
   mark: {
-    height: 34,
-    width: 34,
+    height: 30,
+    width: 30,
   },
   markSlot: {
     alignItems: 'center',
-    borderRightColor: v.border,
-    borderRightWidth: StyleSheet.hairlineWidth,
-    height: 46,
+    height: 42,
     justifyContent: 'center',
-    paddingRight: 12,
-    width: 48,
+    overflow: 'hidden',
+    width: 42,
   },
-  headerCopy: {
+  headerSpacer: {
     flex: 1,
-    gap: 2,
-    minWidth: 0,
-  },
-  kicker: {
-    color: v.purpleStrong,
-    fontFamily: operatorFonts.monoSemiBold,
-    fontSize: 11,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-  },
-  title: {
-    color: v.text,
-    fontFamily: operatorFonts.sansSemiBold,
-    fontSize: 28,
-    fontWeight: '600',
-    lineHeight: 33,
-  },
-  subtitle: {
-    color: v.textSoft,
-    fontFamily: operatorFonts.sans,
-    fontSize: 13,
-    lineHeight: 18,
   },
   deckArea: {
     flex: 1,
-    marginTop: 2,
+    marginTop: 0,
     minHeight: 430,
   },
   state: {

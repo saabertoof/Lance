@@ -346,9 +346,11 @@ export function DiscoverDeck({
               },
             ]}>
             <Animated.View style={[styles.passOverlay, { opacity: passOpacity }]}>
+              <Ionicons color="#FF5D79" name="close" size={22} />
               <Text style={styles.passOverlayText}>PASS</Text>
             </Animated.View>
             <Animated.View style={[styles.saveOverlay, { opacity: saveOpacity }]}>
+              <Ionicons color={v.purpleStrong} name="bookmark" size={21} />
               <Text style={styles.saveOverlayText}>SAVE</Text>
             </Animated.View>
             <Animated.View style={[styles.primaryOverlay, { opacity: primaryOpacity }]}>
@@ -491,10 +493,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   passOverlay: {
+    alignItems: 'center',
     backgroundColor: 'rgba(20,10,16,0.86)',
     borderColor: 'rgba(255,93,121,0.55)',
-    borderRadius: 15,
+    borderRadius: 18,
     borderWidth: 1,
+    flexDirection: 'row',
+    gap: 6,
     left: 18,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -504,10 +509,13 @@ const styles = StyleSheet.create({
     zIndex: 5,
   },
   saveOverlay: {
+    alignItems: 'center',
     backgroundColor: 'rgba(18,13,32,0.88)',
     borderColor: v.borderPurple,
-    borderRadius: 15,
+    borderRadius: 18,
     borderWidth: 1,
+    flexDirection: 'row',
+    gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 8,
     position: 'absolute',
@@ -554,23 +562,22 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     backgroundColor: 'rgba(12,13,20,0.86)',
     borderColor: v.border,
-    borderRadius: 38,
+    borderRadius: 36,
     borderWidth: 1,
     flexDirection: 'row',
-    gap: 14,
-    justifyContent: 'center',
-    minHeight: 74,
-    paddingHorizontal: 14,
+    justifyContent: 'space-between',
+    minHeight: 72,
+    paddingHorizontal: 13,
     width: '100%',
   },
   action: {
     alignItems: 'center',
     borderColor: v.borderStrong,
-    borderRadius: 25,
+    borderRadius: 27,
     borderWidth: 1,
-    height: 50,
+    height: 54,
     justifyContent: 'center',
-    width: 50,
+    width: 54,
   },
   passAction: {
     backgroundColor: 'rgba(255,93,121,0.08)',
@@ -579,9 +586,7 @@ const styles = StyleSheet.create({
   primaryAction: {
     backgroundColor: v.purple,
     borderColor: 'rgba(167,139,250,0.72)',
-    borderRadius: 34,
-    height: 64,
-    width: 64,
+    borderRadius: 27,
   },
   saveAction: {
     backgroundColor: 'rgba(139,92,246,0.08)',
