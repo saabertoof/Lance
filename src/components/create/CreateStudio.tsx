@@ -13,7 +13,6 @@ import {
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { operatorFonts, operatorVisual as v } from '@/constants/operatorTheme';
-import { theme } from '@/constants/theme';
 import { slugify } from '@/lib/business';
 import {
   formatCompensation,
@@ -247,7 +246,7 @@ function ActionTile({
           <Ionicons color={v.purpleStrong} name={icon} size={21} />
         </View>
         <View style={styles.actionCopy}>
-          <Text numberOfLines={1} style={styles.actionTitle}>
+          <Text numberOfLines={2} style={styles.actionTitle}>
             {label}
           </Text>
           <Text numberOfLines={1} style={styles.actionSupporting}>
@@ -268,11 +267,8 @@ function ActionTile({
 
 function ToolButton({ icon, label }: { icon: IconName; label: string }) {
   return (
-    <View style={styles.toolButton}>
+    <View accessibilityLabel={label} style={styles.toolButton}>
       <Ionicons color={v.textSoft} name={icon} size={15} />
-      <Text numberOfLines={1} style={styles.toolText}>
-        {label}
-      </Text>
     </View>
   );
 }
@@ -608,16 +604,16 @@ const promptExamples: { icon: IconName; label: string; prompt: string }[] = [
 
 const styles = StyleSheet.create({
   builder: {
-    gap: 20,
+    gap: 18,
   },
   heroHeader: {
     alignItems: 'flex-start',
     flexDirection: 'row',
-    gap: 14,
+    gap: 12,
   },
   heroCopy: {
     flex: 1,
-    gap: 6,
+    gap: 5,
     minWidth: 0,
   },
   sectionLabel: {
@@ -630,34 +626,35 @@ const styles = StyleSheet.create({
   heroTitle: {
     color: v.text,
     fontFamily: operatorFonts.sansSemiBold,
-    fontSize: 31,
+    fontSize: 30,
     fontWeight: '600',
-    lineHeight: 36,
+    lineHeight: 35,
   },
   heroSubtitle: {
     color: v.textSoft,
     fontFamily: operatorFonts.sans,
-    fontSize: 15,
-    lineHeight: 21,
+    fontSize: 14,
+    lineHeight: 19,
+    maxWidth: 330,
   },
   heroIcon: {
     alignItems: 'center',
     backgroundColor: v.surface,
     borderColor: v.borderStrong,
-    borderRadius: 18,
+    borderRadius: 15,
     borderWidth: 1,
-    height: 56,
+    height: 44,
     justifyContent: 'center',
-    width: 56,
+    width: 44,
   },
   composer: {
     backgroundColor: v.surface,
     borderColor: v.borderStrong,
-    borderRadius: 22,
+    borderRadius: 20,
     borderWidth: 1,
-    gap: 14,
+    gap: 12,
     overflow: 'hidden',
-    padding: 16,
+    padding: 14,
   },
   composerHeader: {
     alignItems: 'center',
@@ -671,34 +668,34 @@ const styles = StyleSheet.create({
   },
   tinyDot: {
     backgroundColor: v.purple,
-    borderRadius: 5,
-    height: 10,
-    width: 10,
+    borderRadius: 4,
+    height: 8,
+    width: 8,
   },
   composerLabel: {
     color: v.purpleStrong,
     fontFamily: operatorFonts.monoSemiBold,
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
     textTransform: 'uppercase',
   },
   countText: {
     color: v.textSoft,
     fontFamily: operatorFonts.sans,
-    fontSize: 12,
+    fontSize: 11,
   },
   promptInput: {
     color: v.text,
     fontFamily: operatorFonts.sans,
-    fontSize: 15,
-    lineHeight: 22,
-    minHeight: 118,
+    fontSize: 14,
+    lineHeight: 20,
+    minHeight: 92,
     padding: 0,
   },
   composerFooter: {
-    alignItems: 'center',
+    alignItems: 'flex-end',
     flexDirection: 'row',
-    gap: 12,
+    gap: 10,
     justifyContent: 'space-between',
   },
   composerTools: {
@@ -712,17 +709,9 @@ const styles = StyleSheet.create({
     borderColor: v.border,
     borderRadius: 15,
     borderWidth: 1,
-    flexDirection: 'row',
-    gap: 6,
-    minHeight: 44,
-    maxWidth: 132,
-    paddingHorizontal: 10,
-  },
-  toolText: {
-    color: v.textSoft,
-    flexShrink: 1,
-    fontFamily: operatorFonts.sans,
-    fontSize: 12,
+    height: 36,
+    justifyContent: 'center',
+    width: 36,
   },
   previewButton: {
     alignItems: 'center',
@@ -731,9 +720,9 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     borderWidth: 1,
     flexDirection: 'row',
-    gap: 7,
-    minHeight: 44,
-    paddingHorizontal: 18,
+    gap: 6,
+    minHeight: 38,
+    paddingHorizontal: 15,
   },
   previewButtonDisabled: {
     opacity: 0.42,
@@ -741,43 +730,43 @@ const styles = StyleSheet.create({
   previewButtonText: {
     color: v.purpleStrong,
     fontFamily: operatorFonts.sansSemiBold,
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
   },
   quickStart: {
-    gap: 10,
+    gap: 9,
   },
   exampleRail: {
-    gap: 10,
-    paddingRight: theme.layout.screenPadding,
+    gap: 8,
+    paddingRight: 16,
   },
   exampleChip: {
     alignItems: 'center',
     backgroundColor: v.surfaceSoft,
     borderColor: v.border,
-    borderRadius: 19,
+    borderRadius: 14,
     borderWidth: 1,
     flexDirection: 'row',
-    gap: 8,
-    maxWidth: 232,
-    minHeight: 38,
-    paddingHorizontal: 13,
+    gap: 7,
+    maxWidth: 198,
+    minHeight: 32,
+    paddingHorizontal: 11,
   },
   exampleText: {
     color: v.textSoft,
     fontFamily: operatorFonts.sans,
-    fontSize: 13,
+    fontSize: 12,
   },
   previewSection: {
-    gap: 12,
+    gap: 10,
   },
   quickSection: {
-    gap: 12,
+    gap: 10,
   },
   actionGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    gap: 10,
   },
   actionGridStacked: {
     flexDirection: 'column',
@@ -791,20 +780,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: v.surface,
     borderColor: v.border,
-    borderRadius: 18,
+    borderRadius: 16,
     borderWidth: 1,
     flexDirection: 'row',
-    gap: 12,
-    minHeight: 82,
-    padding: 12,
+    gap: 9,
+    minHeight: 78,
+    padding: 11,
   },
   actionIcon: {
     alignItems: 'center',
     backgroundColor: v.purpleSoft,
-    borderRadius: 14,
-    height: 44,
+    borderRadius: 13,
+    height: 40,
     justifyContent: 'center',
-    width: 44,
+    width: 40,
   },
   actionCopy: {
     flex: 1,
@@ -814,13 +803,14 @@ const styles = StyleSheet.create({
   actionTitle: {
     color: v.text,
     fontFamily: operatorFonts.sansSemiBold,
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
+    lineHeight: 16,
   },
   actionSupporting: {
     color: v.textSoft,
     fontFamily: operatorFonts.sans,
-    fontSize: 12,
+    fontSize: 11,
   },
   actionBadge: {
     alignItems: 'center',
@@ -837,7 +827,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   section: {
-    gap: 12,
+    gap: 10,
   },
   sectionHeaderRow: {
     alignItems: 'center',
@@ -859,16 +849,16 @@ const styles = StyleSheet.create({
   },
   draftRail: {
     gap: 10,
-    paddingRight: theme.layout.screenPadding,
+    paddingRight: 16,
   },
   draftCard: {
     backgroundColor: v.surface,
     borderColor: v.border,
     borderRadius: 18,
     borderWidth: 1,
-    minHeight: 132,
-    padding: 14,
-    width: 244,
+    minHeight: 122,
+    padding: 13,
+    width: 226,
   },
   draftTop: {
     alignItems: 'center',
@@ -879,9 +869,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: v.purpleSoft,
     borderRadius: 13,
-    height: 38,
+    height: 36,
     justifyContent: 'center',
-    width: 38,
+    width: 36,
   },
   draftStatus: {
     backgroundColor: v.surfaceStrong,
@@ -898,7 +888,7 @@ const styles = StyleSheet.create({
   draftTitle: {
     color: v.text,
     fontFamily: operatorFonts.sansSemiBold,
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
     lineHeight: 20,
     marginTop: 12,
@@ -923,17 +913,17 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   creationRail: {
-    gap: 12,
-    paddingRight: theme.layout.screenPadding,
+    gap: 10,
+    paddingRight: 16,
   },
   creationTile: {
     backgroundColor: v.surface,
     borderColor: v.border,
-    borderRadius: 18,
+    borderRadius: 17,
     borderWidth: 1,
-    minHeight: 126,
-    padding: 14,
-    width: 214,
+    minHeight: 112,
+    padding: 13,
+    width: 198,
   },
   creationTop: {
     alignItems: 'center',
@@ -958,7 +948,7 @@ const styles = StyleSheet.create({
   },
   creationBody: {
     gap: 8,
-    marginTop: 18,
+    marginTop: 14,
   },
   creationImage: {
     borderRadius: 15,
@@ -968,7 +958,7 @@ const styles = StyleSheet.create({
   creationTitle: {
     color: v.text,
     fontFamily: operatorFonts.sansSemiBold,
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
     lineHeight: 20,
   },
@@ -981,20 +971,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: v.surface,
     borderColor: v.border,
-    borderRadius: 18,
+    borderRadius: 16,
     borderWidth: 1,
     flexDirection: 'row',
-    gap: 12,
-    minHeight: 84,
-    padding: 14,
+    gap: 10,
+    minHeight: 72,
+    padding: 12,
   },
   emptyIcon: {
     alignItems: 'center',
     backgroundColor: v.purpleSoft,
     borderRadius: 14,
-    height: 42,
+    height: 40,
     justifyContent: 'center',
-    width: 42,
+    width: 40,
   },
   emptyCopy: {
     flex: 1,
@@ -1011,23 +1001,23 @@ const styles = StyleSheet.create({
     color: v.textSoft,
     fontFamily: operatorFonts.sans,
     fontSize: 12,
-    lineHeight: 17,
+    lineHeight: 16,
   },
   manageRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 9,
   },
   manageButton: {
     alignItems: 'center',
     backgroundColor: v.surfaceSoft,
     borderColor: v.border,
-    borderRadius: 15,
+    borderRadius: 14,
     borderWidth: 1,
     flex: 1,
     flexDirection: 'row',
-    gap: 8,
+    gap: 7,
     minHeight: 44,
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
   },
   manageLabel: {
     color: v.text,
@@ -1050,12 +1040,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: v.surface,
     borderColor: v.border,
-    borderRadius: 18,
+    borderRadius: 16,
     borderWidth: 1,
     flexDirection: 'row',
-    gap: 12,
-    minHeight: 68,
-    padding: 14,
+    gap: 10,
+    minHeight: 62,
+    padding: 12,
   },
   skeletonIcon: {
     backgroundColor: v.surfaceStrong,
