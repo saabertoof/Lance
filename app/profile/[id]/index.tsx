@@ -94,7 +94,7 @@ export default function PublicProfileScreen() {
         topBar={
           <>
             <OverlayButton label="Go back" onPress={() => router.back()}>
-              <Ionicons color={profileVisual.text} name="arrow-back" size={22} />
+              <Ionicons color={profileVisual.text} name="arrow-back" size={18} />
             </OverlayButton>
             {isOwnProfile ? (
               <OverlayButton
@@ -103,7 +103,7 @@ export default function PublicProfileScreen() {
                 <Ionicons
                   color={profileVisual.text}
                   name="create-outline"
-                  size={21}
+                  size={18}
                 />
               </OverlayButton>
             ) : (
@@ -114,7 +114,7 @@ export default function PublicProfileScreen() {
                   <Ionicons
                     color={saved ? profileVisual.purple : profileVisual.text}
                     name={saved ? 'bookmark' : 'bookmark-outline'}
-                    size={21}
+                    size={18}
                   />
                 </OverlayButton>
                 <OverlayButton
@@ -123,7 +123,7 @@ export default function PublicProfileScreen() {
                   <Ionicons
                     color={profileVisual.text}
                     name="ellipsis-horizontal"
-                    size={21}
+                    size={18}
                   />
                 </OverlayButton>
               </View>
@@ -218,8 +218,8 @@ const styles = StyleSheet.create({
   },
   body: {
     gap: 13,
-    paddingBottom: 120,
-    paddingHorizontal: 12,
+    paddingBottom: 24,
+    paddingHorizontal: 16,
   },
   topActions: {
     flexDirection: 'row',
@@ -227,13 +227,13 @@ const styles = StyleSheet.create({
   },
   overlayButton: {
     alignItems: 'center',
-    backgroundColor: 'rgba(5,6,11,0.68)',
-    borderColor: profileVisual.border,
-    borderRadius: 22,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    borderColor: 'rgba(255,255,255,0.10)',
+    borderRadius: 18,
     borderWidth: 1,
-    height: 44,
+    height: 36,
     justifyContent: 'center',
-    width: 44,
+    width: 36,
   },
   privateNote: {
     color: profileVisual.muted,

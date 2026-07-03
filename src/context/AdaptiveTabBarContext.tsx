@@ -20,7 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export const FLOATING_TAB_BAR_HEIGHT = 64;
 export const FLOATING_TAB_BAR_BOTTOM_GAP = 8;
-export const FLOATING_TAB_BAR_CONTENT_GAP = 16;
+export const FLOATING_TAB_BAR_CONTENT_GAP = 24;
 
 type AdaptiveTabBarContextValue = {
   compact: boolean;

@@ -182,12 +182,12 @@ export default function ProfileScreen() {
               <ProfileOverlayButton
                 label="Share profile"
                 onPress={() => void shareProfile()}>
-                <Ionicons color={profileVisual.text} name="share-outline" size={21} />
+                <Ionicons color={profileVisual.text} name="share-outline" size={18} />
               </ProfileOverlayButton>
               <ProfileOverlayButton
                 label="Open profile settings"
                 onPress={() => router.push(routes.profileSettings)}>
-                <Ionicons color={profileVisual.text} name="settings-outline" size={21} />
+                <Ionicons color={profileVisual.text} name="settings-outline" size={18} />
               </ProfileOverlayButton>
             </View>
           </>
@@ -210,7 +210,6 @@ export default function ProfileScreen() {
 
         <ProfileStatsRow
           onApplied={() => router.push(routes.applications)}
-          onConnections={() => router.push(routes.connections)}
           onOpportunities={() => router.push(routes.opportunities)}
           onSaved={() => router.push(routes.saved)}
           summary={summary}
@@ -302,17 +301,17 @@ const styles = StyleSheet.create({
     paddingTop: 0,
   },
   topPlaceholder: {
-    height: 44,
-    width: 44,
+    height: 36,
+    width: 36,
   },
   topActions: {
     flexDirection: 'row',
     gap: theme.spacing.sm,
   },
   body: {
-    gap: 13,
-    paddingBottom: 120,
-    paddingHorizontal: 12,
+    gap: 12,
+    paddingBottom: 24,
+    paddingHorizontal: 16,
   },
   cardRow: {
     flexDirection: 'row',

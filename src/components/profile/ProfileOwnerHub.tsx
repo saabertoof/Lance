@@ -59,13 +59,11 @@ export function ProfileOwnerActions({
 
 export function ProfileStatsRow({
   onApplied,
-  onConnections,
   onOpportunities,
   onSaved,
   summary,
 }: {
   onApplied: () => void;
-  onConnections: () => void;
   onOpportunities: () => void;
   onSaved: () => void;
   summary: OwnerProfileSummary | null;
@@ -73,19 +71,11 @@ export function ProfileStatsRow({
   return (
     <View style={styles.statsPanel}>
       <Stat
-        badge={summary?.pendingRequests}
-        emphasized
-        label="Connections"
-        onPress={onConnections}
-        value={summary?.connections ?? null}
-      />
-      <Stat
         label="Applied"
         onPress={onApplied}
         value={summary?.applied ?? null}
       />
       <Stat
-        badge={summary?.newApplicants}
         label="Opportunities"
         onPress={onOpportunities}
         value={summary?.opportunities ?? null}
@@ -182,7 +172,7 @@ export function ProfileCurrentBuildingCard({
       <SectionKicker icon="paper-plane-outline" label="Currently building" />
       <View style={styles.buildingBody}>
         <View style={styles.buildingIcon}>
-          <Ionicons color={profileVisual.purple} name="people-outline" size={25} />
+          <Ionicons color={profileVisual.purple} name="people-outline" size={22} />
         </View>
         <View style={styles.buildingCopy}>
           <Text numberOfLines={1} style={styles.buildingTitle}>
@@ -196,7 +186,7 @@ export function ProfileCurrentBuildingCard({
           <Ionicons color={profileVisual.muted} name="lock-closed-outline" size={12} />
           <Text style={styles.privatePillText}>Private</Text>
         </View>
-        <Ionicons color={profileVisual.textSoft} name="chevron-forward" size={18} />
+        <Ionicons color={profileVisual.textSoft} name="chevron-forward" size={16} />
       </View>
     </Pressable>
   );
@@ -358,18 +348,11 @@ export function ProfileOwnerDashboard({
   return (
     <View style={styles.dashboardPanel}>
       <View style={styles.dashboardHeader}>
-        <View style={styles.dashboardKickerRow}>
-          <Ionicons color={profileVisual.purple} name="grid-outline" size={15} />
-          <Text style={styles.dashboardKicker}>Manage & dashboard</Text>
-        </View>
-        <Text style={styles.dashboardTitle}>Your Lance</Text>
-        <Text style={styles.dashboardSubtitle}>
-          Manage the pieces behind your profile.
-        </Text>
+        <SectionKicker icon="grid-outline" label="Manage & dashboard" />
+        <Text style={styles.viewAllText}>View all</Text>
       </View>
       {groups.map((group) => (
         <View key={group.title} style={styles.dashboardGroup}>
-          <Text style={styles.groupTitle}>{group.title}</Text>
           <View style={styles.rows}>
             {group.items.map((item) => (
               <DashboardRow item={item} key={item.label} />
@@ -483,13 +466,11 @@ function OwnerAction({
 
 function Stat({
   badge,
-  emphasized,
   label,
   onPress,
   value,
 }: {
   badge?: number;
-  emphasized?: boolean;
   label: string;
   onPress: () => void;
   value: number | null;
@@ -501,7 +482,6 @@ function Stat({
       onPress={onPress}
       style={({ pressed }) => [
         styles.stat,
-        emphasized && styles.statEmphasized,
         pressed && styles.pressed,
       ]}>
       {badge ? (
@@ -509,12 +489,12 @@ function Stat({
           <Text style={styles.statBadgeText}>{Math.min(badge, 99)}</Text>
         </View>
       ) : null}
-      <Text style={[styles.statValue, emphasized && styles.statValueEmphasized]}>
+      <Text style={styles.statValue}>
         {value ?? '-'}
       </Text>
       <Text
         numberOfLines={1}
-        style={[styles.statLabel, emphasized && styles.statLabelEmphasized]}>
+        style={styles.statLabel}>
         {label}
       </Text>
     </Pressable>
@@ -542,7 +522,7 @@ function DashboardRow({ item }: { item: ProfileDashboardItem }) {
         pressed && styles.pressed,
       ]}>
       <View style={styles.rowIcon}>
-        <Ionicons color={profileVisual.purple} name={item.icon} size={18} />
+        <Ionicons color={profileVisual.purple} name={item.icon} size={20} />
       </View>
       <Text numberOfLines={1} style={styles.rowLabel}>{item.label}</Text>
       {accessory}
@@ -564,7 +544,7 @@ function SignalPill({
       {dot ? (
         <View style={styles.signalPillDot} />
       ) : (
-        <Ionicons color={profileVisual.text} name={icon} size={17} />
+        <Ionicons color={profileVisual.text} name={icon} size={16} />
       )}
       <Text numberOfLines={1} style={styles.signalPillText}>{label}</Text>
     </View>
@@ -575,7 +555,7 @@ function SectionKicker({ icon, label }: { icon: IconName; label: string }) {
   return (
     <View style={styles.kickerRow}>
       <Ionicons color={profileVisual.textSoft} name={icon} size={15} />
-      <Text style={styles.kickerText}>{label}</Text>
+      <Text numberOfLines={1} style={styles.kickerText}>{label}</Text>
     </View>
   );
 }
@@ -664,7 +644,7 @@ const styles = StyleSheet.create({
   statsPanel: {
     backgroundColor: profileVisual.surface,
     borderColor: profileVisual.border,
-    borderRadius: 13,
+    borderRadius: 16,
     borderWidth: 1,
     flexDirection: 'row',
     overflow: 'hidden',
@@ -676,30 +656,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRightColor: profileVisual.border,
     borderRightWidth: StyleSheet.hairlineWidth,
-    minHeight: 70,
+    minHeight: 66,
     paddingHorizontal: 4,
     position: 'relative',
-  },
-  statEmphasized: {
-    backgroundColor: 'transparent',
   },
   statValue: {
     color: profileVisual.text,
     fontFamily: profileFonts.sansSemiBold,
-    fontSize: 20,
+    fontSize: 21,
     fontWeight: '600',
-  },
-  statValueEmphasized: {
-    color: profileVisual.text,
   },
   statLabel: {
     color: profileVisual.muted,
     fontFamily: profileFonts.sansMedium,
     fontSize: 11,
     fontWeight: '500',
-  },
-  statLabelEmphasized: {
-    color: profileVisual.textSoft,
   },
   connectionLine: {
     alignItems: 'center',
@@ -737,14 +708,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.04)',
     borderColor: profileVisual.border,
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
     flex: 1,
     flexDirection: 'row',
-    gap: 8,
+    gap: 10,
     justifyContent: 'center',
-    minHeight: 54,
-    paddingHorizontal: 8,
+    minHeight: 44,
+    minWidth: 0,
+    paddingHorizontal: 12,
   },
   signalPillDot: {
     backgroundColor: profileVisual.purple,
@@ -762,37 +734,41 @@ const styles = StyleSheet.create({
   wideCard: {
     backgroundColor: profileVisual.surface,
     borderColor: profileVisual.border,
-    borderRadius: 18,
+    borderRadius: 20,
     borderWidth: 1,
-    gap: 15,
-    padding: 15,
+    gap: 12,
+    padding: 14,
   },
   kickerRow: {
     alignItems: 'center',
+    flexShrink: 1,
     flexDirection: 'row',
     gap: 8,
+    minWidth: 0,
   },
   kickerText: {
     color: '#C7B8FF',
+    flexShrink: 1,
     fontFamily: profileFonts.monoMedium,
     fontSize: 11,
-    fontWeight: '500',
+    fontWeight: '600',
+    letterSpacing: 0,
     textTransform: 'uppercase',
   },
   buildingBody: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: 13,
+    gap: 12,
   },
   buildingIcon: {
     alignItems: 'center',
     backgroundColor: profileVisual.purpleSoft,
     borderColor: profileVisual.borderStrong,
-    borderRadius: 15,
+    borderRadius: 14,
     borderWidth: 1,
-    height: 56,
+    height: 46,
     justifyContent: 'center',
-    width: 56,
+    width: 46,
   },
   buildingCopy: {
     flex: 1,
@@ -802,14 +778,14 @@ const styles = StyleSheet.create({
   buildingTitle: {
     color: profileVisual.text,
     fontFamily: profileFonts.sansSemiBold,
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '600',
   },
   buildingText: {
     color: profileVisual.muted,
     fontFamily: profileFonts.sans,
-    fontSize: 12,
-    lineHeight: 17,
+    fontSize: 13,
+    lineHeight: 18,
   },
   privatePill: {
     alignItems: 'center',
@@ -818,8 +794,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     flexDirection: 'row',
     gap: 5,
-    minHeight: 30,
-    paddingHorizontal: 10,
+    minHeight: 26,
+    paddingHorizontal: 8,
   },
   privatePillText: {
     color: profileVisual.textSoft,
@@ -834,12 +810,13 @@ const styles = StyleSheet.create({
   miniCard: {
     backgroundColor: profileVisual.surface,
     borderColor: profileVisual.border,
-    borderRadius: 18,
+    borderRadius: 20,
     borderWidth: 1,
     flex: 1,
-    gap: 14,
-    minHeight: 142,
-    padding: 15,
+    gap: 12,
+    minHeight: 128,
+    minWidth: 0,
+    padding: 14,
   },
   featuredBody: {
     gap: 10,
@@ -852,10 +829,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.055)',
     borderRadius: 14,
-    height: 64,
+    height: 54,
     justifyContent: 'center',
     overflow: 'hidden',
-    width: 64,
+    width: 54,
   },
   featuredThumbSmall: {
     alignItems: 'center',
@@ -896,10 +873,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
+    minWidth: 0,
   },
   viewAllText: {
     color: profileVisual.purple,
+    flexShrink: 0,
     fontFamily: profileFonts.sansMedium,
+    marginLeft: 10,
     fontSize: 12,
     fontWeight: '500',
   },
@@ -907,7 +887,7 @@ const styles = StyleSheet.create({
     borderTopColor: profileVisual.border,
     borderTopWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
-    paddingTop: 17,
+    paddingTop: 14,
   },
   proofStat: {
     alignItems: 'center',
@@ -915,7 +895,7 @@ const styles = StyleSheet.create({
     borderRightWidth: StyleSheet.hairlineWidth,
     flex: 1,
     gap: 3,
-    minHeight: 50,
+    minHeight: 46,
   },
   proofValue: {
     color: profileVisual.text,
@@ -967,10 +947,10 @@ const styles = StyleSheet.create({
   backgroundStrip: {
     backgroundColor: profileVisual.surface,
     borderColor: profileVisual.border,
-    borderRadius: 18,
+    borderRadius: 20,
     borderWidth: 1,
-    gap: 13,
-    padding: 15,
+    gap: 10,
+    padding: 14,
   },
   backgroundColumns: {
     flexDirection: 'row',
@@ -992,7 +972,7 @@ const styles = StyleSheet.create({
   backgroundValue: {
     color: profileVisual.text,
     fontFamily: profileFonts.sansMedium,
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '500',
   },
   statBadge: {
@@ -1017,35 +997,14 @@ const styles = StyleSheet.create({
     borderColor: profileVisual.border,
     borderRadius: 20,
     borderWidth: 1,
-    gap: 16,
-    padding: 15,
+    gap: 13,
+    padding: 14,
   },
   dashboardHeader: {
-    gap: 4,
-  },
-  dashboardKickerRow: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: 7,
-  },
-  dashboardKicker: {
-    color: '#C7B8FF',
-    fontFamily: profileFonts.monoMedium,
-    fontSize: 11,
-    fontWeight: '500',
-    textTransform: 'uppercase',
-  },
-  dashboardTitle: {
-    color: profileVisual.text,
-    fontFamily: profileFonts.sansSemiBold,
-    fontSize: 17,
-    fontWeight: '600',
-  },
-  dashboardSubtitle: {
-    color: profileVisual.muted,
-    fontFamily: profileFonts.sans,
-    fontSize: 12,
-    lineHeight: 16,
+    justifyContent: 'space-between',
+    minWidth: 0,
   },
   dashboardGroup: {
     gap: 8,
@@ -1072,24 +1031,23 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     gap: 6,
     justifyContent: 'center',
-    minHeight: 78,
-    paddingHorizontal: 8,
-    paddingVertical: 10,
+    minHeight: 70,
+    padding: 10,
   },
   rowIcon: {
     alignItems: 'center',
     backgroundColor: profileVisual.purpleSoft,
     borderColor: profileVisual.borderStrong,
-    borderRadius: 14,
+    borderRadius: 13,
     borderWidth: 1,
-    height: 36,
+    height: 40,
     justifyContent: 'center',
-    width: 36,
+    width: 40,
   },
   rowLabel: {
     color: profileVisual.textSoft,
     fontFamily: profileFonts.sansMedium,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '500',
     maxWidth: '100%',
     textAlign: 'center',
@@ -1119,8 +1077,8 @@ const styles = StyleSheet.create({
     borderColor: profileVisual.borderStrong,
     borderRadius: 18,
     borderWidth: 1,
-    gap: theme.spacing.sm,
-    padding: theme.spacing.md,
+    gap: 8,
+    padding: 12,
   },
   completionHeader: {
     alignItems: 'center',
@@ -1134,7 +1092,7 @@ const styles = StyleSheet.create({
   completionTitle: {
     color: profileVisual.text,
     fontFamily: profileFonts.sansSemiBold,
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
   },
   completionValue: {
@@ -1146,7 +1104,7 @@ const styles = StyleSheet.create({
   track: {
     backgroundColor: 'rgba(255,255,255,0.09)',
     borderRadius: theme.radii.pill,
-    height: 7,
+    height: 5,
     overflow: 'hidden',
   },
   trackFill: {
@@ -1162,13 +1120,13 @@ const styles = StyleSheet.create({
   },
   overlayButton: {
     alignItems: 'center',
-    backgroundColor: 'rgba(5,6,11,0.68)',
-    borderColor: profileVisual.border,
-    borderRadius: 22,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    borderColor: 'rgba(255,255,255,0.10)',
+    borderRadius: 18,
     borderWidth: 1,
-    height: 44,
+    height: 36,
     justifyContent: 'center',
-    width: 44,
+    width: 36,
   },
   pressed: {
     opacity: 0.7,

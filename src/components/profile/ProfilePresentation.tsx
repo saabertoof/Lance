@@ -47,36 +47,38 @@ export function ProfileHero({
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.banner, { height: 194 + insets.top }]}>
-      {profile.polish.bannerUrl ? (
-        <Image
-          accessibilityLabel={`${profile.displayName} profile banner`}
-          contentFit="cover"
-          source={profile.polish.bannerUrl}
-          style={styles.fill}
-          transition={180}
-        />
-      ) : (
-        <View style={styles.defaultBanner}>
-          <View style={[styles.bannerPanel, { backgroundColor: `${accent}24` }]} />
-          <View style={[styles.bannerPanelAlt, { backgroundColor: `${accent}14` }]} />
-          <View style={[styles.bannerLine, { backgroundColor: accent }]} />
-        </View>
-      )}
-      <View style={styles.bannerShade} />
-      <View style={[styles.topBar, { top: insets.top + 8 }]}>{topBar}</View>
-      {onEditBanner ? (
-        <Pressable
-          accessibilityLabel="Edit profile banner"
-          accessibilityRole="button"
-          onPress={onEditBanner}
-          style={({ pressed }) => [
-            styles.mediaEdit,
-            pressed && styles.pressed,
-          ]}>
-          <Ionicons color={profileVisual.text} name="camera-outline" size={18} />
-        </Pressable>
-      ) : null}
+    <View style={[styles.banner, { paddingTop: insets.top + 8 }]}>
+      <View style={styles.bannerFrame}>
+        {profile.polish.bannerUrl ? (
+          <Image
+            accessibilityLabel={`${profile.displayName} profile banner`}
+            contentFit="cover"
+            source={profile.polish.bannerUrl}
+            style={styles.fill}
+            transition={180}
+          />
+        ) : (
+          <View style={styles.defaultBanner}>
+            <View style={[styles.bannerPanel, { backgroundColor: `${accent}20` }]} />
+            <View style={[styles.bannerPanelAlt, { backgroundColor: `${accent}10` }]} />
+            <View style={styles.bannerNoise} />
+          </View>
+        )}
+        <View style={styles.bannerShade} />
+        <View style={styles.topBar}>{topBar}</View>
+        {onEditBanner ? (
+          <Pressable
+            accessibilityLabel="Edit profile banner"
+            accessibilityRole="button"
+            onPress={onEditBanner}
+            style={({ pressed }) => [
+              styles.mediaEdit,
+              pressed && styles.pressed,
+            ]}>
+            <Ionicons color={profileVisual.text} name="camera-outline" size={16} />
+          </Pressable>
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -99,7 +101,6 @@ export function ProfileIdentityBlock({
   const centered = profile.polish.theme.headerAlignment === 'center';
   const initials = initialsFor(profile.displayName);
   const location = profile.polish.location?.label ?? profile.city;
-  const metaItems = [location, profile.primaryRole].filter(Boolean);
   const hasSocial =
     profile.links.length > 0 ||
     profile.polish.customLinks.some((link) =>
@@ -118,6 +119,7 @@ export function ProfileIdentityBlock({
       ) : (
         <Text style={[styles.initials, { color: accent }]}>{initials}</Text>
       )}
+      <View style={styles.avatarOnlineDot} />
       {onEditAvatar ? (
         <View style={styles.avatarEdit}>
           <Ionicons color={profileVisual.white} name="camera" size={14} />
@@ -140,14 +142,6 @@ export function ProfileIdentityBlock({
         ) : (
           avatar
         )}
-        <View style={[styles.profileSignal, { borderColor: `${accent}48` }]}>
-          <View style={styles.signalOuter}>
-            <View style={[styles.signalDot, { backgroundColor: profileVisual.green }]} />
-          </View>
-          <Text numberOfLines={1} style={styles.profileSignalText}>
-            {getOptionLabel(availabilityOptions, profile.availability)}
-          </Text>
-        </View>
       </View>
 
       <View style={[styles.identityCopy, centered && styles.centered]}>
@@ -168,10 +162,23 @@ export function ProfileIdentityBlock({
           style={[styles.headline, centered && styles.centerText]}>
           {profile.headline}
         </Text>
-        {metaItems.length > 0 ? (
-          <Text numberOfLines={2} style={[styles.metaLine, centered && styles.centerText]}>
-            {metaItems.join('  /  ')}
-          </Text>
+        {location || profile.primaryRole ? (
+          <View style={[styles.metaRow, centered && styles.centerWrap]}>
+            {location ? (
+              <View style={styles.metaItem}>
+                <Ionicons color={profileVisual.muted} name="location-outline" size={14} />
+                <Text numberOfLines={1} style={styles.metaText}>
+                  {location}
+                </Text>
+              </View>
+            ) : null}
+            {location && profile.primaryRole ? <View style={styles.metaDot} /> : null}
+            {profile.primaryRole ? (
+              <Text numberOfLines={1} style={styles.metaRole}>
+                {profile.primaryRole}
+              </Text>
+            ) : null}
+          </View>
         ) : null}
         {showInlineSignals ? (
           <View style={[styles.factRow, centered && styles.centerWrap]}>
@@ -567,13 +574,20 @@ export const profileAccentColors = {
 const styles = StyleSheet.create({
   banner: {
     backgroundColor: profileVisual.background,
-    height: 194,
-    overflow: 'hidden',
-    position: 'relative',
+    paddingHorizontal: 16,
+    paddingBottom: 0,
   },
   fill: {
     height: '100%',
     width: '100%',
+  },
+  bannerFrame: {
+    borderColor: profileVisual.border,
+    borderRadius: 24,
+    borderWidth: 1,
+    height: 162,
+    overflow: 'hidden',
+    position: 'relative',
   },
   defaultBanner: {
     backgroundColor: '#070814',
@@ -582,30 +596,33 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   bannerPanel: {
-    borderRadius: 34,
-    height: 160,
+    borderRadius: 32,
+    height: 142,
     position: 'absolute',
-    right: -20,
-    top: 18,
+    right: -24,
+    top: 20,
     transform: [{ rotate: '-10deg' }],
-    width: 230,
+    width: 220,
   },
   bannerPanelAlt: {
     borderRadius: 26,
-    height: 118,
-    left: -42,
+    height: 104,
+    left: -36,
     position: 'absolute',
-    top: 56,
+    top: 48,
     transform: [{ rotate: '13deg' }],
-    width: 190,
+    width: 180,
   },
-  bannerLine: {
-    height: 2,
-    opacity: 0.95,
-    width: '100%',
+  bannerNoise: {
+    backgroundColor: 'rgba(255,255,255,0.035)',
+    bottom: 0,
+    height: 1,
+    left: 0,
+    position: 'absolute',
+    right: 0,
   },
   bannerShade: {
-    backgroundColor: 'rgba(5,6,11,0.42)',
+    backgroundColor: 'rgba(5,5,10,0.48)',
     bottom: 0,
     left: 0,
     position: 'absolute',
@@ -615,30 +632,31 @@ const styles = StyleSheet.create({
   topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    left: 20,
+    left: 12,
     position: 'absolute',
-    right: 20,
+    right: 12,
+    top: 12,
   },
   mediaEdit: {
     alignItems: 'center',
-    backgroundColor: 'rgba(5,6,11,0.68)',
-    borderColor: profileVisual.border,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    borderColor: 'rgba(255,255,255,0.10)',
     borderRadius: 18,
     borderWidth: 1,
-    bottom: 14,
-    height: 38,
+    bottom: 12,
+    height: 36,
     justifyContent: 'center',
     position: 'absolute',
-    right: 20,
-    width: 38,
+    right: 12,
+    width: 36,
   },
   identityCard: {
     backgroundColor: 'transparent',
     borderRadius: 0,
-    gap: 10,
-    marginTop: -58,
+    gap: 6,
+    marginTop: -42,
     paddingBottom: 3,
-    paddingHorizontal: 8,
+    paddingHorizontal: 0,
     paddingTop: 0,
   },
   centeredCard: {
@@ -651,7 +669,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    minHeight: 66,
+    minHeight: 44,
   },
   avatarHeaderCentered: {
     alignItems: 'center',
@@ -660,67 +678,44 @@ const styles = StyleSheet.create({
   avatar: {
     alignItems: 'center',
     backgroundColor: profileVisual.surfaceStrong,
-    borderRadius: 52,
-    borderWidth: 4,
-    height: 104,
+    borderRadius: 44,
+    borderWidth: 3,
+    height: 88,
     justifyContent: 'center',
-    marginTop: -54,
     overflow: 'hidden',
-    shadowColor: profileVisual.purple,
-    shadowOffset: { height: 0, width: 0 },
-    shadowOpacity: 0.32,
-    shadowRadius: 16,
-    width: 104,
+    width: 88,
   },
   avatarEdit: {
     alignItems: 'center',
     backgroundColor: 'rgba(5,6,11,0.84)',
     borderColor: profileVisual.border,
-    borderRadius: 14,
+    borderRadius: 13,
     borderWidth: 1,
-    bottom: 5,
-    height: 28,
+    bottom: 4,
+    height: 26,
     justifyContent: 'center',
     position: 'absolute',
-    right: 5,
-    width: 28,
+    right: 4,
+    width: 26,
+  },
+  avatarOnlineDot: {
+    backgroundColor: profileVisual.green,
+    borderColor: profileVisual.black,
+    borderRadius: 7,
+    borderWidth: 2,
+    bottom: 6,
+    height: 14,
+    position: 'absolute',
+    right: 8,
+    width: 14,
   },
   initials: {
     fontFamily: profileFonts.sansSemiBold,
-    fontSize: 28,
+    fontSize: 25,
     fontWeight: '600',
   },
-  profileSignal: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(10,12,20,0.86)',
-    borderRadius: theme.radii.pill,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 6,
-    minHeight: 30,
-    paddingHorizontal: 11,
-  },
-  profileSignalText: {
-    color: profileVisual.textSoft,
-    fontFamily: profileFonts.sans,
-    fontSize: theme.typography.caption,
-    fontWeight: '700',
-  },
-  signalOuter: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(53,233,121,0.15)',
-    borderRadius: 7,
-    height: 14,
-    justifyContent: 'center',
-    width: 14,
-  },
-  signalDot: {
-    borderRadius: 3,
-    height: 6,
-    width: 6,
-  },
   identityCopy: {
-    gap: 7,
+    gap: 5,
     paddingHorizontal: 1,
   },
   name: {
@@ -729,7 +724,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: '600',
     letterSpacing: 0,
-    lineHeight: 35,
+    lineHeight: 38,
     maxWidth: '100%',
   },
   boldName: {
@@ -747,18 +742,43 @@ const styles = StyleSheet.create({
   headline: {
     color: profileVisual.textSoft,
     fontFamily: profileFonts.sansMedium,
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '500',
-    lineHeight: 20,
+    lineHeight: 18,
     maxWidth: 430,
   },
-  metaLine: {
+  metaRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 7,
+    minHeight: 20,
+  },
+  metaItem: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 4,
+    minWidth: 0,
+  },
+  metaText: {
     color: profileVisual.muted,
     flexShrink: 1,
     fontFamily: profileFonts.sansMedium,
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '500',
-    lineHeight: 17,
+  },
+  metaDot: {
+    backgroundColor: profileVisual.mutedDim,
+    borderRadius: 2,
+    height: 3,
+    width: 3,
+  },
+  metaRole: {
+    color: profileVisual.purple,
+    flexShrink: 1,
+    fontFamily: profileFonts.sansMedium,
+    fontSize: 13,
+    fontWeight: '500',
   },
   centerWrap: {
     justifyContent: 'center',
@@ -853,7 +873,7 @@ const styles = StyleSheet.create({
     color: '#C7B8FF',
     fontFamily: profileFonts.monoMedium,
     fontSize: 11,
-    fontWeight: '500',
+    fontWeight: '600',
     letterSpacing: 0,
     textTransform: 'uppercase',
   },
@@ -907,7 +927,7 @@ const styles = StyleSheet.create({
   promptLabel: {
     fontFamily: profileFonts.monoMedium,
     fontSize: 10,
-    fontWeight: '500',
+    fontWeight: '600',
     letterSpacing: 0,
     textTransform: 'uppercase',
   },
@@ -991,7 +1011,8 @@ const styles = StyleSheet.create({
     color: profileVisual.mutedDim,
     fontFamily: profileFonts.monoMedium,
     fontSize: 10,
-    fontWeight: '500',
+    fontWeight: '600',
+    letterSpacing: 0,
     textTransform: 'uppercase',
   },
   detailValue: {

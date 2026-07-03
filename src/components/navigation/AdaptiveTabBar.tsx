@@ -198,7 +198,7 @@ export function AdaptiveTabBar({
                           ? definition.activeIcon ?? definition.icon
                           : definition.icon
                       }
-                      size={route.name === 'create' ? 28 : 25}
+                      size={route.name === 'create' ? 26 : 24}
                     />
                   )}
                 </View>
@@ -207,6 +207,7 @@ export function AdaptiveTabBar({
                     <Text style={styles.badgeText}>{badge}</Text>
                   </View>
                 ) : null}
+                {selected ? <View style={styles.activeDot} /> : null}
               </View>
             </Pressable>
           );
@@ -227,8 +228,8 @@ const styles = StyleSheet.create({
   },
   bar: {
     alignItems: 'center',
-    backgroundColor: 'rgba(8,10,18,0.96)',
-    borderColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(5,5,10,0.92)',
+    borderColor: 'rgba(255,255,255,0.10)',
     borderRadius: 32,
     borderWidth: 1,
     flexDirection: 'row',
@@ -256,7 +257,15 @@ const styles = StyleSheet.create({
     width: 44,
   },
   activeSurfaceSelected: {
+    backgroundColor: 'rgba(139,92,246,0.10)',
+  },
+  activeDot: {
     backgroundColor: theme.colors.accentStrong,
+    borderRadius: 3,
+    bottom: 2,
+    height: 5,
+    position: 'absolute',
+    width: 5,
   },
   avatar: {
     borderColor: 'rgba(255,255,255,0.48)',
@@ -291,7 +300,7 @@ const styles = StyleSheet.create({
   badgeText: {
     color: theme.colors.white,
     fontSize: 9,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   pressed: {
     opacity: 0.7,
