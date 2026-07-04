@@ -37,6 +37,7 @@ import {
   getPersonRecommendationReasons,
 } from '@/lib/recommendations';
 import { getOpportunityShareCopy } from '@/lib/opportunity';
+import { getProfilePublicUrl } from '@/lib/publicLinks';
 import { routes } from '@/lib/routes';
 import {
   countOpportunityFilters,
@@ -231,6 +232,7 @@ export default function DiscoverScreen() {
               `Meet ${current.displayName} on Lance.`,
               current.username ? `@${current.username}` : '',
               current.headline,
+              getProfilePublicUrl(current),
             ]
               .filter(Boolean)
               .join(' '),

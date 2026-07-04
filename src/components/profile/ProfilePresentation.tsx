@@ -2,7 +2,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import type { ComponentProps, ReactNode } from 'react';
 import {
-  Linking,
   Pressable,
   StyleSheet,
   Text,
@@ -11,6 +10,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { theme } from '@/constants/theme';
+import { normalizeExternalUrl, openExternalUrl } from '@/lib/externalLinks';
 import {
   availabilityOptions,
   experienceOptions,
@@ -520,19 +520,17 @@ async function openCustomLink(
   url: string,
   onError: (message: string) => void,
 ) {
-  try {
-    if (!url.startsWith('https://') || !(await Linking.canOpenURL(url))) {
-      throw new Error('Unsupported URL');
-    }
-    await Linking.openURL(url);
-  } catch {
-    onError('This link could not be opened safely.');
-  }
+  await openExternalUrl(url, {
+    label: 'Link',
+    onError,
+  });
 }
 
 function safeHost(value: string) {
+  const normalized = normalizeExternalUrl(value);
+  if (!normalized) return '';
   try {
-    return new URL(value).hostname.replace(/^www\./, '');
+    return new URL(normalized).hostname.replace(/^www\./, '');
   } catch {
     return '';
   }

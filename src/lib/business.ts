@@ -384,6 +384,39 @@ export async function loadBusiness(businessId: string) {
   return business;
 }
 
+export async function loadBusinessBySlug(slugOrId: string) {
+  const normalizedSlug = slugify(slugOrId);
+  const uuidPattern =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+  if (!normalizedSlug && uuidPattern.test(slugOrId.trim())) {
+    return loadBusiness(slugOrId.trim());
+  }
+
+  if (!normalizedSlug) {
+    throw new Error('This business link is not valid.');
+  }
+
+  const { data, error } = await supabase
+    .from('businesses')
+    .select('*, profiles!businesses_owner_profile_id_fkey(display_name)')
+    .eq('slug', normalizedSlug)
+    .eq('status', 'active')
+    .is('deleted_at', null)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data) {
+    throw new Error('This business profile is unavailable.');
+  }
+
+  const [business] = await addBusinessCounts([mapBusiness(data as RawBusiness)]);
+  return business;
+}
+
 export async function loadPublicBusinessesByIds(businessIds: string[]) {
   if (businessIds.length === 0) return [];
 

@@ -23,12 +23,24 @@ export function OpportunityShareSheet({
   opportunity: OpportunityRecord;
   visible: boolean;
 }) {
-  const { showSuccess } = useFeedback();
+  const { showSuccess, showWarning } = useFeedback();
   const share = getOpportunityShareCopy(opportunity);
 
   async function copy(label: string, value: string) {
-    await Clipboard.setStringAsync(value);
-    showSuccess(`${label} copied.`);
+    try {
+      await Clipboard.setStringAsync(value);
+      showSuccess(`${label} copied.`);
+    } catch {
+      showWarning(`${label} could not be copied. Try again.`);
+    }
+  }
+
+  async function shareOpportunity() {
+    try {
+      await Share.share({ message: share.nativeMessage });
+    } catch {
+      showWarning('This opportunity could not be shared. Try again.');
+    }
   }
 
   return (
@@ -93,7 +105,7 @@ export function OpportunityShareSheet({
             />
             <Button
               label="Share"
-              onPress={() => void Share.share({ message: share.nativeMessage })}
+              onPress={() => void shareOpportunity()}
               style={styles.actionButton}
             />
           </View>

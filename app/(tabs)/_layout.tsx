@@ -1,5 +1,5 @@
 import { Redirect, Tabs } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { AdaptiveTabBar } from '@/components/navigation';
 import { LoadingState } from '@/components/ui';
@@ -15,14 +15,16 @@ export default function TabLayout() {
   const { unreadCount } = useMessaging();
   const { unreadCount: searchAlertCount } = useSearchAlerts();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const avatarSubscriptionNonce = useRef(0);
+  const userId = user?.id ?? null;
 
   useEffect(() => {
     let active = true;
-    if (!user) {
+    if (!userId) {
       setAvatarUrl(null);
       return;
     }
-    const profileId = user.id;
+    const profileId = userId;
     async function loadAvatar() {
       const { data } = await supabase
         .from('profiles')
@@ -32,8 +34,9 @@ export default function TabLayout() {
       if (active) setAvatarUrl(data?.avatar_url ?? null);
     }
     void loadAvatar().catch(() => undefined);
+    avatarSubscriptionNonce.current += 1;
     const channel = supabase
-      .channel(`tab-avatar:${profileId}`)
+      .channel(`tab-avatar:${profileId}:${avatarSubscriptionNonce.current}`)
       .on(
         'postgres_changes',
         {
@@ -52,7 +55,7 @@ export default function TabLayout() {
       active = false;
       void supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [userId]);
 
   if (isLoading) {
     return <LoadingState message="Loading your space" />;

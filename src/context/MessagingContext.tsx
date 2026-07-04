@@ -23,9 +23,10 @@ const MessagingContext = createContext<MessagingContextValue | null>(null);
 export function MessagingProvider({ children }: PropsWithChildren) {
   const { user } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
+  const userId = user?.id ?? null;
 
   const refreshUnread = useCallback(async () => {
-    if (!user) {
+    if (!userId) {
       setUnreadCount(0);
       return;
     }
@@ -34,16 +35,16 @@ export function MessagingProvider({ children }: PropsWithChildren) {
     } catch {
       // Screens show actionable errors; the badge quietly retries on resume/realtime.
     }
-  }, [user]);
+  }, [userId]);
 
   useEffect(() => {
     void refreshUnread();
   }, [refreshUnread]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!userId) return;
     const channel = supabase
-      .channel(`unread:${user.id}`)
+      .channel(`unread:${userId}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'messages' },
@@ -57,7 +58,7 @@ export function MessagingProvider({ children }: PropsWithChildren) {
       appStateSubscription.remove();
       void supabase.removeChannel(channel);
     };
-  }, [refreshUnread, user]);
+  }, [refreshUnread, userId]);
 
   const value = useMemo(
     () => ({ unreadCount, refreshUnread }),

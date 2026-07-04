@@ -51,9 +51,11 @@ export default function RootLayout() {
                   <Stack.Screen name="opportunity" />
                   <Stack.Screen name="profile" />
                   <Stack.Screen name="messages" />
-                  <Stack.Screen name="o" />
+                  <Stack.Screen name="o/[slug]" />
+                  <Stack.Screen name="b/[slug]" />
                   <Stack.Screen name="request" />
-                  <Stack.Screen name="search" />
+                  <Stack.Screen name="search/alerts" />
+                  <Stack.Screen name="search/manage" />
                 </Stack>
                 <StatusBar
                   backgroundColor="transparent"

@@ -33,6 +33,7 @@ import {
   loadOwnerProfileSummary,
   type OwnerProfileSummary,
 } from '@/lib/profileHub';
+import { getProfilePublicUrl } from '@/lib/publicLinks';
 import { routes } from '@/lib/routes';
 import type { PublicProfile } from '@/types/profile';
 
@@ -153,6 +154,7 @@ export default function ProfileScreen() {
           `Meet ${currentProfile.displayName} on Lance.`,
           currentProfile.username ? `@${currentProfile.username}` : '',
           currentProfile.headline,
+          getProfilePublicUrl(currentProfile),
         ]
           .filter(Boolean)
           .join(' '),

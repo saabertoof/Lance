@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import type { ComponentProps } from 'react';
-import { Linking, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { theme } from '@/constants/theme';
+import { normalizeExternalUrl, openExternalUrl } from '@/lib/externalLinks';
 import type { ProfileLink, ProfileLinkType } from '@/types/profile';
 import type { CustomProfileLink } from '@/types/profilePolish';
 
@@ -22,16 +23,11 @@ export function ProfileSocialLinks({
     .filter((link) => link.platform);
 
   async function open(target: string, label: string) {
-
-    try {
-      const isSafeTarget = target.startsWith('https://') || target.startsWith('mailto:');
-      if (!isSafeTarget || !(await Linking.canOpenURL(target))) {
-        throw new Error('Unsupported link');
-      }
-      await Linking.openURL(target);
-    } catch {
-      onError(`${label} could not be opened on this device.`);
-    }
+    await openExternalUrl(target, {
+      allowMailto: true,
+      label,
+      onError,
+    });
   }
 
   return (
@@ -87,8 +83,10 @@ const profileLinkIcons: Record<
 };
 
 export function recognizedSocialPlatform(value: string) {
+  const normalized = normalizeExternalUrl(value);
+  if (!normalized) return null;
   try {
-    const host = new URL(value).hostname.replace(/^www\./, '').toLowerCase();
+    const host = new URL(normalized).hostname.replace(/^www\./, '').toLowerCase();
     if (host === 'youtube.com' || host === 'youtu.be') return 'youtube';
     return null;
   } catch {

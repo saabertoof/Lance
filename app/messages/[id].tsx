@@ -49,7 +49,7 @@ const MESSAGE_LIMIT = 2000;
 export default function ConversationScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
-  const { showSuccess } = useFeedback();
+  const { showSuccess, showWarning } = useFeedback();
   const { refreshUnread } = useMessaging();
   const isFocused = useIsFocused();
   const listRef = useRef<FlatList<MessageRecord>>(null);
@@ -204,9 +204,9 @@ export default function ConversationScreen() {
       {
         text: 'Copy',
         onPress: () => {
-          void Clipboard.setStringAsync(message.body).then(() =>
-            showSuccess('Message copied.'),
-          );
+          void Clipboard.setStringAsync(message.body)
+            .then(() => showSuccess('Message copied.'))
+            .catch(() => showWarning('Message could not be copied.'));
         },
       },
       ...(!mine

@@ -4,7 +4,6 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import {
   Alert,
-  Linking,
   Pressable,
   Share,
   StyleSheet,
@@ -19,7 +18,9 @@ import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { useFeedback } from '@/context/FeedbackContext';
 import { archiveBusiness, formatBusinessError, loadBusiness } from '@/lib/business';
+import { openExternalUrl } from '@/lib/externalLinks';
 import { loadBusinessOpportunities } from '@/lib/opportunity';
+import { getBusinessPublicUrl } from '@/lib/publicLinks';
 import { routes } from '@/lib/routes';
 import {
   formatCommunicationError,
@@ -38,7 +39,7 @@ import { getOptionLabel } from '@/types/profile';
 export default function BusinessDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
-  const { showSuccess } = useFeedback();
+  const { showSuccess, showWarning } = useFeedback();
   const archiveRef = useRef(false);
   const [business, setBusiness] = useState<BusinessRecord | null>(null);
   const [opportunities, setOpportunities] = useState<OpportunityRecord[]>([]);
@@ -127,6 +128,16 @@ export default function BusinessDetailScreen() {
     );
   }
 
+  async function shareBusiness(currentBusiness: BusinessRecord) {
+    try {
+      await Share.share({
+        message: `View ${currentBusiness.name} on Lance: ${getBusinessPublicUrl(currentBusiness)}`,
+      });
+    } catch {
+      showWarning('This business profile could not be shared. Try again.');
+    }
+  }
+
   return (
     <Screen scroll contentStyle={styles.screen}>
       <View style={styles.topBar}>
@@ -153,11 +164,7 @@ export default function BusinessDetailScreen() {
           <Pressable
             accessibilityLabel="Share business"
             accessibilityRole="button"
-            onPress={() =>
-              Share.share({
-                message: `View ${business.name} on Lance: https://lance.app/b/${business.slug}`,
-              })
-            }
+            onPress={() => void shareBusiness(business)}
             style={styles.iconButton}>
             <Ionicons color={theme.colors.text} name="share-outline" size={22} />
           </Pressable>
@@ -206,7 +213,12 @@ export default function BusinessDetailScreen() {
             <Pressable
               accessibilityRole="link"
               key={label}
-              onPress={() => Linking.openURL(url)}
+              onPress={() =>
+                void openExternalUrl(url, {
+                  label,
+                  onError: showWarning,
+                })
+              }
               style={styles.link}>
               <Text style={styles.linkLabel}>{label}</Text>
               <Ionicons color={theme.colors.muted} name="open-outline" size={18} />

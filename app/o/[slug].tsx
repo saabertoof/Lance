@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { OpportunityInterestAction } from '@/components/communication';
 import {
@@ -14,6 +14,7 @@ import { Button, Chip, LoadingState, Screen } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { formatDateLabel } from '@/lib/date';
+import { openExternalUrl } from '@/lib/externalLinks';
 import {
   formatCompensation,
   formatOpportunityError,
@@ -280,7 +281,12 @@ export default function PublicOpportunityScreen() {
       {opportunity.externalUrl ? (
         <Pressable
           accessibilityRole="link"
-          onPress={() => Linking.openURL(opportunity.externalUrl)}
+          onPress={() =>
+            void openExternalUrl(opportunity.externalUrl, {
+              label: 'Creator link',
+              onError: setError,
+            })
+          }
           style={({ pressed }) => [styles.externalLink, pressed && styles.pressed]}>
           <Text style={styles.externalText}>Open creator link</Text>
           <Ionicons color={theme.colors.accentStrong} name="open-outline" size={18} />

@@ -3,7 +3,6 @@ import { Image } from 'expo-image';
 import { useEffect, useRef, useState } from 'react';
 import {
   AccessibilityInfo,
-  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -13,6 +12,7 @@ import {
 } from 'react-native';
 
 import { theme } from '@/constants/theme';
+import { openExternalUrl } from '@/lib/externalLinks';
 import type { PortfolioItem } from '@/types/profilePolish';
 
 import { profileFonts, profileVisual } from './profileVisual';
@@ -58,14 +58,10 @@ export function PortfolioCarousel({
     setAutoAdvance(false);
     const target = item.externalUrl;
     if (!target) return;
-    try {
-      if (!target.startsWith('https://') || !(await Linking.canOpenURL(target))) {
-        throw new Error('Unsupported URL');
-      }
-      await Linking.openURL(target);
-    } catch {
-      onError('This portfolio link could not be opened.');
-    }
+    await openExternalUrl(target, {
+      label: 'Portfolio link',
+      onError,
+    });
   }
 
   return (

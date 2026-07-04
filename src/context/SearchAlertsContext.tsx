@@ -24,9 +24,10 @@ const SearchAlertsContext = createContext<SearchAlertsContextValue | null>(
 export function SearchAlertsProvider({ children }: PropsWithChildren) {
   const { user } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
+  const userId = user?.id ?? null;
 
   const refreshUnread = useCallback(async () => {
-    if (!user) {
+    if (!userId) {
       setUnreadCount(0);
       return;
     }
@@ -35,18 +36,18 @@ export function SearchAlertsProvider({ children }: PropsWithChildren) {
     } catch {
       setUnreadCount(0);
     }
-  }, [user]);
+  }, [userId]);
 
   useEffect(() => {
     void refreshUnread();
-    if (!user) return;
+    if (!userId) return;
     const channel = supabase
-      .channel(`search-alerts:${user.id}`)
+      .channel(`search-alerts:${userId}`)
       .on(
         'postgres_changes',
         {
           event: '*',
-          filter: `user_id=eq.${user.id}`,
+          filter: `user_id=eq.${userId}`,
           schema: 'public',
           table: 'search_alert_events',
         },
@@ -56,7 +57,7 @@ export function SearchAlertsProvider({ children }: PropsWithChildren) {
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [refreshUnread, user]);
+  }, [refreshUnread, userId]);
 
   const value = useMemo(
     () => ({ refreshUnread, unreadCount }),

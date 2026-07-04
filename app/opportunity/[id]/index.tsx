@@ -8,7 +8,6 @@ import {
 } from '@/components/communication';
 import {
   Alert,
-  Linking,
   Pressable,
   StyleSheet,
   Text,
@@ -28,6 +27,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useFeedback } from '@/context/FeedbackContext';
 import { useSaved } from '@/context/SavedContext';
 import { formatDateLabel } from '@/lib/date';
+import { openExternalUrl } from '@/lib/externalLinks';
 import {
   deleteDraftOpportunity,
   formatCompensation,
@@ -58,7 +58,7 @@ import { getOptionLabel } from '@/types/profile';
 export default function OpportunityDetailScreen() {
   const { id, share } = useLocalSearchParams<{ id: string; share?: string }>();
   const { user } = useAuth();
-  const { showSuccess } = useFeedback();
+  const { showSuccess, showWarning } = useFeedback();
   const { isOpportunitySaved, setOpportunitySaved } = useSaved();
   const updateRef = useRef(false);
   const sharePromptRef = useRef(false);
@@ -365,7 +365,12 @@ export default function OpportunityDetailScreen() {
         {opportunity.externalUrl ? (
           <Pressable
             accessibilityRole="link"
-            onPress={() => Linking.openURL(opportunity.externalUrl)}
+            onPress={() =>
+              void openExternalUrl(opportunity.externalUrl, {
+                label: 'External link',
+                onError: showWarning,
+              })
+            }
             style={styles.link}>
             <Text style={styles.linkLabel}>External link</Text>
             <Ionicons color={theme.colors.muted} name="open-outline" size={18} />
