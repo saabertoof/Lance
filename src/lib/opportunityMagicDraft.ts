@@ -1,4 +1,4 @@
-import type { OpportunityDraft } from '@/types/opportunity';
+import type { OpportunityDraft } from '../types/opportunity';
 
 export function buildMagicOpportunityDraft(
   prompt: string,
@@ -16,13 +16,12 @@ export function buildMagicOpportunityDraft(
   const unpaid = /\b(unpaid|volunteer)\b/.test(lower);
   const ongoing = /\b(ongoing|long term|long-term|weekly|monthly|retainer)\b/.test(lower);
   const partTime = /\b(part time|part-time|few hours|10-20|5-10)\b/.test(lower);
+  const compensationRange = inferCompensationRange(text);
 
   return {
     title,
-    shortSummary: inferShortSummary(title, text),
-    fullDescription:
-      `Help with ${text}. The work should be clear, polished, and easy to review. ` +
-      'Share examples of relevant work, communicate what you need, and keep the creator updated as you go.',
+    shortSummary: inferShortSummary(text),
+    fullDescription: `${sentence(text)} You will own clear deliverables, share progress early, and work directly with the creator to get the details right.`,
     category: inferCategory(lower),
     workType: equity
       ? 'cofounder'
@@ -44,6 +43,9 @@ export function buildMagicOpportunityDraft(
             : /\bpaid|budget|pay|rate|compensat/.test(lower)
               ? 'fixed_project'
               : current.compensationType,
+    compensationMin: compensationRange?.minimum ?? current.compensationMin,
+    compensationMax: compensationRange?.maximum ?? current.compensationMax,
+    currency: compensationRange?.currency ?? current.currency,
     ratePeriod: hourly
       ? 'per_hour'
       : paidPerClip
@@ -106,8 +108,10 @@ function inferCreatorContext(text: string) {
   return match?.[1]?.trim().replace(/\s+/g, ' ').slice(0, 52);
 }
 
-function inferShortSummary(title: string, prompt: string) {
-  return `${title}. ${prompt.length > 110 ? prompt.slice(0, 107).trim() + '...' : prompt}`;
+function inferShortSummary(prompt: string) {
+  const cleanPrompt = prompt.trim();
+  if (cleanPrompt.length <= 150) return cleanPrompt;
+  return `${cleanPrompt.slice(0, 147).trim()}...`;
 }
 
 function inferCategory(lower: string): OpportunityDraft['category'] {
@@ -135,9 +139,31 @@ function inferIndustry(lower: string, fallback: string) {
 }
 
 function inferIdealCandidate(skills: string[]) {
-  const skillText =
-    skills.length > 0 ? ` with ${skills.slice(0, 4).join(', ')}` : '';
-  return `Strong fit if you can show relevant work${skillText}, communicate clearly, and move quickly without needing heavy direction.`;
+  const skillText = skills.slice(0, 4).join(', ');
+  const proof = skillText
+    ? `A strong fit can show relevant work in ${skillText}.`
+    : 'A strong fit can show relevant work.';
+  return `${proof} You communicate clearly, move quickly, and do not need heavy direction.`;
+}
+
+function inferCompensationRange(text: string) {
+  const range = text.match(
+    /([$£€])\s*([\d,.]+)\s*(?:-|–|—|to)\s*([$£€])?\s*([\d,.]+)/i,
+  );
+  if (!range) return null;
+
+  const minimum = normalizeMoney(range[2]);
+  const maximum = normalizeMoney(range[4]);
+  if (!minimum || !maximum) return null;
+
+  const symbol = range[1] || range[3];
+  const currency = symbol === '£' ? 'GBP' : symbol === '€' ? 'EUR' : 'USD';
+  return { currency, maximum, minimum };
+}
+
+function normalizeMoney(value: string) {
+  const normalized = value.replace(/,/g, '');
+  return /^\d+(?:\.\d{1,2})?$/.test(normalized) ? normalized : '';
 }
 
 function inferSkills(lower: string) {
@@ -199,4 +225,9 @@ function uniqueStrings(values: string[]) {
 
 function sentenceCase(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function sentence(value: string) {
+  const clean = value.trim().replace(/[.!?]+$/, '');
+  return `${sentenceCase(clean)}.`;
 }

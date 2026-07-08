@@ -61,10 +61,12 @@ export function PersonCard({
       <View style={[styles.card, styles.discoverCard]}>
         {heroImage ? (
           <Image
+            cachePolicy="memory-disk"
             contentFit="cover"
+            priority="high"
             source={heroImage}
             style={styles.discoverImage}
-            transition={160}
+            transition={0}
           />
         ) : (
           <View style={styles.heroFallback}>
@@ -95,7 +97,9 @@ export function PersonCard({
             {showSmallAvatar ? (
               <View style={styles.smallAvatar}>
                 <Image
+                  cachePolicy="memory-disk"
                   contentFit="cover"
+                  priority="high"
                   source={profile.avatarUrl}
                   style={styles.image}
                 />

@@ -13,7 +13,10 @@ import {
 import { Button, DateField, TextField } from '@/components/ui';
 import { industryCatalog, skillCatalog } from '@/constants/catalogs';
 import { theme } from '@/constants/theme';
-import { OpportunityLinkPreviewCard } from '@/components/create';
+import {
+  OpportunityLinkPreviewCard,
+  OpportunitySharePoster,
+} from '@/components/create';
 import { slugify } from '@/lib/business';
 import {
   formatCompensation,
@@ -49,11 +52,13 @@ type OpportunityEditorProps = {
   businesses: BusinessRecord[];
   displayName: string;
   initialDraft: OpportunityDraft;
+  initialMagicPrompt?: string;
   initialStep?: number;
   isSaving: boolean;
   onCreateBusiness: () => void;
   onError: (message: string | null) => void;
   onSave: (draft: OpportunityDraft, status: OpportunityStatus) => Promise<void>;
+  onStepChange?: (step: number) => void;
   profileImageUrl: string | null;
 };
 
@@ -61,19 +66,27 @@ export function OpportunityEditor({
   businesses,
   displayName,
   initialDraft,
+  initialMagicPrompt = '',
   initialStep = 0,
   isSaving,
   onCreateBusiness,
   onError,
   onSave,
+  onStepChange,
   profileImageUrl,
 }: OpportunityEditorProps) {
   const [step, setStep] = useState(initialStep);
-  const [magicPrompt, setMagicPrompt] = useState('');
+  const [magicPrompt, setMagicPrompt] = useState(initialMagicPrompt);
   const { getValues, setValue, watch } = useForm<OpportunityDraft>({
     defaultValues: initialDraft,
   });
   const draft = watch();
+
+  function moveToStep(nextStep: number) {
+    const bounded = Math.max(0, Math.min(nextStep, TOTAL_STEPS - 1));
+    setStep(bounded);
+    onStepChange?.(bounded);
+  }
 
   function set<K extends keyof OpportunityDraft>(key: K, value: OpportunityDraft[K]) {
     setValue(key, value as never, { shouldDirty: true });
@@ -89,7 +102,7 @@ export function OpportunityEditor({
     }
 
     onError(null);
-    setStep((current) => Math.min(current + 1, TOTAL_STEPS - 1));
+    moveToStep(step + 1);
   }
 
   async function save(status: OpportunityStatus) {
@@ -117,7 +130,7 @@ export function OpportunityEditor({
       setValue(key, suggestion[key] as never, { shouldDirty: true });
     });
     onError(null);
-    setStep(2);
+    moveToStep(2);
   }
 
   const primaryStatus =
@@ -133,7 +146,7 @@ export function OpportunityEditor({
           <Button
             disabled={isSaving}
             label="Back"
-            onPress={() => setStep((current) => current - 1)}
+            onPress={() => moveToStep(step - 1)}
             variant="ghost"
           />
         ) : null}
@@ -488,6 +501,19 @@ export function OpportunityEditor({
           title={draft.title}
           urlLabel={`lance.app/o/${draft.slug || slugify(draft.title).slice(0, 48) || 'your-opportunity'}`}
         />
+        <View style={styles.socialPreviewBlock}>
+          <Text style={styles.socialPreviewLabel}>Social share card</Text>
+          <OpportunitySharePoster
+            compensationLabel={formatCompensation(draft)}
+            locationLabel={formatOpportunityLocation(draft)}
+            posterImageUrl={preview.poster.imageUrl}
+            posterLabel={preview.poster.name}
+            skills={draft.skills}
+            summary={draft.shortSummary}
+            title={draft.title}
+            urlLabel={`lance.app/o/${draft.slug || slugify(draft.title).slice(0, 48) || 'your-opportunity'}`}
+          />
+        </View>
         <Checkbox
           checked={draft.disclaimerAccepted}
           label="I understand that Lance does not employ users, process payments, or guarantee compensation."
@@ -687,6 +713,18 @@ const styles = StyleSheet.create({
   longArea: {
     minHeight: 158,
     paddingTop: theme.spacing.md,
+  },
+  socialPreviewBlock: {
+    alignSelf: 'center',
+    gap: theme.spacing.sm,
+    maxWidth: 360,
+    width: '100%',
+  },
+  socialPreviewLabel: {
+    color: theme.colors.accentStrong,
+    fontFamily: theme.typography.familyMonoSemiBold,
+    fontSize: theme.typography.caption,
+    textTransform: 'uppercase',
   },
   twoColumns: {
     flexDirection: 'row',

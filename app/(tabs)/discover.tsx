@@ -131,6 +131,8 @@ export default function DiscoverScreen() {
           const result = await searchPeople('', peopleFilters, offset, DISCOVER_BATCH_SIZE);
           if (activeRequest !== requestId.current) return;
           const fresh = result.items.filter((item) => !seen.current.people.has(item.id));
+          await prewarmMedia(fresh.flatMap(getPersonMediaUrls));
+          if (activeRequest !== requestId.current) return;
           offsets.current.people += DISCOVER_BATCH_SIZE;
           totals.current.people = result.total;
           setPeople((current) => (reset ? fresh : [...current, ...fresh]));
@@ -146,6 +148,12 @@ export default function DiscoverScreen() {
           const fresh = result.items.filter(
             (item) => !seen.current.opportunities.has(item.id),
           );
+          await prewarmMedia(
+            fresh
+              .map((item) => item.poster.imageUrl)
+              .filter((url): url is string => Boolean(url)),
+          );
+          if (activeRequest !== requestId.current) return;
           offsets.current.opportunities += DISCOVER_BATCH_SIZE;
           totals.current.opportunities = result.total;
           setOpportunities((current) => (reset ? fresh : [...current, ...fresh]));
@@ -165,23 +173,6 @@ export default function DiscoverScreen() {
   useEffect(() => {
     void loadDeck(mode, true);
   }, [loadDeck, mode]);
-
-  useEffect(() => {
-    const next =
-      mode === 'people'
-        ? people[1]?.polish.portfolio.find(
-            (item) =>
-              item.itemType === 'image' &&
-              (item.thumbnailUrl || item.mediaUrl),
-          )?.thumbnailUrl ??
-          people[1]?.polish.portfolio.find(
-            (item) => item.itemType === 'image' && item.mediaUrl,
-          )?.mediaUrl ??
-          people[1]?.polish.bannerUrl ??
-          people[1]?.avatarUrl
-        : opportunities[1]?.poster.imageUrl;
-    if (next) void Image.prefetch(next);
-  }, [mode, opportunities, people]);
 
   useEffect(() => {
     if (!lastPass) return;
@@ -487,6 +478,32 @@ export default function DiscoverScreen() {
       />
     </Screen>
   );
+}
+
+function getPersonMediaUrls(profile: PublicProfile) {
+  const featuredPortfolio = profile.polish.portfolio.find(
+    (item) =>
+      item.itemType === 'image' && (item.thumbnailUrl || item.mediaUrl),
+  );
+  const hero =
+    featuredPortfolio?.thumbnailUrl ??
+    featuredPortfolio?.mediaUrl ??
+    profile.polish.bannerUrl ??
+    profile.avatarUrl;
+
+  return [hero, profile.avatarUrl].filter(
+    (url, index, values): url is string =>
+      Boolean(url) && values.indexOf(url) === index,
+  );
+}
+
+async function prewarmMedia(urls: string[]) {
+  if (urls.length === 0) return;
+  try {
+    await Image.prefetch(urls, 'memory-disk');
+  } catch {
+    // A failed preview image should not block the discovery deck.
+  }
 }
 
 function StatePanel({

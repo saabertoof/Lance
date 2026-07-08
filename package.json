@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit",
     "expo:config": "expo config --type public",
     "test:phase6": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/search-plan.test.mts",
-    "test:app": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/location.test.mts tests/app-hygiene.test.mts tests/auth-navigation.test.mts",
+    "test:app": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/location.test.mts tests/app-hygiene.test.mts tests/auth-navigation.test.mts tests/opportunity-creation.test.mts",
     "check": "npm run typecheck && npm run lint && npm run expo:config && npm run test:phase6 && npm run test:app"
   },
   "dependencies": {
@@ -33,6 +33,7 @@
     "expo-image-picker": "~17.0.11",
     "expo-linking": "~8.0.12",
     "expo-router": "~6.0.23",
+    "expo-sharing": "~14.0.8",
     "expo-splash-screen": "~31.0.13",
     "expo-status-bar": "~3.0.9",
     "expo-symbols": "~1.0.8",
@@ -47,6 +48,7 @@
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
     "react-native-url-polyfill": "^3.0.0",
+    "react-native-view-shot": "4.0.3",
     "react-native-web": "~0.21.0",
     "react-native-worklets": "0.5.1",
     "zod": "^4.4.3"

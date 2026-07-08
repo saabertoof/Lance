@@ -656,6 +656,10 @@ export function formatOpportunityError(error: unknown) {
       return 'You do not have permission to change this opportunity or posting identity.';
     }
 
+    if (possibleError.code === '23514') {
+      return 'One opportunity detail is not enabled by the current database rules yet.';
+    }
+
     if (possibleError.name === 'Error' && possibleError.message) {
       return possibleError.message;
     }

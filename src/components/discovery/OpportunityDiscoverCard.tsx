@@ -32,28 +32,23 @@ export function OpportunityDiscoverCard({
   return (
     <View style={styles.card}>
       <View style={styles.fallback}>
-        <View style={styles.fallbackAccent} />
-        <View style={styles.fallbackAccentSecondary} />
-        <Text style={styles.fallbackMark}>{mark}</Text>
         {opportunity.poster.imageUrl ? (
-          <View
-            style={[
-              styles.heroLogo,
-              opportunity.poster.identityType === 'personal' &&
-                styles.heroPortrait,
-            ]}>
-            <Image
-              contentFit={
-                opportunity.poster.identityType === 'business'
-                  ? 'contain'
-                  : 'cover'
-              }
-              source={opportunity.poster.imageUrl}
-              style={styles.image}
-              transition={160}
-            />
-          </View>
-        ) : null}
+          <Image
+            blurRadius={18}
+            cachePolicy="memory-disk"
+            contentFit="cover"
+            priority="high"
+            source={opportunity.poster.imageUrl}
+            style={styles.backgroundImage}
+            transition={0}
+          />
+        ) : (
+          <>
+            <View style={styles.fallbackAccent} />
+            <View style={styles.fallbackAccentSecondary} />
+            <Text style={styles.fallbackMark}>{mark}</Text>
+          </>
+        )}
       </View>
 
       <View style={styles.mediaWash} />
@@ -66,7 +61,9 @@ export function OpportunityDiscoverCard({
           <View style={styles.posterMark}>
             {opportunity.poster.imageUrl ? (
               <Image
+                cachePolicy="memory-disk"
                 contentFit="cover"
+                priority="high"
                 source={opportunity.poster.imageUrl}
                 style={styles.image}
               />
@@ -95,7 +92,7 @@ export function OpportunityDiscoverCard({
 
         <View style={styles.statusPill}>
           <View style={styles.statusDot} />
-          <Text style={styles.statusText}>Hiring</Text>
+          <Text style={styles.statusText}>Open</Text>
         </View>
 
         <Text numberOfLines={2} style={styles.title}>
@@ -188,6 +185,10 @@ const styles = StyleSheet.create({
     height: '100%',
     width: '100%',
   },
+  backgroundImage: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.76,
+  },
   fallback: {
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
@@ -218,23 +219,6 @@ const styles = StyleSheet.create({
     fontSize: 144,
     fontWeight: '600',
   },
-  heroLogo: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderColor: v.borderStrong,
-    borderRadius: theme.radii.lg,
-    borderWidth: 1,
-    height: 144,
-    justifyContent: 'center',
-    overflow: 'hidden',
-    padding: theme.spacing.md,
-    transform: [{ translateY: -72 }],
-    width: 144,
-  },
-  heroPortrait: {
-    borderRadius: 72,
-    padding: 0,
-  },
   mediaWash: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(5,5,10,0.45)',
@@ -264,10 +248,12 @@ const styles = StyleSheet.create({
     right: 0,
   },
   content: {
-    flex: 1,
+    bottom: 0,
     gap: 11,
+    left: 0,
     padding: 20,
-    position: 'relative',
+    position: 'absolute',
+    right: 0,
   },
   posterRow: {
     alignItems: 'center',
@@ -433,7 +419,7 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     gap: 6,
-    marginTop: 'auto',
+    marginTop: 2,
     paddingTop: 12,
   },
   reasonText: {

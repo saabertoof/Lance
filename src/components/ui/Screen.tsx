@@ -1,4 +1,4 @@
-import { PropsWithChildren } from 'react';
+import { PropsWithChildren, useEffect, useRef } from 'react';
 import {
   KeyboardAvoidingView,
   type NativeScrollEvent,
@@ -29,6 +29,7 @@ type ScreenProps = PropsWithChildren<{
   onRefresh?: () => void;
   onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
   refreshing?: boolean;
+  scrollToTopKey?: number | string;
   topInset?: boolean;
 }>;
 
@@ -42,9 +43,11 @@ export function Screen({
   onScroll,
   refreshing,
   scroll,
+  scrollToTopKey,
   style,
   topInset = true,
 }: ScreenProps) {
+  const scrollRef = useRef<ScrollView>(null);
   const insets = useSafeAreaInsets();
   const adaptiveTabBar = useOptionalAdaptiveTabBar();
   const adaptiveScroll = useAdaptiveTabBarScroll();
@@ -68,6 +71,11 @@ export function Screen({
     </View>
   );
 
+  useEffect(() => {
+    if (!scroll || scrollToTopKey === undefined) return;
+    scrollRef.current?.scrollTo({ animated: false, y: 0 });
+  }, [scroll, scrollToTopKey]);
+
   return (
     <View style={[styles.canvas, style]}>
       <KeyboardAvoidingView
@@ -75,6 +83,7 @@ export function Screen({
         style={styles.keyboard}>
         {scroll ? (
           <ScrollView
+            ref={scrollRef}
             keyboardShouldPersistTaps="handled"
             onScroll={(event) => {
               adaptiveScroll.onScroll(event);

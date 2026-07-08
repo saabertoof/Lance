@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
+import Head from 'expo-router/head';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -11,6 +12,7 @@ import {
   WorkArrangementBadge,
 } from '@/components/opportunity';
 import { Button, Chip, LoadingState, Screen } from '@/components/ui';
+import { operatorFonts, operatorVisual as v } from '@/constants/operatorTheme';
 import { theme } from '@/constants/theme';
 import { type OnboardingStatus, useAuth } from '@/context/AuthContext';
 import { authRoute, normalizeInternalNext } from '@/lib/authNavigation';
@@ -125,7 +127,21 @@ export default function PublicOpportunityScreen() {
     : 'Open until filled';
 
   return (
-    <Screen scroll contentStyle={styles.screen}>
+    <Screen scroll contentStyle={styles.screen} style={styles.canvas}>
+      <Head>
+        <title>{`${opportunity.title} | Lance`}</title>
+        <meta content={opportunity.shortSummary} name="description" />
+        <meta content={opportunity.title} property="og:title" />
+        <meta content={opportunity.shortSummary} property="og:description" />
+        <meta content="website" property="og:type" />
+        <meta content={getOpportunityPublicUrl(opportunity)} property="og:url" />
+        {opportunity.poster.imageUrl ? (
+          <meta content={opportunity.poster.imageUrl} property="og:image" />
+        ) : null}
+        <meta content="summary_large_image" name="twitter:card" />
+        <meta content={opportunity.title} name="twitter:title" />
+        <meta content={opportunity.shortSummary} name="twitter:description" />
+      </Head>
       <View style={styles.topBar}>
         <Pressable
           accessibilityLabel="Go back"
@@ -500,9 +516,13 @@ function DateDetail({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
+  canvas: {
+    backgroundColor: v.background,
+  },
   screen: {
-    gap: theme.spacing.xl,
+    gap: 18,
     paddingBottom: theme.spacing.xxxl,
+    paddingHorizontal: 16,
   },
   topBar: {
     alignItems: 'center',
@@ -521,21 +541,23 @@ const styles = StyleSheet.create({
   },
   brand: {
     color: theme.colors.text,
-    fontFamily: theme.typography.familySemiBold,
-    fontSize: theme.typography.cardTitle,
+    fontFamily: operatorFonts.monoSemiBold,
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
   hero: {
     backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radii.lg,
+    borderColor: v.borderPurple,
+    borderRadius: 20,
     borderWidth: 1,
     overflow: 'hidden',
     ...theme.shadows.card,
   },
   heroArt: {
     alignItems: 'center',
-    backgroundColor: '#251F34',
-    height: 190,
+    backgroundColor: '#12111A',
+    height: 164,
     justifyContent: 'center',
     overflow: 'hidden',
   },
@@ -566,14 +588,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: theme.colors.surface,
     borderColor: 'rgba(255,255,255,0.78)',
-    borderRadius: theme.radii.xl,
+    borderRadius: 24,
     borderWidth: 1,
-    height: 118,
+    height: 104,
     justifyContent: 'center',
     overflow: 'hidden',
     padding: theme.spacing.md,
     position: 'absolute',
-    width: 118,
+    width: 104,
   },
   image: {
     height: '100%',
@@ -585,8 +607,8 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   heroCopy: {
-    gap: theme.spacing.md,
-    padding: theme.spacing.lg,
+    gap: 12,
+    padding: 16,
   },
   heroTopline: {
     alignItems: 'center',
@@ -660,14 +682,16 @@ const styles = StyleSheet.create({
   },
   title: {
     color: theme.colors.text,
-    fontFamily: theme.typography.familySemiBold,
-    fontSize: 26,
-    lineHeight: 31,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 24,
+    fontWeight: '600',
+    lineHeight: 29,
   },
   summary: {
     color: theme.colors.textSoft,
-    fontSize: theme.typography.bodySmall,
-    lineHeight: 22,
+    fontFamily: operatorFonts.sans,
+    fontSize: 13,
+    lineHeight: 20,
   },
   badges: {
     flexDirection: 'row',
@@ -699,9 +723,11 @@ const styles = StyleSheet.create({
   },
   applyCard: {
     backgroundColor: '#17151F',
-    borderRadius: theme.radii.lg,
+    borderColor: v.border,
+    borderRadius: 16,
+    borderWidth: 1,
     gap: theme.spacing.md,
-    padding: theme.spacing.lg,
+    padding: 16,
     ...theme.shadows.card,
   },
   applyCopy: {
@@ -709,8 +735,9 @@ const styles = StyleSheet.create({
   },
   applyTitle: {
     color: theme.colors.white,
-    fontSize: theme.typography.cardTitle,
-    fontWeight: '900',
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 16,
+    fontWeight: '600',
   },
   applyBody: {
     color: 'rgba(255,255,255,0.72)',
@@ -740,9 +767,11 @@ const styles = StyleSheet.create({
     gap: theme.spacing.md,
   },
   sectionTitle: {
-    color: theme.colors.text,
-    fontSize: theme.typography.sectionHeading,
-    fontWeight: '900',
+    color: v.purpleStrong,
+    fontFamily: operatorFonts.monoSemiBold,
+    fontSize: 11,
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
   body: {
     color: theme.colors.textSoft,
@@ -762,11 +791,11 @@ const styles = StyleSheet.create({
   detail: {
     backgroundColor: theme.colors.surface,
     borderColor: theme.colors.border,
-    borderRadius: theme.radii.md,
+    borderRadius: 14,
     borderWidth: 1,
     gap: theme.spacing.sm,
-    minHeight: 112,
-    padding: theme.spacing.md,
+    minHeight: 98,
+    padding: 12,
     width: '48.5%',
   },
   detailIcon: {
@@ -780,13 +809,15 @@ const styles = StyleSheet.create({
   detailLabel: {
     color: theme.colors.muted,
     fontSize: theme.typography.caption,
-    fontWeight: '800',
+    fontFamily: operatorFonts.monoSemiBold,
+    fontWeight: '600',
     textTransform: 'uppercase',
   },
   detailValue: {
     color: theme.colors.text,
+    fontFamily: operatorFonts.sansMedium,
     fontSize: theme.typography.small,
-    fontWeight: '900',
+    fontWeight: '500',
     lineHeight: 19,
   },
   dateRows: {
@@ -814,7 +845,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: theme.colors.surface,
     borderColor: theme.colors.border,
-    borderRadius: theme.radii.lg,
+    borderRadius: 16,
     borderWidth: 1,
     flexDirection: 'row',
     gap: theme.spacing.md,
@@ -842,13 +873,15 @@ const styles = StyleSheet.create({
   creatorLabel: {
     color: theme.colors.muted,
     fontSize: theme.typography.caption,
-    fontWeight: '800',
+    fontFamily: operatorFonts.monoSemiBold,
+    fontWeight: '600',
     textTransform: 'uppercase',
   },
   creatorName: {
     color: theme.colors.text,
-    fontSize: theme.typography.cardTitle,
-    fontWeight: '900',
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 15,
+    fontWeight: '600',
   },
   creatorBody: {
     color: theme.colors.textSoft,
@@ -873,7 +906,7 @@ const styles = StyleSheet.create({
   finalApplyCard: {
     backgroundColor: theme.colors.surface,
     borderColor: theme.colors.border,
-    borderRadius: theme.radii.lg,
+    borderRadius: 16,
     borderWidth: 1,
     gap: theme.spacing.md,
     padding: theme.spacing.lg,
@@ -881,8 +914,9 @@ const styles = StyleSheet.create({
   },
   finalApplyTitle: {
     color: theme.colors.text,
-    fontSize: theme.typography.cardTitle,
-    fontWeight: '900',
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 16,
+    fontWeight: '600',
   },
   finalApplyBody: {
     color: theme.colors.textSoft,

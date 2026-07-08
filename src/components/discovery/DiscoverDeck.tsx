@@ -5,6 +5,7 @@ import {
   type ReactNode,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -12,6 +13,7 @@ import {
 import {
   AccessibilityInfo,
   Animated,
+  Easing,
   PanResponder,
   Pressable,
   StyleSheet,
@@ -146,7 +148,8 @@ export function DiscoverDeck({
     [clearJiggleTimer, jiggleX],
   );
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    position.stopAnimation();
     position.setValue({ x: 0, y: 0 });
     threshold.current = null;
     setIsActing(false);
@@ -224,6 +227,21 @@ export function DiscoverDeck({
     outputRange: [1, 0.28, 0],
     extrapolate: 'clamp',
   });
+  const nextCardOpacity = position.x.interpolate({
+    inputRange: [-width, 0, width],
+    outputRange: [1, 0.52, 1],
+    extrapolate: 'clamp',
+  });
+  const nextCardScale = position.x.interpolate({
+    inputRange: [-width, 0, width],
+    outputRange: [1, 0.965, 1],
+    extrapolate: 'clamp',
+  });
+  const nextCardTranslateY = position.x.interpolate({
+    inputRange: [-width, 0, width],
+    outputRange: [0, 10, 0],
+    extrapolate: 'clamp',
+  });
   const primaryIcon: keyof typeof Ionicons.glyphMap =
     primaryActionLabel.toLowerCase() === 'apply'
       ? 'briefcase-outline'
@@ -264,6 +282,7 @@ export function DiscoverDeck({
       const destination = action === 'pass' ? -width * 1.25 : width * 1.25;
       Animated.timing(position, {
         duration: reduceMotion ? 1 : 210,
+        easing: Easing.out(Easing.cubic),
         toValue: { x: destination, y: 4 },
         useNativeDriver: true,
       }).start(onDismiss);
@@ -327,9 +346,20 @@ export function DiscoverDeck({
     <View style={styles.wrapper}>
       <View style={styles.stack}>
         {nextCard ? (
-          <View pointerEvents="none" style={styles.nextCard}>
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              styles.nextCard,
+              {
+                opacity: nextCardOpacity,
+                transform: [
+                  { translateY: nextCardTranslateY },
+                  { scale: nextCardScale },
+                ],
+              },
+            ]}>
             {nextCard}
-          </View>
+          </Animated.View>
         ) : null}
         <Animated.View
           style={[
@@ -476,13 +506,11 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   nextCard: {
-    bottom: 3,
-    left: 18,
-    opacity: 0.34,
+    bottom: 2,
+    left: 10,
     position: 'absolute',
-    right: -10,
-    top: 12,
-    transform: [{ rotate: '2.2deg' }, { scale: 0.97 }],
+    right: 10,
+    top: 2,
     zIndex: 0,
   },
   jiggleLayer: {

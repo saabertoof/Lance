@@ -34,6 +34,7 @@ export default function EditOpportunityScreen() {
   const [initialDraft, setInitialDraft] = useState<OpportunityDraft | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [editorStep, setEditorStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -115,7 +116,7 @@ export default function EditOpportunityScreen() {
   }
 
   return (
-    <Screen scroll contentStyle={styles.screen}>
+    <Screen scroll scrollToTopKey={editorStep} contentStyle={styles.screen}>
       <View style={styles.header}>
         <Pressable
           accessibilityLabel="Close"
@@ -135,6 +136,7 @@ export default function EditOpportunityScreen() {
         onCreateBusiness={() => router.push(routes.newBusiness)}
         onError={setError}
         onSave={save}
+        onStepChange={setEditorStep}
         profileImageUrl={profileImageUrl}
       />
       {error ? <Text style={styles.error}>{error}</Text> : null}

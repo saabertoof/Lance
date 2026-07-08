@@ -34,6 +34,7 @@ export default function NewOpportunityScreen() {
   const [initialDraft, setInitialDraft] = useState<OpportunityDraft | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [editorStep, setEditorStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -112,7 +113,7 @@ export default function NewOpportunityScreen() {
   }
 
   return (
-    <Screen scroll contentStyle={styles.screen}>
+    <Screen scroll scrollToTopKey={editorStep} contentStyle={styles.screen}>
       <View style={styles.header}>
         <Pressable
           accessibilityLabel="Close"
@@ -128,11 +129,13 @@ export default function NewOpportunityScreen() {
         businesses={businesses}
         displayName={displayName}
         initialDraft={initialDraft}
-        initialStep={initialDraft.title ? 1 : 0}
+        initialMagicPrompt={typeof prompt === 'string' ? prompt : ''}
+        initialStep={0}
         isSaving={isSaving}
         onCreateBusiness={() => router.push(routes.newBusiness)}
         onError={setError}
         onSave={save}
+        onStepChange={setEditorStep}
         profileImageUrl={profileImageUrl}
       />
       {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -162,8 +165,9 @@ const styles = StyleSheet.create({
   },
   title: {
     color: theme.colors.text,
+    fontFamily: theme.typography.familySemiBold,
     fontSize: theme.typography.heading,
-    fontWeight: '900',
+    fontWeight: '600',
   },
   error: {
     color: theme.colors.danger,

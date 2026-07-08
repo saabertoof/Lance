@@ -30,8 +30,7 @@ export function OpportunityLinkPreviewCard({
 
   return (
     <View style={styles.shell}>
-      <View pointerEvents="none" style={styles.ambientOne} />
-      <View pointerEvents="none" style={styles.ambientTwo} />
+      <View pointerEvents="none" style={styles.accentLine} />
 
       <View style={styles.posterRow}>
         <View style={styles.posterIdentity}>
@@ -127,23 +126,13 @@ const styles = StyleSheet.create({
     padding: 14,
     position: 'relative',
   },
-  ambientOne: {
-    backgroundColor: 'rgba(139,92,246,0.08)',
-    borderRadius: 90,
-    height: 96,
+  accentLine: {
+    backgroundColor: v.purple,
+    height: 2,
+    left: 14,
     position: 'absolute',
-    right: -40,
-    top: -54,
-    width: 96,
-  },
-  ambientTwo: {
-    backgroundColor: 'rgba(255,255,255,0.026)',
-    borderRadius: 96,
-    bottom: -62,
-    height: 112,
-    left: -56,
-    position: 'absolute',
-    width: 112,
+    right: 14,
+    top: 0,
   },
   posterRow: {
     alignItems: 'center',

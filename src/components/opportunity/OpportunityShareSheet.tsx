@@ -1,9 +1,22 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
-import { Modal, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import * as Sharing from 'expo-sharing';
+import { useRef, useState } from 'react';
+import {
+  Modal,
+  PixelRatio,
+  Platform,
+  Pressable,
+  ScrollView,
+  Share,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { captureRef } from 'react-native-view-shot';
 
-import { OpportunityLinkPreviewCard } from '@/components/create';
+import { OpportunitySharePoster } from '@/components/create';
 import { Button } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useFeedback } from '@/context/FeedbackContext';
@@ -24,6 +37,8 @@ export function OpportunityShareSheet({
   visible: boolean;
 }) {
   const { showSuccess, showWarning } = useFeedback();
+  const posterRef = useRef<View>(null);
+  const [isSharingCard, setIsSharingCard] = useState(false);
   const share = getOpportunityShareCopy(opportunity);
 
   async function copy(label: string, value: string) {
@@ -43,6 +58,42 @@ export function OpportunityShareSheet({
     }
   }
 
+  async function shareCard() {
+    if (Platform.OS === 'web') {
+      showWarning('Share cards are available in Lance on iPhone and Android.');
+      return;
+    }
+
+    if (!posterRef.current || isSharingCard) return;
+
+    setIsSharingCard(true);
+    try {
+      const available = await Sharing.isAvailableAsync();
+      if (!available) {
+        showWarning('Image sharing is not available on this device.');
+        return;
+      }
+
+      const imageUri = await captureRef(posterRef, {
+        format: 'png',
+        height: 1350 / PixelRatio.get(),
+        quality: 1,
+        result: 'tmpfile',
+        width: 1080 / PixelRatio.get(),
+      });
+
+      await Sharing.shareAsync(imageUri, {
+        UTI: 'public.png',
+        dialogTitle: 'Share your Lance opportunity',
+        mimeType: 'image/png',
+      });
+    } catch {
+      showWarning('The opportunity card could not be shared. Try again.');
+    } finally {
+      setIsSharingCard(false);
+    }
+  }
+
   return (
     <Modal
       animationType="slide"
@@ -53,7 +104,7 @@ export function OpportunityShareSheet({
         <View style={styles.header}>
           <View>
             <Text style={styles.eyebrow}>Share opportunity</Text>
-            <Text style={styles.title}>Your link is ready.</Text>
+            <Text style={styles.title}>Post it anywhere.</Text>
           </View>
           <Pressable
             accessibilityLabel="Close share panel"
@@ -68,16 +119,23 @@ export function OpportunityShareSheet({
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
-          <OpportunityLinkPreviewCard
-            compensationLabel={formatCompensation(opportunity)}
-            locationLabel={formatOpportunityLocation(opportunity)}
-            posterImageUrl={opportunity.poster.imageUrl}
-            posterLabel={opportunity.poster.name}
-            skills={opportunity.skills}
-            summary={opportunity.shortSummary}
-            title={opportunity.title}
-            urlLabel={share.url}
-          />
+          <View style={styles.posterSection}>
+            <View style={styles.posterLabelRow}>
+              <Text style={styles.posterLabel}>4:5 social card</Text>
+              <Text style={styles.posterHint}>Instagram-ready</Text>
+            </View>
+            <OpportunitySharePoster
+              compensationLabel={formatCompensation(opportunity)}
+              locationLabel={formatOpportunityLocation(opportunity)}
+              posterImageUrl={opportunity.poster.imageUrl}
+              posterLabel={opportunity.poster.name}
+              ref={posterRef}
+              skills={opportunity.skills}
+              summary={opportunity.shortSummary}
+              title={opportunity.title}
+              urlLabel={share.url}
+            />
+          </View>
 
           <Pressable
             accessibilityLabel="Copy public opportunity link"
@@ -98,15 +156,16 @@ export function OpportunityShareSheet({
 
           <View style={styles.actions}>
             <Button
-              label="Copy link"
-              onPress={() => void copy('Link', share.url)}
+              label="Share card"
+              loading={isSharingCard}
+              onPress={() => void shareCard()}
               style={styles.actionButton}
-              variant="secondary"
             />
             <Button
-              label="Share"
+              label="Share link"
               onPress={() => void shareOpportunity()}
               style={styles.actionButton}
+              variant="secondary"
             />
           </View>
 
@@ -132,7 +191,8 @@ export function OpportunityShareSheet({
           </View>
 
           <Text style={styles.note}>
-            Applicants can read the page first, then apply with a reusable Lance profile.
+            Share the card as an image, then drop the public link in your caption,
+            bio, story, or community.
           </Text>
         </ScrollView>
       </SafeAreaView>
@@ -207,6 +267,28 @@ const styles = StyleSheet.create({
   content: {
     gap: theme.spacing.lg,
     paddingBottom: theme.spacing.xl,
+  },
+  posterSection: {
+    alignSelf: 'center',
+    gap: theme.spacing.sm,
+    maxWidth: 360,
+    width: '100%',
+  },
+  posterLabelRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  posterLabel: {
+    color: theme.colors.textSoft,
+    fontFamily: theme.typography.familyMonoSemiBold,
+    fontSize: theme.typography.caption,
+    textTransform: 'uppercase',
+  },
+  posterHint: {
+    color: theme.colors.accentStrong,
+    fontFamily: theme.typography.familyMedium,
+    fontSize: theme.typography.tiny,
   },
   linkBox: {
     alignItems: 'center',

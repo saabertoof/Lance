@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -31,6 +31,7 @@ import {
 } from '@/types/opportunity';
 
 import { OpportunityLinkPreviewCard } from './OpportunityLinkPreviewCard';
+import { OpportunitySharePoster } from './OpportunitySharePoster';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
@@ -53,6 +54,7 @@ export function CreatePathGrid({
 }) {
   const { width } = useWindowDimensions();
   const stackActions = width < 365;
+  const compactActions = width < 430;
 
   return (
     <View style={styles.quickSection}>
@@ -60,6 +62,7 @@ export function CreatePathGrid({
       <View style={[styles.actionGrid, stackActions && styles.actionGridStacked]}>
         <ActionTile
           delay={40}
+          compact={compactActions}
           icon="paper-plane-outline"
           label="New opportunity"
           onPress={onOpportunity}
@@ -68,6 +71,7 @@ export function CreatePathGrid({
         />
         <ActionTile
           delay={90}
+          compact={compactActions}
           icon="sparkles-outline"
           label="Magic draft"
           onPress={onMagicDraft}
@@ -76,6 +80,7 @@ export function CreatePathGrid({
         />
         <ActionTile
           delay={140}
+          compact={compactActions}
           icon="business-outline"
           label="Business profile"
           onPress={onBusiness}
@@ -84,6 +89,7 @@ export function CreatePathGrid({
         />
         <ActionTile
           badge={draftCount > 0 ? String(Math.min(draftCount, 99)) : undefined}
+          compact={compactActions}
           delay={190}
           icon="document-text-outline"
           label="Drafts"
@@ -116,8 +122,9 @@ export function PromptLinkBuilder({
   reduceMotion: boolean;
 }) {
   const promptReady = prompt.trim().length >= 12;
+  const [previewMode, setPreviewMode] = useState<'link' | 'social'>('link');
   const urlSlug = slugify(previewDraft.title).slice(0, 48) || 'your-opportunity';
-  const remaining = Math.max(0, maxPromptLength - prompt.length);
+  const urlLabel = `lance.app/o/${urlSlug}`;
 
   return (
     <Animated.View
@@ -141,7 +148,7 @@ export function PromptLinkBuilder({
             <View style={styles.tinyDot} />
             <Text style={styles.composerLabel}>Opportunity</Text>
           </View>
-          <Text style={styles.countText}>{remaining}/{maxPromptLength}</Text>
+          <Text style={styles.countText}>{prompt.length}/{maxPromptLength}</Text>
         </View>
         <TextInput
           maxLength={maxPromptLength}
@@ -168,7 +175,7 @@ export function PromptLinkBuilder({
               !promptReady && styles.previewButtonDisabled,
               pressed && promptReady && styles.pressed,
             ]}>
-            <Text style={styles.previewButtonText}>Preview</Text>
+            <Text style={styles.previewButtonText}>Build draft</Text>
             <Ionicons color={v.purpleStrong} name="arrow-forward" size={16} />
           </Pressable>
         </View>
@@ -199,24 +206,81 @@ export function PromptLinkBuilder({
       </View>
 
       <View style={styles.previewSection}>
-        <SectionLabel>Live preview</SectionLabel>
-        <OpportunityLinkPreviewCard
-          compensationLabel={formatCompensation(previewDraft)}
-          locationLabel={formatOpportunityLocation(previewDraft)}
-          posterImageUrl={posterImageUrl}
-          posterLabel={posterName}
-          skills={previewDraft.skills}
-          summary={previewDraft.shortSummary}
-          title={previewDraft.title}
-          urlLabel={`lance.app/o/${urlSlug}`}
-        />
+        <View style={styles.previewHeader}>
+          <SectionLabel>Live preview</SectionLabel>
+          <View accessibilityRole="tablist" style={styles.previewModes}>
+            <PreviewModeButton
+              active={previewMode === 'link'}
+              label="Link"
+              onPress={() => setPreviewMode('link')}
+            />
+            <PreviewModeButton
+              active={previewMode === 'social'}
+              label="Social"
+              onPress={() => setPreviewMode('social')}
+            />
+          </View>
+        </View>
+        {previewMode === 'link' ? (
+          <OpportunityLinkPreviewCard
+            compensationLabel={formatCompensation(previewDraft)}
+            locationLabel={formatOpportunityLocation(previewDraft)}
+            posterImageUrl={posterImageUrl}
+            posterLabel={posterName}
+            skills={previewDraft.skills}
+            summary={previewDraft.shortSummary}
+            title={previewDraft.title}
+            urlLabel={urlLabel}
+          />
+        ) : (
+          <View style={styles.socialPreview}>
+            <OpportunitySharePoster
+              compensationLabel={formatCompensation(previewDraft)}
+              locationLabel={formatOpportunityLocation(previewDraft)}
+              posterImageUrl={posterImageUrl}
+              posterLabel={posterName}
+              skills={previewDraft.skills}
+              summary={previewDraft.shortSummary}
+              title={previewDraft.title}
+              urlLabel={urlLabel}
+            />
+          </View>
+        )}
       </View>
     </Animated.View>
   );
 }
 
+function PreviewModeButton({
+  active,
+  label,
+  onPress,
+}: {
+  active: boolean;
+  label: string;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      accessibilityLabel={`${label} preview`}
+      accessibilityRole="tab"
+      accessibilityState={{ selected: active }}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.previewMode,
+        active && styles.previewModeActive,
+        pressed && styles.rowPressed,
+      ]}>
+      <Text style={[styles.previewModeText, active && styles.previewModeTextActive]}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
 function ActionTile({
   badge,
+  compact,
   delay,
   icon,
   label,
@@ -225,6 +289,7 @@ function ActionTile({
   supporting,
 }: {
   badge?: string;
+  compact: boolean;
   delay: number;
   icon: IconName;
   label: string;
@@ -248,9 +313,11 @@ function ActionTile({
           <Text numberOfLines={2} style={styles.actionTitle}>
             {label}
           </Text>
-          <Text numberOfLines={1} style={styles.actionSupporting}>
-            {supporting}
-          </Text>
+          {!compact ? (
+            <Text numberOfLines={1} style={styles.actionSupporting}>
+              {supporting}
+            </Text>
+          ) : null}
         </View>
         {badge ? (
           <View style={styles.actionBadge}>
@@ -758,6 +825,44 @@ const styles = StyleSheet.create({
   },
   previewSection: {
     gap: 10,
+  },
+  previewHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  previewModes: {
+    backgroundColor: v.surfaceSoft,
+    borderColor: v.border,
+    borderRadius: 15,
+    borderWidth: 1,
+    flexDirection: 'row',
+    padding: 2,
+  },
+  previewMode: {
+    alignItems: 'center',
+    borderRadius: 12,
+    justifyContent: 'center',
+    minHeight: 30,
+    minWidth: 58,
+    paddingHorizontal: 10,
+  },
+  previewModeActive: {
+    backgroundColor: v.purpleSoft,
+  },
+  previewModeText: {
+    color: v.muted,
+    fontFamily: operatorFonts.sansMedium,
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  previewModeTextActive: {
+    color: v.purpleStrong,
+  },
+  socialPreview: {
+    alignSelf: 'center',
+    maxWidth: 360,
+    width: '100%',
   },
   quickSection: {
     gap: 10,
