@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -15,6 +15,7 @@ import {
 import { Button, LoadingState, Screen } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
+import { normalizeInternalNext } from '@/lib/authNavigation';
 import {
   formatProfileError,
   loadPersonalProfile,
@@ -43,7 +44,9 @@ type BannerDraft = {
 };
 
 export default function OnboardingScreen() {
-  const { refreshProfileStatus, user } = useAuth();
+  const { next } = useLocalSearchParams<{ next?: string | string[] }>();
+  const nextPath = normalizeInternalNext(next);
+  const { refreshProfileStatus, signOut, user } = useAuth();
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<ProfileDraft>(() =>
     createEmptyProfileDraft(
@@ -148,9 +151,6 @@ export default function OnboardingScreen() {
       if (draft.city.trim().length < 2) {
         return showError('Choose a city and country.');
       }
-      if (!bannerDraft.uri && !bannerDraft.path) {
-        return showError('Choose a profile banner so your profile has a real first impression.');
-      }
       if (!draft.confirmedAdult) {
         return showError('Confirm that you are at least 18 to continue.');
       }
@@ -213,10 +213,23 @@ export default function OnboardingScreen() {
         await saveProfileBannerPath(user.id, bannerPath, bannerDraft.obsoletePath);
       }
       await refreshProfileStatus();
-      router.replace('/discover');
+      router.replace(nextPath ?? '/discover');
     } catch (error) {
       setFeedback(formatProfileError(error));
     } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function switchAccount() {
+    setIsSaving(true);
+    setFeedback(null);
+
+    try {
+      await signOut();
+      router.replace('/login');
+    } catch (error) {
+      setFeedback(error instanceof Error ? error.message : 'Could not log out. Try again.');
       setIsSaving(false);
     }
   }
@@ -246,6 +259,14 @@ export default function OnboardingScreen() {
           style={styles.primaryAction}
         />
       </View>
+      <Pressable
+        accessibilityLabel="Use a different account"
+        accessibilityRole="button"
+        disabled={isSaving}
+        onPress={() => void switchAccount()}
+        style={({ pressed }) => [styles.switchAccount, pressed && styles.pressed]}>
+        <Text style={styles.switchAccountText}>Use a different account</Text>
+      </Pressable>
     </Screen>
   );
 
@@ -353,7 +374,7 @@ function OnboardingBannerPicker({
     <View style={styles.bannerBlock}>
       <View style={styles.bannerHeader}>
         <Text style={styles.bannerTitle}>Profile banner</Text>
-        <Text style={styles.bannerRequired}>Required</Text>
+        <Text style={styles.bannerRequired}>Optional</Text>
       </View>
       <Pressable
         accessibilityLabel={imageUri ? 'Replace profile banner' : 'Choose profile banner'}
@@ -370,7 +391,8 @@ function OnboardingBannerPicker({
         )}
       </Pressable>
       <Text style={styles.bannerHint}>
-        This sits behind your profile photo when people discover or review your profile.
+        Add this now or later. It sits behind your photo when people discover or review your
+        profile.
       </Text>
     </View>
   );
@@ -499,6 +521,17 @@ const styles = StyleSheet.create({
     color: theme.colors.muted,
     fontSize: theme.typography.small,
     textAlign: 'center',
+  },
+  switchAccount: {
+    alignSelf: 'center',
+    justifyContent: 'center',
+    minHeight: theme.layout.minTouchTarget,
+    paddingHorizontal: theme.spacing.md,
+  },
+  switchAccountText: {
+    color: theme.colors.muted,
+    fontFamily: theme.typography.familySemiBold,
+    fontSize: theme.typography.tiny,
   },
   pressed: {
     opacity: 0.75,

@@ -125,7 +125,9 @@ export function ProfileSignalPillRow({ profile }: { profile: PublicProfile }) {
       <SignalPill
         dot
         icon="ellipse"
-        label={getOptionLabel(availabilityOptions, profile.availability)}
+        label={compactAvailabilityLabel(
+          getOptionLabel(availabilityOptions, profile.availability),
+        )}
       />
       <SignalPill
         icon="paper-plane-outline"
@@ -133,7 +135,9 @@ export function ProfileSignalPillRow({ profile }: { profile: PublicProfile }) {
       />
       <SignalPill
         icon="git-network-outline"
-        label={getOptionLabel(experienceOptions, profile.experienceLevel)}
+        label={compactExperienceLabel(
+          getOptionLabel(experienceOptions, profile.experienceLevel),
+        )}
       />
     </View>
   );
@@ -260,12 +264,11 @@ export function ProfileProofOfWorkCard({
     <View style={styles.miniCard}>
       <View style={styles.proofHeader}>
         <SectionKicker icon="analytics-outline" label="Proof of work" />
-        <Text style={styles.viewAllText}>View all</Text>
       </View>
       <View style={styles.proofStats}>
-        <ProofStat label="Applications" onPress={onApplied} value={summary?.applied ?? 0} />
-        <ProofStat label="Opportunities" onPress={onOpportunities} value={summary?.opportunities ?? 0} />
-        <ProofStat label="Businesses" onPress={onBusinesses} value={summary?.businesses ?? 0} />
+        <ProofStat label="Applied" onPress={onApplied} value={summary?.applied ?? 0} />
+        <ProofStat label="Posted" onPress={onOpportunities} value={summary?.opportunities ?? 0} />
+        <ProofStat label="Business" onPress={onBusinesses} value={summary?.businesses ?? 0} />
       </View>
     </View>
   );
@@ -551,6 +554,18 @@ function SignalPill({
   );
 }
 
+function compactAvailabilityLabel(label: string) {
+  return label
+    .replace('A few hours per week', 'A few hrs/wk')
+    .replace(' hours per week', ' hrs/wk');
+}
+
+function compactExperienceLabel(label: string) {
+  if (label === 'Just starting') return 'Starting';
+  if (label === 'Some experience') return 'Some exp.';
+  return label;
+}
+
 function SectionKicker({ icon, label }: { icon: IconName; label: string }) {
   return (
     <View style={styles.kickerRow}>
@@ -712,23 +727,23 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     flex: 1,
     flexDirection: 'row',
-    gap: 10,
+    gap: 6,
     justifyContent: 'center',
     minHeight: 44,
     minWidth: 0,
-    paddingHorizontal: 12,
+    paddingHorizontal: 8,
   },
   signalPillDot: {
     backgroundColor: profileVisual.purple,
     borderRadius: 6,
-    height: 12,
-    width: 12,
+    height: 8,
+    width: 8,
   },
   signalPillText: {
     color: profileVisual.text,
     flexShrink: 1,
     fontFamily: profileFonts.sansMedium,
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '500',
   },
   wideCard: {

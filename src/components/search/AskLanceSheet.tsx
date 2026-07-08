@@ -76,11 +76,12 @@ export function AskLanceSheet({
     setError(null);
     try {
       const response = await parseAskLance(trimmed, clarification);
-      if (response.plan.needs_clarification && !clarificationQuestion) {
+      if (response.plan.needs_clarification) {
         setClarificationQuestion(
           response.plan.clarification_question ||
             'What matters most in this search?',
         );
+        setClarification('');
         return;
       }
       onApply(response.plan, trimmed);

@@ -39,6 +39,10 @@ export function Button({
     <Pressable
       accessibilityLabel={accessibilityLabel ?? label}
       accessibilityRole="button"
+      accessibilityState={{
+        busy: Boolean(loading),
+        disabled: Boolean(isInactive),
+      }}
       disabled={isInactive}
       onPress={onPress}
       style={({ pressed }) => [

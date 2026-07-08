@@ -12,6 +12,7 @@ type SelectableOptionProps = {
 export function SelectableOption({ label, onPress, selected }: SelectableOptionProps) {
   return (
     <Pressable
+      aria-checked={selected}
       accessibilityRole="radio"
       accessibilityState={{ checked: selected }}
       onPress={onPress}

@@ -1,6 +1,7 @@
-import { Redirect, Tabs } from 'expo-router';
+import { Redirect, Tabs, usePathname } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 
+import { AuthStatusError } from '@/components/auth/AuthStatusError';
 import { AdaptiveTabBar } from '@/components/navigation';
 import { LoadingState } from '@/components/ui';
 import { theme } from '@/constants/theme';
@@ -8,9 +9,11 @@ import { useAuth } from '@/context/AuthContext';
 import { AdaptiveTabBarProvider } from '@/context/AdaptiveTabBarContext';
 import { useMessaging } from '@/context/MessagingContext';
 import { useSearchAlerts } from '@/context/SearchAlertsContext';
+import { authRoute, normalizeInternalNext } from '@/lib/authNavigation';
 import { supabase } from '@/lib/supabase';
 
 export default function TabLayout() {
+  const pathname = usePathname();
   const { isLoading, onboardingStatus, session, user } = useAuth();
   const { unreadCount } = useMessaging();
   const { unreadCount: searchAlertCount } = useSearchAlerts();
@@ -62,11 +65,15 @@ export default function TabLayout() {
   }
 
   if (!session) {
-    return <Redirect href="/login" />;
+    return <Redirect href={authRoute('/login', normalizeInternalNext(pathname))} />;
+  }
+
+  if (onboardingStatus === 'error') {
+    return <AuthStatusError />;
   }
 
   if (onboardingStatus !== 'complete') {
-    return <Redirect href="/onboarding" />;
+    return <Redirect href={authRoute('/onboarding', normalizeInternalNext(pathname))} />;
   }
 
   return (

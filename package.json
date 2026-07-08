@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit",
     "expo:config": "expo config --type public",
     "test:phase6": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/search-plan.test.mts",
-    "test:app": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/location.test.mts tests/app-hygiene.test.mts",
+    "test:app": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/location.test.mts tests/app-hygiene.test.mts tests/auth-navigation.test.mts",
     "check": "npm run typecheck && npm run lint && npm run expo:config && npm run test:phase6 && npm run test:app"
   },
   "dependencies": {

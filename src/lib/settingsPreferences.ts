@@ -16,7 +16,7 @@ export type LocalSettingsPreferences = {
   appearanceMode: AppearanceMode;
 };
 
-const SUPPORTED_APPEARANCE_MODES: AppearanceMode[] = ['light'];
+const SUPPORTED_APPEARANCE_MODES: AppearanceMode[] = ['dark'];
 
 const DEFAULT_SETTINGS: LocalSettingsPreferences = {
   aiApplicantSummary: false,
@@ -29,7 +29,7 @@ const DEFAULT_SETTINGS: LocalSettingsPreferences = {
   newApplicantNotifications: true,
   opportunityReminders: true,
   savedSearchAlerts: true,
-  appearanceMode: 'light',
+  appearanceMode: 'dark',
 };
 
 function keyFor(profileId: string) {

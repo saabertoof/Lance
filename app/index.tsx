@@ -1,5 +1,6 @@
 import { Redirect } from 'expo-router';
 
+import { AuthStatusError } from '@/components/auth/AuthStatusError';
 import { LoadingState } from '@/components/ui';
 import { useAuth } from '@/context/AuthContext';
 
@@ -12,6 +13,10 @@ export default function IndexRoute() {
 
   if (!session) {
     return <Redirect href="/login" />;
+  }
+
+  if (onboardingStatus === 'error') {
+    return <AuthStatusError />;
   }
 
   return <Redirect href={onboardingStatus === 'complete' ? '/discover' : '/onboarding'} />;

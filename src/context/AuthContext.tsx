@@ -11,7 +11,7 @@ import {
 
 import { supabase } from '@/lib/supabase';
 
-type OnboardingStatus = 'complete' | 'incomplete' | 'loading';
+export type OnboardingStatus = 'complete' | 'error' | 'incomplete' | 'loading';
 
 type AuthContextValue = {
   isLoading: boolean;
@@ -44,8 +44,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
       .maybeSingle();
 
     if (error) {
-      setOnboardingStatus('incomplete');
-      return 'incomplete' as const;
+      setOnboardingStatus('error');
+      return 'error' as const;
     }
 
     const nextStatus = data?.onboarding_completed_at ? 'complete' : 'incomplete';
@@ -108,7 +108,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
       session,
       user: session?.user ?? null,
       signOut: async () => {
-        await supabase.auth.signOut();
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
       },
     }),
     [isLoading, onboardingStatus, refreshProfileStatus, session],

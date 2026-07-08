@@ -28,6 +28,7 @@ export function MultiSelectChips<T extends string>({
 
         return (
           <Pressable
+            aria-checked={isSelected}
             accessibilityRole="checkbox"
             accessibilityState={{ checked: isSelected }}
             key={option.value}

@@ -146,6 +146,7 @@ export default function EditProfileScreen() {
     return (
       <Screen centered>
         <Text style={styles.error}>{feedback ?? 'Your profile could not be loaded.'}</Text>
+        <Button label="Go back" onPress={() => router.back()} variant="secondary" />
       </Screen>
     );
   }

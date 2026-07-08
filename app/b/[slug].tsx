@@ -3,9 +3,11 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { AuthStatusError } from '@/components/auth/AuthStatusError';
 import { Button, LoadingState, Screen } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
+import { authRoute, normalizeInternalNext } from '@/lib/authNavigation';
 import { formatBusinessError, loadBusinessBySlug } from '@/lib/business';
 import { routes } from '@/lib/routes';
 
@@ -40,6 +42,7 @@ export default function PublicBusinessLinkScreen() {
   }
 
   if (!session) {
+    const nextPath = normalizeInternalNext(`/b/${slug}`);
     return (
       <Screen centered contentStyle={styles.centered}>
         <LinkMark />
@@ -49,14 +52,26 @@ export default function PublicBusinessLinkScreen() {
           connected to real accounts.
         </Text>
         <View style={styles.actions}>
-          <Button label="Sign up" onPress={() => router.push('/signup')} />
-          <Button label="Log in" onPress={() => router.push('/login')} variant="secondary" />
+          <Button
+            label="Sign up"
+            onPress={() => router.push(authRoute('/signup', nextPath))}
+          />
+          <Button
+            label="Log in"
+            onPress={() => router.push(authRoute('/login', nextPath))}
+            variant="secondary"
+          />
         </View>
       </Screen>
     );
   }
 
+  if (onboardingStatus === 'error') {
+    return <AuthStatusError />;
+  }
+
   if (onboardingStatus !== 'complete') {
+    const nextPath = normalizeInternalNext(`/b/${slug}`);
     return (
       <Screen centered contentStyle={styles.centered}>
         <LinkMark />
@@ -64,7 +79,10 @@ export default function PublicBusinessLinkScreen() {
         <Text style={styles.body}>
           Complete onboarding first, then this business profile will open.
         </Text>
-        <Button label="Finish profile" onPress={() => router.push('/onboarding')} />
+        <Button
+          label="Finish profile"
+          onPress={() => router.push(authRoute('/onboarding', nextPath))}
+        />
       </Screen>
     );
   }

@@ -18,7 +18,7 @@ import {
   profileShapeRadius,
 } from '@/components/profile';
 import { profileVisual } from '@/components/profile/profileVisual';
-import { LoadingState, Screen } from '@/components/ui';
+import { Button, LoadingState, Screen } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { useSaved } from '@/context/SavedContext';
@@ -43,6 +43,14 @@ export default function PublicProfileScreen() {
   );
 
   useEffect(() => {
+    setProfile(null);
+    setRelationship(null);
+    setSafetyOpen(false);
+    setError(null);
+    setIsLoading(true);
+  }, [id]);
+
+  useEffect(() => {
     let active = true;
     loadPublicProfile(id)
       .then((result) => active && setProfile(result))
@@ -57,11 +65,17 @@ export default function PublicProfileScreen() {
 
   useEffect(() => {
     if (!id || id === user?.id) return;
+    let active = true;
     loadRelationshipStatus(id)
-      .then(setRelationship)
+      .then((result) => {
+        if (active) setRelationship(result);
+      })
       .catch((loadError) =>
-        setError(formatCommunicationError(loadError)),
+        active && setError(formatCommunicationError(loadError)),
       );
+    return () => {
+      active = false;
+    };
   }, [id, user?.id]);
 
   if (isLoading) return <LoadingState message="Loading profile" />;
@@ -71,6 +85,11 @@ export default function PublicProfileScreen() {
         <Text style={styles.error}>
           {error ?? 'This profile is unavailable.'}
         </Text>
+        <Button
+          label="Go back"
+          onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
+          variant="secondary"
+        />
       </Screen>
     );
   }

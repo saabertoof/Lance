@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -64,6 +64,7 @@ type LastPass =
 
 export default function DiscoverScreen() {
   const { user } = useAuth();
+  const isFocused = useIsFocused();
   const { showWarning } = useFeedback();
   const { isOpportunitySaved, isProfileSaved, setOpportunitySaved, setProfileSaved } =
     useSaved();
@@ -87,10 +88,9 @@ export default function DiscoverScreen() {
   const totals = useRef({ people: 0, opportunities: 0 });
   const seen = useRef({ people: new Set<string>(), opportunities: new Set<string>() });
   const requestId = useRef(0);
-  const immediateJiggleModes = useRef(new Set<DiscoverMode>());
-  const [immediateJiggleCardIds, setImmediateJiggleCardIds] = useState<
-    Partial<Record<DiscoverMode, string>>
-  >({});
+  const [jiggleTriggers, setJiggleTriggers] = useState<
+    Record<DiscoverMode, number>
+  >({ opportunities: 0, people: 0 });
 
   useEffect(() => {
     loadSkillOptions().then(setSkillOptions).catch(() => undefined);
@@ -308,22 +308,13 @@ export default function DiscoverScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      immediateJiggleModes.current.delete(mode);
-      setImmediateJiggleCardIds((current) => ({ ...current, [mode]: undefined }));
+      setJiggleTriggers((current) => ({
+        ...current,
+        [mode]: current[mode] + 1,
+      }));
       return undefined;
     }, [mode]),
   );
-
-  useEffect(() => {
-    const activeCardId =
-      mode === 'people' ? currentPerson?.id : currentOpportunity?.id;
-    if (!activeCardId || immediateJiggleModes.current.has(mode)) return;
-    immediateJiggleModes.current.add(mode);
-    setImmediateJiggleCardIds((current) => ({
-      ...current,
-      [mode]: activeCardId,
-    }));
-  }, [currentOpportunity?.id, currentPerson?.id, mode]);
 
   return (
     <Screen compact contentStyle={styles.screen} style={styles.canvas}>
@@ -370,12 +361,13 @@ export default function DiscoverScreen() {
         ) : null}
         {!isLoading && !error && mode === 'people' && currentPerson ? (
           <DiscoverDeck
+            active={isFocused}
             key="people-discover"
             canUndo={lastPass?.mode === 'people'}
             cardKey={currentPerson.id}
             detailLabel="profile details"
             isSaved={isProfileSaved(currentPerson.id)}
-            jiggleImmediately={immediateJiggleCardIds.people === currentPerson.id}
+            jiggleTrigger={jiggleTriggers.people}
             primaryActionLabel="Connect"
             nextCard={
               nextPerson ? (
@@ -403,14 +395,13 @@ export default function DiscoverScreen() {
         ) : null}
         {!isLoading && !error && mode === 'opportunities' && currentOpportunity ? (
           <DiscoverDeck
+            active={isFocused}
             key="opportunities-discover"
             canUndo={lastPass?.mode === 'opportunities'}
             cardKey={currentOpportunity.id}
             detailLabel="opportunity details"
             isSaved={isOpportunitySaved(currentOpportunity.id)}
-            jiggleImmediately={
-              immediateJiggleCardIds.opportunities === currentOpportunity.id
-            }
+            jiggleTrigger={jiggleTriggers.opportunities}
             primaryActionLabel="Apply"
             nextCard={
               nextOpportunity ? (

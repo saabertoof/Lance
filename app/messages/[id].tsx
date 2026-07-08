@@ -68,6 +68,23 @@ export default function ConversationScreen() {
   const [newMessageCount, setNewMessageCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    sending.current = false;
+    isNearBottom.current = true;
+    initialScrollComplete.current = false;
+    setDetail(null);
+    setMessages([]);
+    setDraft('');
+    setIsLoading(true);
+    setIsLoadingEarlier(false);
+    setHasEarlier(false);
+    setSafetyOpen(false);
+    setReportedMessageId(null);
+    setBlockedByMe(false);
+    setNewMessageCount(0);
+    setError(null);
+  }, [id]);
+
   const markRead = useCallback(async () => {
     try {
       await markConversationRead(id);

@@ -46,6 +46,16 @@ export default function OpportunityResponsesScreen() {
   const [hasMore, setHasMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    setOpportunity(null);
+    setResponses([]);
+    setProfilesById({});
+    setActiveActionId(null);
+    setHasMore(false);
+    setError(null);
+    setIsLoading(true);
+  }, [id]);
+
   const load = useCallback(async () => {
     setIsLoading(true);
     setError(null);

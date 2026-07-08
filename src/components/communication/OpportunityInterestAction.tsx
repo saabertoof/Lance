@@ -13,6 +13,12 @@ import type { OpportunityRecord } from '@/types/opportunity';
 
 import { ExpressInterestSheet } from './ExpressInterestSheet';
 
+const emptyResponseState: OpportunityResponseState = {
+  responseId: null,
+  status: 'none',
+  conversationId: null,
+};
+
 export function OpportunityInterestAction({
   deferLoad,
   buttonLabelStyle,
@@ -26,16 +32,16 @@ export function OpportunityInterestAction({
   onError?: (message: string) => void;
   opportunity: OpportunityRecord;
 }) {
-  const [state, setState] = useState<OpportunityResponseState>({
-    responseId: null,
-    status: 'none',
-    conversationId: null,
-  });
+  const [state, setState] = useState<OpportunityResponseState>(emptyResponseState);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(!deferLoad);
-  const [hasLoaded, setHasLoaded] = useState(!deferLoad);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   useEffect(() => {
+    setState(emptyResponseState);
+    setSheetOpen(false);
+    setHasLoaded(false);
+    setIsLoading(!deferLoad);
     if (deferLoad) return;
     let active = true;
     loadOpportunityResponseState(opportunity.id)

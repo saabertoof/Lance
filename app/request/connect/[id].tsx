@@ -34,6 +34,14 @@ export default function ConnectRequestScreen() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    setRequest(null);
+    setRelationship(null);
+    setSafetyOpen(false);
+    setError(null);
+    setIsLoading(true);
+  }, [id]);
+
+  useEffect(() => {
     let active = true;
     loadConnectionRequest(id)
       .then(async (result) => {
@@ -115,6 +123,7 @@ export default function ConnectRequestScreen() {
     return (
       <Screen centered>
         <Text style={styles.error}>{error ?? 'This request is unavailable.'}</Text>
+        <Button label="Go back" onPress={() => router.back()} variant="secondary" />
       </Screen>
     );
   }

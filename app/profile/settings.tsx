@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Pressable,
   StyleSheet,
@@ -14,6 +14,7 @@ import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { useFeedback } from '@/context/FeedbackContext';
 import { formatAuthError } from '@/lib/authErrors';
+import { formatLocationParts } from '@/lib/location';
 import { loadPersonalProfile } from '@/lib/profile';
 import { routes } from '@/lib/routes';
 import {
@@ -118,6 +119,7 @@ export default function ProfileSettingsScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSendingReset, setIsSendingReset] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const preferenceSaveQueue = useRef(Promise.resolve());
 
   useEffect(() => {
     let active = true;
@@ -149,16 +151,27 @@ export default function ProfileSettingsScreen() {
 
   const savedLocation = useMemo(() => {
     if (!profile) return 'Not set yet';
-    return profile.city || 'Not set yet';
+    return (
+      formatLocationParts({
+        city: profile.city,
+        country: profile.locationCountry,
+        region: profile.locationRegion,
+      }) ||
+      profile.city ||
+      'Not set yet'
+    );
   }, [profile]);
 
   function updatePreferences(patch: Partial<LocalSettingsPreferences>) {
     if (!user) return;
     setPreferences((current) => {
       const next = { ...current, ...patch };
-      void saveLocalSettingsPreferences(user.id, next).catch(() =>
-        showWarning('Settings could not be saved on this device.'),
-      );
+      preferenceSaveQueue.current = preferenceSaveQueue.current
+        .catch(() => undefined)
+        .then(() => saveLocalSettingsPreferences(user.id, next))
+        .catch(() => {
+          showWarning('Settings could not be saved on this device.');
+        });
       return next;
     });
   }
@@ -447,7 +460,9 @@ function SettingsRow({
 }) {
   return (
     <Pressable
+      accessibilityLabel={detail ? `${label}. ${detail}` : label}
       accessibilityRole="button"
+      accessibilityState={{ disabled: Boolean(disabled) }}
       disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [
@@ -511,6 +526,8 @@ function SwitchRow({
         <Text style={styles.rowDetail}>{detail}</Text>
       </View>
       <Switch
+        accessibilityLabel={`${label}. ${detail}`}
+        accessibilityRole="switch"
         ios_backgroundColor={theme.colors.border}
         onValueChange={onValueChange}
         thumbColor={theme.colors.white}

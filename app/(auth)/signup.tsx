@@ -1,11 +1,13 @@
-import { Link, router } from 'expo-router';
+import { Link, router, useLocalSearchParams } from 'expo-router';
 import { Controller, useForm } from 'react-hook-form';
+import { useState } from 'react';
 import { StyleSheet, Text } from 'react-native';
 import { z } from 'zod';
 
 import { AuthFormShell } from '@/components/auth/AuthFormShell';
 import { Button, TextField } from '@/components/ui';
 import { theme } from '@/constants/theme';
+import { authRoute, normalizeInternalNext } from '@/lib/authNavigation';
 import { formatAuthError } from '@/lib/authErrors';
 import { supabase } from '@/lib/supabase';
 
@@ -18,9 +20,12 @@ const signupSchema = z.object({
 type SignupForm = z.infer<typeof signupSchema>;
 
 export default function SignupScreen() {
+  const { next } = useLocalSearchParams<{ next?: string | string[] }>();
+  const nextPath = normalizeInternalNext(next);
+  const [confirmationSent, setConfirmationSent] = useState(false);
   const {
     control,
-    formState: { errors, isSubmitSuccessful, isSubmitting },
+    formState: { errors, isSubmitting },
     handleSubmit,
     setError,
   } = useForm<SignupForm>({
@@ -32,6 +37,7 @@ export default function SignupScreen() {
   });
 
   async function onSubmit(values: SignupForm) {
+    setConfirmationSent(false);
     const parsed = signupSchema.safeParse(values);
 
     if (!parsed.success) {
@@ -58,7 +64,9 @@ export default function SignupScreen() {
       }
 
       if (data.session) {
-        router.replace('/onboarding');
+        router.replace(authRoute('/onboarding', nextPath));
+      } else {
+        setConfirmationSent(true);
       }
     } catch (error) {
       setError('email', { message: formatAuthError(error) });
@@ -69,11 +77,11 @@ export default function SignupScreen() {
   return (
     <AuthFormShell
       title="Create your account"
-      subtitle="Start with a simple login. Profile setup comes in the next phase."
+      subtitle="Create your login, then build a reusable Lance profile."
       footer={
         <Text style={styles.footerText}>
           Already have an account?{' '}
-          <Link href="/login" style={styles.link}>
+          <Link href={authRoute('/login', nextPath)} style={styles.link}>
             Log in
           </Link>
         </Text>
@@ -127,7 +135,11 @@ export default function SignupScreen() {
         )}
       />
       <Button label="Sign up" loading={isSubmitting} onPress={handleSubmit(onSubmit)} />
-      {isSubmitSuccessful ? <Text style={styles.success}>Check your email to confirm your account.</Text> : null}
+      {confirmationSent ? (
+        <Text accessibilityLiveRegion="polite" style={styles.success}>
+          Check your email to confirm your account.
+        </Text>
+      ) : null}
     </AuthFormShell>
   );
 }

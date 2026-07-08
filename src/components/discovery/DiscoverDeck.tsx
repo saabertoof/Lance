@@ -31,6 +31,7 @@ export type DiscoverDeckAction =
   | 'primaryAction';
 
 type DiscoverDeckProps = PropsWithChildren<{
+  active: boolean;
   canUndo?: boolean;
   cardKey: string;
   detailLabel: string;
@@ -42,13 +43,14 @@ type DiscoverDeckProps = PropsWithChildren<{
   onDismiss: () => void;
   onUndo?: () => void;
   primaryActionLabel: string;
-  jiggleImmediately?: boolean;
+  jiggleTrigger: number;
 }>;
 
 const HORIZONTAL_THRESHOLD = 88;
 const VERTICAL_THRESHOLD = 86;
 
 export function DiscoverDeck({
+  active,
   canUndo,
   cardKey,
   children,
@@ -59,14 +61,14 @@ export function DiscoverDeck({
   onDismiss,
   onUndo,
   primaryActionLabel,
-  jiggleImmediately,
+  jiggleTrigger,
 }: DiscoverDeckProps) {
   const { width } = useWindowDimensions();
   const position = useRef(new Animated.ValueXY()).current;
   const jiggleX = useRef(new Animated.Value(0)).current;
   const jiggleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const jiggleAnimation = useRef<Animated.CompositeAnimation | null>(null);
-  const immediateJigglePlayedFor = useRef<string | null>(null);
+  const immediateJigglePlayedFor = useRef<number | null>(null);
   const threshold = useRef<DiscoverDeckAction | null>(null);
   const [isActing, setIsActing] = useState(false);
   const [reduceMotion, setReduceMotion] = useState<boolean | null>(null);
@@ -151,46 +153,47 @@ export function DiscoverDeck({
   }, [cardKey, position]);
 
   useEffect(() => {
-    if (reduceMotion !== false || isActing) {
+    if (!active || reduceMotion !== false || isActing) {
       cancelJiggle();
       return undefined;
     }
 
-    let active = true;
+    let alive = true;
     const scheduleNextJiggle = () => {
       clearJiggleTimer();
       jiggleTimer.current = setTimeout(() => {
-        if (!active) return;
+        if (!alive) return;
         runJiggle(() => {
-          if (active) scheduleNextJiggle();
+          if (alive) scheduleNextJiggle();
         });
       }, 5000);
     };
     const shouldRunImmediate =
-      jiggleImmediately === true && immediateJigglePlayedFor.current !== cardKey;
+      immediateJigglePlayedFor.current !== jiggleTrigger;
 
     if (shouldRunImmediate) {
-      immediateJigglePlayedFor.current = cardKey;
+      immediateJigglePlayedFor.current = jiggleTrigger;
       runJiggle(() => {
-        if (active) scheduleNextJiggle();
+        if (alive) scheduleNextJiggle();
       });
     } else {
       scheduleNextJiggle();
     }
 
     return () => {
-      active = false;
+      alive = false;
       clearJiggleTimer();
       jiggleAnimation.current?.stop();
       jiggleAnimation.current = null;
       jiggleX.setValue(0);
     };
   }, [
+    active,
     cancelJiggle,
     cardKey,
     clearJiggleTimer,
     isActing,
-    jiggleImmediately,
+    jiggleTrigger,
     jiggleX,
     reduceMotion,
     runJiggle,

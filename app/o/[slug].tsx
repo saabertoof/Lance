@@ -12,7 +12,8 @@ import {
 } from '@/components/opportunity';
 import { Button, Chip, LoadingState, Screen } from '@/components/ui';
 import { theme } from '@/constants/theme';
-import { useAuth } from '@/context/AuthContext';
+import { type OnboardingStatus, useAuth } from '@/context/AuthContext';
+import { authRoute, normalizeInternalNext } from '@/lib/authNavigation';
 import { formatDateLabel } from '@/lib/date';
 import { openExternalUrl } from '@/lib/externalLinks';
 import {
@@ -34,7 +35,13 @@ import { getOptionLabel } from '@/types/profile';
 
 export default function PublicOpportunityScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
-  const { isLoading: authLoading, onboardingStatus, session, user } = useAuth();
+  const {
+    isLoading: authLoading,
+    onboardingStatus,
+    refreshProfileStatus,
+    session,
+    user,
+  } = useAuth();
   const [opportunity, setOpportunity] = useState<OpportunityRecord | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +54,13 @@ export default function PublicOpportunityScreen() {
     try {
       setOpportunity(await loadPublicOpportunityBySlug(slug));
     } catch (loadError) {
-      setError(formatOpportunityError(loadError));
+      const message = formatOpportunityError(loadError);
+      setError(
+        message === 'This opportunity link is not valid.' ||
+          message === 'This opportunity is no longer available.'
+          ? message
+          : 'This opportunity could not be loaded. Check your connection and try again.',
+      );
     } finally {
       setIsLoading(false);
     }
@@ -62,17 +75,37 @@ export default function PublicOpportunityScreen() {
   }
 
   if (!opportunity) {
+    const unavailable =
+      error === 'This opportunity link is not valid.' ||
+      error === 'This opportunity is no longer available.';
+
     return (
       <Screen centered contentStyle={styles.centered}>
         <View style={styles.emptyMark}>
           <Ionicons color={theme.colors.accentStrong} name="link-outline" size={28} />
         </View>
-        <Text style={styles.emptyTitle}>This opportunity is not available.</Text>
-        <Text style={styles.emptyBody}>
-          It may have been closed, paused, archived, or moved by the creator.
+        <Text style={styles.emptyTitle}>
+          {unavailable
+            ? 'This opportunity is not available.'
+            : 'We could not open this opportunity.'}
         </Text>
-        <Button label="Open Lance" onPress={() => router.replace('/')} />
-        {error ? <Text style={styles.error}>{error}</Text> : null}
+        <Text style={styles.emptyBody}>
+          {unavailable
+            ? 'It may have been closed, paused, archived, or moved by the creator.'
+            : 'Check your connection, then try the link again.'}
+        </Text>
+        {unavailable ? (
+          <Button label="Open Lance" onPress={() => router.replace('/')} />
+        ) : (
+          <View style={styles.emptyActions}>
+            <Button label="Try again" onPress={() => void load()} />
+            <Button
+              label="Open Lance"
+              onPress={() => router.replace('/')}
+              variant="secondary"
+            />
+          </View>
+        )}
       </Screen>
     );
   }
@@ -193,6 +226,7 @@ export default function PublicOpportunityScreen() {
           authLoading={authLoading}
           onError={setError}
           onboardingStatus={onboardingStatus}
+          onRetryProfile={refreshProfileStatus}
           opportunity={opportunity}
           sessionExists={Boolean(session)}
           userId={user?.id ?? null}
@@ -303,6 +337,7 @@ export default function PublicOpportunityScreen() {
           authLoading={authLoading}
           onError={setError}
           onboardingStatus={onboardingStatus}
+          onRetryProfile={refreshProfileStatus}
           opportunity={opportunity}
           sessionExists={Boolean(session)}
           userId={user?.id ?? null}
@@ -345,17 +380,21 @@ function ApplyAction({
   authLoading,
   onError,
   onboardingStatus,
+  onRetryProfile,
   opportunity,
   sessionExists,
   userId,
 }: {
   authLoading: boolean;
   onError: (message: string | null) => void;
-  onboardingStatus: 'complete' | 'incomplete' | 'loading';
+  onboardingStatus: OnboardingStatus;
+  onRetryProfile: () => Promise<OnboardingStatus>;
   opportunity: OpportunityRecord;
   sessionExists: boolean;
   userId: string | null;
 }) {
+  const nextPath = normalizeInternalNext(`/o/${opportunity.slug}`);
+
   if (authLoading || onboardingStatus === 'loading') {
     return (
       <Button
@@ -371,8 +410,19 @@ function ApplyAction({
     return (
       <Button
         label="Apply with Lance"
-        onPress={() => router.push('/signup')}
+        onPress={() => router.push(authRoute('/signup', nextPath))}
         style={styles.applyButton}
+      />
+    );
+  }
+
+  if (onboardingStatus === 'error') {
+    return (
+      <Button
+        label="Retry profile check"
+        onPress={() => void onRetryProfile()}
+        style={styles.applyButton}
+        variant="secondary"
       />
     );
   }
@@ -381,7 +431,7 @@ function ApplyAction({
     return (
       <Button
         label="Finish profile"
-        onPress={() => router.push('/onboarding')}
+        onPress={() => router.push(authRoute('/onboarding', nextPath))}
         style={styles.applyButton}
       />
     );
@@ -847,6 +897,10 @@ const styles = StyleSheet.create({
   centered: {
     alignItems: 'center',
     gap: theme.spacing.md,
+  },
+  emptyActions: {
+    alignSelf: 'stretch',
+    gap: theme.spacing.sm,
   },
   emptyMark: {
     alignItems: 'center',

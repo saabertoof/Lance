@@ -20,6 +20,7 @@ export function SingleSelectChips<T extends string>({
 
         return (
           <Pressable
+            aria-checked={isSelected}
             accessibilityRole="radio"
             accessibilityState={{ checked: isSelected }}
             key={option.value}

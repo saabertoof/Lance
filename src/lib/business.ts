@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { supabase } from '@/lib/supabase';
 import { registerCustomIndustries } from '@/lib/catalogs';
+import { normalizeExternalUrl } from '@/lib/externalLinks';
 import { normalizeStoredCountry } from '@/lib/location';
 import {
   businessRemoteOptions,
@@ -17,7 +18,7 @@ const supportedLogoTypes = ['image/jpeg', 'image/png', 'image/webp'];
 const optionalHttpsUrl = z
   .string()
   .trim()
-  .refine((value) => !value || /^https:\/\/[^\s]+$/i.test(value), {
+  .refine((value) => !value || Boolean(normalizeExternalUrl(value)), {
     message: 'Links must be valid HTTPS URLs.',
   });
 
@@ -125,7 +126,7 @@ export function normalizeOptionalUrl(value: string) {
     return '';
   }
 
-  return /^https:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  return normalizeExternalUrl(trimmed) ?? trimmed;
 }
 
 export function validateBusinessDraft(draft: BusinessDraft) {
@@ -531,7 +532,7 @@ export function formatBusinessError(error: unknown) {
     }
   }
 
-  return 'The business could not be saved. Check your connection and try again.';
+  return 'Lance could not complete that business request. Check your connection and try again.';
 }
 
 function logBusinessOperationError(stage: string, error: unknown) {

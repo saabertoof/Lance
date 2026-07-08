@@ -550,7 +550,7 @@ export function subscribeToConversation(
   onMessage: (message: MessageRecord) => void,
 ) {
   const channel = supabase
-    .channel(`conversation:${conversationId}`)
+    .channel(`conversation:${conversationId}:${createClientNonce()}`)
     .on(
       'postgres_changes',
       {
@@ -662,25 +662,10 @@ export function formatCommunicationError(error: unknown) {
     });
   }
   const message = details.message ?? '';
-  const friendly = [
-    'already responded',
-    'already submitted',
-    'not accepting',
-    'not available',
-    'no longer available',
-    'current request limit',
-    'current response limit',
-    'sent too quickly',
-    'Messages are being sent too quickly',
-    'Acknowledge',
-    'Choose',
-    'Keep your note',
-    'Keep report details',
-    'under 300',
-    'under 500',
-    'cannot',
-    'read-only',
-  ].some((fragment) => message.toLowerCase().includes(fragment.toLowerCase()));
+  const friendly =
+    /^(The connection is not active|Sign in again|This (request|connection|profile|person|opportunity|response|conversation|message|report)|Choose |Keep |Add |Acknowledge |You (have reached|already|cannot)|Messages |Messaging |Reports |A new request)/i.test(
+      message,
+    );
   return friendly && message
     ? message
     : 'That action could not be completed. Check your connection and try again.';

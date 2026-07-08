@@ -7,6 +7,7 @@ import {
   useMemo,
   useState,
 } from 'react';
+import { AppState } from 'react-native';
 
 import { useAuth } from '@/context/AuthContext';
 import { loadUnreadSearchAlertCount } from '@/lib/searchPhase6';
@@ -34,7 +35,7 @@ export function SearchAlertsProvider({ children }: PropsWithChildren) {
     try {
       setUnreadCount(await loadUnreadSearchAlertCount());
     } catch {
-      setUnreadCount(0);
+      // Keep the last known badge and retry when realtime reconnects or the app resumes.
     }
   }, [userId]);
 
@@ -54,7 +55,11 @@ export function SearchAlertsProvider({ children }: PropsWithChildren) {
         () => void refreshUnread(),
       )
       .subscribe();
+    const appStateSubscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') void refreshUnread();
+    });
     return () => {
+      appStateSubscription.remove();
       void supabase.removeChannel(channel);
     };
   }, [refreshUnread, userId]);

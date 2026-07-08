@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Modal,
@@ -49,6 +49,12 @@ export function SafetySheet({
   const [details, setDetails] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setReason(null);
+    setDetails('');
+    setError(null);
+  }, [targetId, targetKind, visible]);
 
   async function report() {
     if (!reason || submitting.current) {
@@ -108,7 +114,10 @@ export function SafetySheet({
       <SafeAreaView style={styles.safe}>
         <View style={styles.header}>
           <Text style={styles.title}>Safety</Text>
-          <Pressable onPress={onClose}>
+          <Pressable
+            accessibilityLabel="Close safety options"
+            accessibilityRole="button"
+            onPress={onClose}>
             <Text style={styles.close}>Close</Text>
           </Pressable>
         </View>

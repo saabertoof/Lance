@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { OpportunityEditor } from '@/components/opportunity';
-import { LoadingState, Screen } from '@/components/ui';
+import { Button, LoadingState, Screen } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { useFeedback } from '@/context/FeedbackContext';
@@ -38,6 +38,10 @@ export default function EditOpportunityScreen() {
 
   useEffect(() => {
     let active = true;
+    setBusinesses([]);
+    setInitialDraft(null);
+    setIsLoading(true);
+    setError(null);
 
     async function prepare() {
       if (!user) return;
@@ -105,6 +109,7 @@ export default function EditOpportunityScreen() {
     return (
       <Screen centered>
         <Text style={styles.error}>{error ?? 'The opportunity could not be loaded.'}</Text>
+        <Button label="Go back" onPress={() => router.back()} variant="secondary" />
       </Screen>
     );
   }

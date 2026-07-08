@@ -51,6 +51,15 @@ export default function BusinessDetailScreen() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    setBusiness(null);
+    setOpportunities([]);
+    setOwnerRelationship(null);
+    setSafetyOpen(false);
+    setError(null);
+    setIsLoading(true);
+  }, [id]);
+
+  useEffect(() => {
     let active = true;
 
     Promise.all([loadBusiness(id), loadBusinessOpportunities(id)])
@@ -74,9 +83,17 @@ export default function BusinessDetailScreen() {
 
   useEffect(() => {
     if (!business || business.ownerProfileId === user?.id) return;
+    let active = true;
     loadRelationshipStatus(business.ownerProfileId)
-      .then(setOwnerRelationship)
-      .catch((loadError) => setError(formatCommunicationError(loadError)));
+      .then((result) => {
+        if (active) setOwnerRelationship(result);
+      })
+      .catch((loadError) => {
+        if (active) setError(formatCommunicationError(loadError));
+      });
+    return () => {
+      active = false;
+    };
   }, [business, user?.id]);
 
   if (isLoading) return <LoadingState message="Loading business" />;
@@ -84,6 +101,11 @@ export default function BusinessDetailScreen() {
     return (
       <Screen centered>
         <Text style={styles.error}>{error ?? 'The business could not be loaded.'}</Text>
+        <Button
+          label="Go back"
+          onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
+          variant="secondary"
+        />
       </Screen>
     );
   }

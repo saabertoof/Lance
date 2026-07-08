@@ -71,6 +71,15 @@ export default function OpportunityDetailScreen() {
   const [ownerRelationship, setOwnerRelationship] =
     useState<RelationshipStatus | null>(null);
 
+  useEffect(() => {
+    sharePromptRef.current = false;
+    setOpportunity(null);
+    setOwnerRelationship(null);
+    setShareOpen(false);
+    setSafetyOpen(false);
+    setError(null);
+  }, [id]);
+
   const load = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -90,9 +99,17 @@ export default function OpportunityDetailScreen() {
 
   useEffect(() => {
     if (!opportunity || opportunity.ownerProfileId === user?.id) return;
+    let active = true;
     loadRelationshipStatus(opportunity.ownerProfileId)
-      .then(setOwnerRelationship)
-      .catch((loadError) => setError(formatCommunicationError(loadError)));
+      .then((result) => {
+        if (active) setOwnerRelationship(result);
+      })
+      .catch((loadError) => {
+        if (active) setError(formatCommunicationError(loadError));
+      });
+    return () => {
+      active = false;
+    };
   }, [opportunity, user?.id]);
 
   useEffect(() => {
@@ -188,6 +205,7 @@ export default function OpportunityDetailScreen() {
     return (
       <Screen centered>
         <Text style={styles.error}>{error ?? 'The opportunity could not be loaded.'}</Text>
+        <Button label="Try again" onPress={() => void load()} variant="secondary" />
       </Screen>
     );
   }

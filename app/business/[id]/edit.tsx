@@ -30,6 +30,10 @@ export default function EditBusinessScreen() {
 
   useEffect(() => {
     let active = true;
+    setDraft(null);
+    setIsLoading(true);
+    setError(null);
+    setUrlStatus('checking');
 
     loadBusiness(id)
       .then((business) => {
@@ -84,6 +88,7 @@ export default function EditBusinessScreen() {
     return (
       <Screen centered>
         <Text style={styles.error}>{error ?? 'The business could not be loaded.'}</Text>
+        <Button label="Go back" onPress={() => router.back()} variant="secondary" />
       </Screen>
     );
   }

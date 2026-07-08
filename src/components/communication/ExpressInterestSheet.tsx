@@ -74,6 +74,17 @@ export function ExpressInterestSheet({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    setSkills([]);
+    setSender(null);
+    setSelectedSkillIds([]);
+    setPortfolio([]);
+    setPortfolioItemId(null);
+    setNote('');
+    setAcknowledged(false);
+    setError(null);
+  }, [opportunity?.id, visible]);
+
+  useEffect(() => {
     if (!visible || !user || !opportunity) return;
     Promise.all([
       loadMyProfileSkills(),
@@ -306,7 +317,7 @@ export function ExpressInterestSheet({
                   return (
                     <Pressable
                       accessibilityRole="radio"
-                      accessibilityState={{ selected }}
+                      accessibilityState={{ checked: selected }}
                       key={item.id}
                       onPress={() => setPortfolioItemId(selected ? null : item.id)}
                       style={[

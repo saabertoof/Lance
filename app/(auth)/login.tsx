@@ -1,4 +1,4 @@
-import { Link, router } from 'expo-router';
+import { Link, router, useLocalSearchParams } from 'expo-router';
 import { Controller, useForm } from 'react-hook-form';
 import { StyleSheet, Text } from 'react-native';
 import { z } from 'zod';
@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { AuthFormShell } from '@/components/auth/AuthFormShell';
 import { Button, TextField } from '@/components/ui';
 import { theme } from '@/constants/theme';
+import { authRoute, normalizeInternalNext } from '@/lib/authNavigation';
 import { formatAuthError } from '@/lib/authErrors';
 import { supabase } from '@/lib/supabase';
 
@@ -16,6 +17,8 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>;
 export default function LoginScreen() {
+  const { next } = useLocalSearchParams<{ next?: string | string[] }>();
+  const nextPath = normalizeInternalNext(next);
   const {
     control,
     formState: { errors, isSubmitting },
@@ -50,7 +53,7 @@ export default function LoginScreen() {
       return;
     }
 
-    router.replace('/');
+    router.replace(nextPath ?? '/');
   }
 
   return (
@@ -60,7 +63,7 @@ export default function LoginScreen() {
       footer={
         <Text style={styles.footerText}>
           New to Lance?{' '}
-          <Link href="/signup" style={styles.link}>
+          <Link href={authRoute('/signup', nextPath)} style={styles.link}>
             Create an account
           </Link>
         </Text>
@@ -99,7 +102,7 @@ export default function LoginScreen() {
         )}
       />
       <Button label="Log in" loading={isSubmitting} onPress={handleSubmit(onSubmit)} />
-      <Link href="/reset-password" style={styles.secondaryLink}>
+      <Link href={authRoute('/reset-password', nextPath)} style={styles.secondaryLink}>
         Forgot your password?
       </Link>
     </AuthFormShell>

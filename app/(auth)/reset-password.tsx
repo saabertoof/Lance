@@ -1,11 +1,13 @@
-import { Link } from 'expo-router';
+import { Link, useLocalSearchParams } from 'expo-router';
 import { Controller, useForm } from 'react-hook-form';
+import { useState } from 'react';
 import { StyleSheet, Text } from 'react-native';
 import { z } from 'zod';
 
 import { AuthFormShell } from '@/components/auth/AuthFormShell';
 import { Button, TextField } from '@/components/ui';
 import { theme } from '@/constants/theme';
+import { authRoute, normalizeInternalNext } from '@/lib/authNavigation';
 import { formatAuthError } from '@/lib/authErrors';
 import { supabase } from '@/lib/supabase';
 
@@ -16,9 +18,12 @@ const resetSchema = z.object({
 type ResetForm = z.infer<typeof resetSchema>;
 
 export default function ResetPasswordScreen() {
+  const { next } = useLocalSearchParams<{ next?: string | string[] }>();
+  const nextPath = normalizeInternalNext(next);
+  const [resetSent, setResetSent] = useState(false);
   const {
     control,
-    formState: { errors, isSubmitSuccessful, isSubmitting },
+    formState: { errors, isSubmitting },
     handleSubmit,
     setError,
   } = useForm<ResetForm>({
@@ -28,6 +33,7 @@ export default function ResetPasswordScreen() {
   });
 
   async function onSubmit(values: ResetForm) {
+    setResetSent(false);
     const parsed = resetSchema.safeParse(values);
 
     if (!parsed.success) {
@@ -42,7 +48,9 @@ export default function ResetPasswordScreen() {
 
       if (error) {
         setError('email', { message: formatAuthError(error) });
+        return;
       }
+      setResetSent(true);
     } catch (error) {
       setError('email', { message: formatAuthError(error) });
     }
@@ -51,9 +59,9 @@ export default function ResetPasswordScreen() {
   return (
     <AuthFormShell
       title="Reset password"
-      subtitle="Enter your email and Lance will send the reset link through Supabase."
+      subtitle="Enter your email and Lance will send you a secure reset link."
       footer={
-        <Link href="/login" style={styles.link}>
+        <Link href={authRoute('/login', nextPath)} style={styles.link}>
           Back to login
         </Link>
       }>
@@ -75,7 +83,11 @@ export default function ResetPasswordScreen() {
         )}
       />
       <Button label="Send reset link" loading={isSubmitting} onPress={handleSubmit(onSubmit)} />
-      {isSubmitSuccessful ? <Text style={styles.success}>If that email exists, a reset link is on its way.</Text> : null}
+      {resetSent ? (
+        <Text accessibilityLiveRegion="polite" style={styles.success}>
+          If that email exists, a reset link is on its way.
+        </Text>
+      ) : null}
     </AuthFormShell>
   );
 }

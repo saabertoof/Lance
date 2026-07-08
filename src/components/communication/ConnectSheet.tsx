@@ -50,6 +50,13 @@ export function ConnectSheet({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    setReason(null);
+    setNote('');
+    setPortfolioItemId(null);
+    setError(null);
+  }, [profile?.id, visible]);
+
+  useEffect(() => {
     if (!visible || !user) return;
     loadProfilePolish(user.id)
       .then((polish) => setPortfolio(polish.portfolio))
@@ -147,7 +154,7 @@ export function ConnectSheet({
                   return (
                     <Pressable
                       accessibilityRole="radio"
-                      accessibilityState={{ selected }}
+                      accessibilityState={{ checked: selected }}
                       key={item.id}
                       onPress={() =>
                         setPortfolioItemId(selected ? null : item.id)

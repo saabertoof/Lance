@@ -122,6 +122,7 @@ const styles = StyleSheet.create({
   },
   centered: {
     alignItems: 'center',
+    gap: theme.spacing.lg,
     justifyContent: 'center',
   },
 });

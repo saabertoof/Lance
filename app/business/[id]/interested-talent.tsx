@@ -28,6 +28,14 @@ export default function InterestedTalentScreen() {
   const [hasMore, setHasMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    setBusiness(null);
+    setResponses([]);
+    setHasMore(false);
+    setError(null);
+    setIsLoading(true);
+  }, [id]);
+
   const load = useCallback(async () => {
     setIsLoading(true);
     setError(null);

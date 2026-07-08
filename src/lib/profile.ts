@@ -184,7 +184,7 @@ export function formatProfileError(error: unknown) {
     }
   }
 
-  return 'The profile could not be saved. Check your connection and try again.';
+  return 'Lance could not complete that profile request. Check your connection and try again.';
 }
 
 function inferAvatarMimeType(asset: ImagePickerAsset) {

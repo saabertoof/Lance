@@ -23,7 +23,7 @@ import {
   type ProfileDashboardGroup,
 } from '@/components/profile';
 import { profileVisual } from '@/components/profile/profileVisual';
-import { LoadingState, Screen } from '@/components/ui';
+import { Button, LoadingState, Screen } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { useFeedback } from '@/context/FeedbackContext';
@@ -43,11 +43,13 @@ export default function ProfileScreen() {
   const { unreadCount } = useMessaging();
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [summary, setSummary] = useState<OwnerProfileSummary | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useFocusEffect(
     useCallback(() => {
+      void retryKey;
       let active = true;
 
       async function load() {
@@ -89,7 +91,7 @@ export default function ProfileScreen() {
       return () => {
         active = false;
       };
-    }, [user]),
+    }, [retryKey, user]),
   );
 
   if (isLoading) {
@@ -102,6 +104,10 @@ export default function ProfileScreen() {
         <Text style={styles.error}>
           {error ?? 'Your profile could not be loaded.'}
         </Text>
+        <Button
+          label="Try again"
+          onPress={() => setRetryKey((current) => current + 1)}
+        />
       </Screen>
     );
   }

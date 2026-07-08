@@ -43,6 +43,15 @@ export default function OpportunityResponseScreen() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    setResponse(null);
+    setApplicantProfile(null);
+    setRelationship(null);
+    setSafetyOpen(false);
+    setError(null);
+    setIsLoading(true);
+  }, [id]);
+
+  useEffect(() => {
     let active = true;
     loadOpportunityResponse(id)
       .then(async (result) => {
@@ -125,6 +134,7 @@ export default function OpportunityResponseScreen() {
     return (
       <Screen centered>
         <Text style={styles.error}>{error ?? 'This response is unavailable.'}</Text>
+        <Button label="Go back" onPress={() => router.back()} variant="secondary" />
       </Screen>
     );
   }

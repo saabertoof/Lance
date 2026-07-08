@@ -43,9 +43,13 @@ export function RelationshipAction({
   const [status, setStatus] = useState(emptyStatus);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(!deferLoad);
-  const [hasLoaded, setHasLoaded] = useState(!deferLoad);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   useEffect(() => {
+    setStatus(emptyStatus);
+    setSheetOpen(false);
+    setHasLoaded(false);
+    setIsLoading(!deferLoad);
     if (deferLoad) return;
     let active = true;
     loadRelationshipStatus(profile.id)

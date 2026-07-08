@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { parseDateValue } from '@/lib/date';
+import { normalizeExternalUrl } from '@/lib/externalLinks';
 import { normalizeListEntry } from '@/lib/profile';
 import { slugify } from '@/lib/business';
 import { supabase } from '@/lib/supabase';
@@ -203,6 +204,10 @@ export function validateOpportunityDraft(draft: OpportunityDraft, publishing: bo
     return 'Choose the business profile posting this opportunity.';
   }
 
+  if (draft.externalUrl && !normalizeExternalUrl(draft.externalUrl)) {
+    return 'Enter a valid HTTPS external link.';
+  }
+
   if (!publishing) {
     if (draft.title.trim().length < 3) {
       return 'Add a title before saving a draft.';
@@ -237,17 +242,6 @@ export function validateOpportunityDraft(draft: OpportunityDraft, publishing: bo
 
   if (!draft.disclaimerAccepted) {
     return 'Accept the Lance compensation disclaimer before publishing.';
-  }
-
-  if (draft.externalUrl) {
-    try {
-      const url = new URL(draft.externalUrl);
-      if (url.protocol !== 'https:') {
-        return 'The external link must use HTTPS.';
-      }
-    } catch {
-      return 'Enter a valid external link.';
-    }
   }
 
   if (draft.expectedStartDate && !parseDateValue(draft.expectedStartDate)) {
@@ -334,7 +328,7 @@ function opportunityPayload(
       ? new Date(`${draft.expirationDate}T23:59:59.000Z`).toISOString()
       : null,
     experience_requirements: draft.experienceLevel,
-    external_url: draft.externalUrl.trim() || null,
+    external_url: normalizeExternalUrl(draft.externalUrl),
     industry: draft.industry,
     portfolio_required: draft.portfolioRequired,
     people_needed: draft.peopleNeeded ? Number(draft.peopleNeeded) : null,
@@ -669,7 +663,7 @@ export function formatOpportunityError(error: unknown) {
     logOpportunityError(possibleError);
   }
 
-  return 'The opportunity could not be saved. Check your connection and try again.';
+  return 'Lance could not complete that opportunity request. Check your connection and try again.';
 }
 
 function logOpportunityError(error: { code?: string; message?: string; name?: string }) {
