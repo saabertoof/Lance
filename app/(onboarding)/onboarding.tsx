@@ -239,7 +239,7 @@ export default function OnboardingScreen() {
   }
 
   return (
-    <Screen scroll contentStyle={styles.screen}>
+    <Screen scroll scrollToTopKey={step} contentStyle={styles.screen}>
       <StepProgress current={step + 1} total={TOTAL_STEPS} />
       <View style={styles.content}>{renderStep()}</View>
       {feedback ? <Text style={styles.error}>{feedback}</Text> : null}

@@ -334,7 +334,7 @@ export default function ConversationScreen() {
                 <Text style={styles.opportunityMeta}>
                   {[detail.compensationSummary, detail.opportunityStatus]
                     .filter(Boolean)
-                    .join(' | ')}
+                    .join(' · ')}
                 </Text>
               </View>
               <Ionicons color={theme.colors.muted} name="chevron-forward" size={17} />

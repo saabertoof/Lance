@@ -305,7 +305,7 @@ export function ExpressInterestSheet({
                     {sender.displayName}
                   </Text>
                   <Text numberOfLines={1} style={styles.senderMeta}>
-                    {[sender.primaryRole, sender.locationLabel].filter(Boolean).join(' | ') ||
+                    {[sender.primaryRole, sender.locationLabel].filter(Boolean).join(' · ') ||
                       'Add role and location to stand out'}
                   </Text>
                 </View>

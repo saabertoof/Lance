@@ -85,3 +85,15 @@ test('creator-facing create and profile code uses opportunity naming', async () 
   assert.doesNotMatch(createTab, /newBusinessFor\('project'\)/);
   assert.doesNotMatch(profileHub, /onJobs/);
 });
+
+test('long mobile flows reset and leave room for floating navigation', async () => {
+  const [onboarding, createTab, messagesTab] = await Promise.all([
+    readFile('app/(onboarding)/onboarding.tsx', 'utf8'),
+    readFile('app/(tabs)/create.tsx', 'utf8'),
+    readFile('app/(tabs)/messages.tsx', 'utf8'),
+  ]);
+
+  assert.match(onboarding, /scrollToTopKey=\{step\}/);
+  assert.match(createTab, /paddingBottom: 104/);
+  assert.match(messagesTab, /paddingBottom: 88/);
+});

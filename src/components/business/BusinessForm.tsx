@@ -357,7 +357,7 @@ export function BusinessForm({
         <Card style={styles.preview}>
           <Text style={styles.previewName}>{draft.name || 'Business profile name'}</Text>
           <Text style={styles.previewMeta}>
-            {draft.industry} | {draft.location || 'Location not set'}
+            {draft.industry} · {draft.location || 'Location not set'}
           </Text>
           <Text style={styles.previewBody}>
             {draft.shortDescription || 'Your short description will appear here.'}

@@ -344,7 +344,7 @@ function ApplicantCard({
             ) : null}
           </View>
           <Text numberOfLines={1} style={styles.roleLine}>
-            {[response.responder.primaryRole, location].filter(Boolean).join(' | ') ||
+            {[response.responder.primaryRole, location].filter(Boolean).join(' · ') ||
               'Lance applicant'}
           </Text>
           <Text style={styles.sentAt}>Applied {formatInboxTime(response.createdAt)}</Text>

@@ -213,7 +213,7 @@ export function ComposeMessageSheet({
                         connection.otherProfile.city,
                       ]
                         .filter(Boolean)
-                        .join(' | ')}
+                        .join(' · ')}
                     </Text>
                   </View>
                   <Ionicons

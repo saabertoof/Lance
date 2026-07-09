@@ -133,7 +133,7 @@ export function OpportunityDiscoverCard({
         </View>
 
         <Text numberOfLines={1} style={styles.workMeta}>
-          {getOptionLabel(workTypeOptions, opportunity.workType)} |{' '}
+          {getOptionLabel(workTypeOptions, opportunity.workType)} ·{' '}
           {getOptionLabel(
             timeCommitmentOptions,
             opportunity.timeCommitment,
@@ -152,7 +152,7 @@ export function OpportunityDiscoverCard({
           <View style={styles.reason}>
             <Ionicons color="#C8BEFF" name="sparkles-outline" size={14} />
             <Text numberOfLines={1} style={styles.reasonText}>
-              {reasons.join(' | ')}
+              {reasons.join(' · ')}
             </Text>
           </View>
         ) : null}

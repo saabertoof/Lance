@@ -382,7 +382,7 @@ export function DraftContinuation({
               {draft.title}
             </Text>
             <Text numberOfLines={1} style={styles.draftMeta}>
-              {optionLabel(workTypeOptions, draft.workType)} | {relativeDate(draft.updatedAt)}
+              {optionLabel(workTypeOptions, draft.workType)} · {relativeDate(draft.updatedAt)}
             </Text>
             <View style={styles.continueRow}>
               <Text style={styles.continueLabel}>Continue</Text>
@@ -549,7 +549,7 @@ function CreationTile({
           {title}
         </Text>
         <Text numberOfLines={1} style={styles.creationMeta}>
-          {kind === 'opportunity' ? label : 'Business'} | {relativeDate(updatedAt)}
+          {kind === 'opportunity' ? label : 'Business'} · {relativeDate(updatedAt)}
         </Text>
       </View>
     </Pressable>

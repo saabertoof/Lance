@@ -81,7 +81,7 @@ export function ChatRow({
         {chat.type === 'opportunity' && chat.opportunityTitle ? (
           <Text numberOfLines={1} style={styles.opportunityContext}>
             {chat.businessName
-              ? `${chat.businessName} | ${chat.opportunityTitle}`
+              ? `${chat.businessName} · ${chat.opportunityTitle}`
               : chat.opportunityTitle}
           </Text>
         ) : null}

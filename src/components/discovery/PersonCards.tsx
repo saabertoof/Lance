@@ -175,7 +175,7 @@ export function PersonCard({
             <View style={styles.reason}>
               <Ionicons color="#C8BEFF" name="sparkles-outline" size={14} />
               <Text numberOfLines={1} style={styles.reasonText}>
-                {reasons.join(' | ')}
+                {reasons.join(' · ')}
               </Text>
             </View>
           ) : null}
@@ -228,7 +228,7 @@ export function PersonCard({
             ),
           ]
             .filter(Boolean)
-            .join(' | ')}
+            .join(' · ')}
         </Text>
       </View>
 

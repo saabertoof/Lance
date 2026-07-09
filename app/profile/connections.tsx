@@ -93,7 +93,7 @@ export default function ConnectionsScreen() {
                       connection.otherProfile.city,
                     ]
                       .filter(Boolean)
-                      .join(' | ')}
+                      .join(' · ')}
                   </Text>
                 </View>
               </Pressable>

@@ -156,7 +156,7 @@ export default function ConnectRequestScreen() {
         <ProfileAvatar profile={other} size={76} />
         <Text style={styles.name}>{other.displayName}</Text>
         <Text style={styles.meta}>
-          {[other.primaryRole, other.city].filter(Boolean).join(' | ')}
+          {[other.primaryRole, other.city].filter(Boolean).join(' · ')}
         </Text>
       </Pressable>
 

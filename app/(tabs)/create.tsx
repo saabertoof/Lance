@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
   },
   screen: {
     gap: 18,
-    paddingBottom: 56,
+    paddingBottom: 104,
     paddingHorizontal: 16,
   },
   loadError: {

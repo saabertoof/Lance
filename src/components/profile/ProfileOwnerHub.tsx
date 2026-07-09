@@ -401,7 +401,7 @@ export function ProfileCompletionCard({
         <View style={[styles.trackFill, { width: `${completion}%` }]} />
       </View>
       <Text numberOfLines={2} style={styles.completionActions}>
-        {actions.slice(0, 3).join('  |  ')}
+        {actions.slice(0, 3).join('  ·  ')}
       </Text>
     </Pressable>
   );

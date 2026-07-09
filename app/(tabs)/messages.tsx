@@ -562,7 +562,7 @@ const styles = StyleSheet.create({
   },
   screen: {
     gap: 10,
-    paddingBottom: 44,
+    paddingBottom: 88,
   },
   console: {
     gap: 0,
