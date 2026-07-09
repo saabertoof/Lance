@@ -56,10 +56,10 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: theme.colors.surface,
     borderColor: theme.colors.border,
-    borderRadius: theme.radii.lg,
+    borderRadius: theme.radii.md,
     borderWidth: 1,
-    gap: theme.spacing.md,
-    padding: theme.spacing.lg,
+    gap: 10,
+    padding: theme.spacing.md,
   },
   row: {
     alignItems: 'center',
@@ -70,10 +70,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: theme.colors.accentSoft,
     borderRadius: theme.radii.md,
-    height: 52,
+    height: 44,
     justifyContent: 'center',
     overflow: 'hidden',
-    width: 52,
+    width: 44,
   },
   image: {
     height: '100%',
@@ -91,16 +91,16 @@ const styles = StyleSheet.create({
   name: {
     color: theme.colors.text,
     fontFamily: theme.typography.familySemiBold,
-    fontSize: theme.typography.subheading,
+    fontSize: 15,
   },
   type: {
     color: theme.colors.muted,
-    fontSize: theme.typography.small,
+    fontSize: theme.typography.caption,
   },
   description: {
     color: theme.colors.textSoft,
-    fontSize: theme.typography.small,
-    lineHeight: 20,
+    fontSize: theme.typography.caption,
+    lineHeight: 17,
   },
   meta: {
     flexDirection: 'row',

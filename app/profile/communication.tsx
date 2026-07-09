@@ -1,9 +1,13 @@
-import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Button, LoadingState, Screen } from '@/components/ui';
+import {
+  Button,
+  CompactPageHeader,
+  LoadingState,
+  Screen,
+} from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useFeedback } from '@/context/FeedbackContext';
 import {
@@ -67,21 +71,16 @@ export default function CommunicationSettingsScreen() {
 
   return (
     <Screen scroll contentStyle={styles.screen}>
-      <View style={styles.header}>
-        <Pressable
-          accessibilityLabel="Go back"
-          onPress={() => router.back()}
-          style={styles.iconButton}>
-          <Ionicons color={theme.colors.text} name="arrow-back" size={22} />
-        </Pressable>
-        <Text style={styles.title}>Communication</Text>
-        <View style={styles.iconButton} />
-      </View>
+      <CompactPageHeader
+        eyebrow="Privacy"
+        subtitle="Control who can start a new conversation with you."
+        title="Communication"
+      />
       <View style={styles.intro}>
         <Text style={styles.heading}>Who can request to connect?</Text>
         <Text style={styles.subtitle}>
           Blocking always overrides this preference. Opportunity responses are
-          controlled by each opportunity’s published status.
+          controlled by each opportunity&apos;s published status.
         </Text>
       </View>
       <View style={styles.options}>
@@ -112,21 +111,18 @@ export default function CommunicationSettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { gap: theme.spacing.xl, paddingBottom: theme.spacing.xxxl },
-  header: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
-  iconButton: { alignItems: 'center', height: 44, justifyContent: 'center', width: 44 },
-  title: { color: theme.colors.text, fontSize: theme.typography.heading, fontWeight: '900' },
-  intro: { gap: theme.spacing.sm },
-  heading: { color: theme.colors.text, fontSize: theme.typography.subheading, fontWeight: '900' },
-  subtitle: { color: theme.colors.muted, fontSize: theme.typography.small, lineHeight: 21 },
-  options: { gap: theme.spacing.md },
-  option: { alignItems: 'flex-start', borderColor: theme.colors.border, borderRadius: theme.radii.md, borderWidth: 1, flexDirection: 'row', gap: theme.spacing.md, padding: theme.spacing.lg },
+  screen: { gap: theme.spacing.lg, paddingBottom: theme.spacing.xxxl },
+  intro: { gap: 5 },
+  heading: { color: theme.colors.text, fontFamily: theme.typography.familySemiBold, fontSize: 15 },
+  subtitle: { color: theme.colors.muted, fontSize: theme.typography.caption, lineHeight: 17 },
+  options: { gap: theme.spacing.sm },
+  option: { alignItems: 'flex-start', borderColor: theme.colors.border, borderRadius: theme.radii.md, borderWidth: 1, flexDirection: 'row', gap: theme.spacing.md, padding: theme.spacing.md },
   optionSelected: { backgroundColor: theme.colors.accentSoft, borderColor: theme.colors.accent },
   radio: { alignItems: 'center', borderColor: theme.colors.mutedLight, borderRadius: 10, borderWidth: 2, height: 20, justifyContent: 'center', marginTop: 2, width: 20 },
   radioSelected: { borderColor: theme.colors.accent },
   radioDot: { backgroundColor: theme.colors.accent, borderRadius: 5, height: 10, width: 10 },
   optionCopy: { flex: 1, gap: theme.spacing.xs },
-  optionLabel: { color: theme.colors.text, fontSize: theme.typography.body, fontWeight: '800' },
-  optionDescription: { color: theme.colors.muted, fontSize: theme.typography.small, lineHeight: 20 },
+  optionLabel: { color: theme.colors.text, fontFamily: theme.typography.familySemiBold, fontSize: theme.typography.small },
+  optionDescription: { color: theme.colors.muted, fontSize: theme.typography.caption, lineHeight: 17 },
   error: { color: theme.colors.danger, fontSize: theme.typography.small, lineHeight: 20 },
 });

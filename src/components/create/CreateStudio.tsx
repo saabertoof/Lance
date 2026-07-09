@@ -692,9 +692,9 @@ const styles = StyleSheet.create({
   heroTitle: {
     color: v.text,
     fontFamily: operatorFonts.sansSemiBold,
-    fontSize: 30,
+    fontSize: 27,
     fontWeight: '600',
-    lineHeight: 35,
+    lineHeight: 31,
   },
   heroSubtitle: {
     color: v.textSoft,

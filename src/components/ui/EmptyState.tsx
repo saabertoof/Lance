@@ -28,12 +28,13 @@ const styles = StyleSheet.create({
   wrapper: {
     alignItems: 'center',
     justifyContent: 'center',
-    gap: theme.spacing.sm,
-    paddingVertical: theme.spacing.xxl,
+    gap: 6,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: 22,
   },
   mark: {
-    width: 42,
-    height: 7,
+    width: 24,
+    height: 3,
     borderRadius: theme.radii.pill,
     backgroundColor: theme.colors.accent,
     transform: [{ skewX: '-14deg' }],
@@ -41,14 +42,15 @@ const styles = StyleSheet.create({
   title: {
     color: theme.colors.text,
     fontFamily: theme.typography.familySemiBold,
-    fontSize: theme.typography.sectionHeading,
+    fontSize: 15,
+    lineHeight: 19,
     textAlign: 'center',
   },
   body: {
     color: theme.colors.muted,
-    fontSize: theme.typography.small,
-    lineHeight: 20,
-    maxWidth: 310,
+    fontSize: theme.typography.caption,
+    lineHeight: 17,
+    maxWidth: 280,
     textAlign: 'center',
   },
   button: {

@@ -5,7 +5,12 @@ import { useCallback, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { OpportunityCard } from '@/components/opportunity';
-import { Button, EmptyState, LoadingState, Screen } from '@/components/ui';
+import {
+  CompactPageHeader,
+  EmptyState,
+  LoadingState,
+  Screen,
+} from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -54,30 +59,33 @@ export default function MyOpportunitiesScreen() {
 
   return (
     <Screen scroll contentStyle={styles.screen}>
-      <View style={styles.header}>
-        <Pressable
-          accessibilityLabel="Go back"
-          accessibilityRole="button"
-          onPress={() => router.back()}
-          style={styles.iconButton}>
-          <Ionicons color={theme.colors.text} name="arrow-back" size={22} />
-        </Pressable>
-        <Text style={styles.title}>My opportunities</Text>
-        <View style={styles.placeholder} />
-      </View>
-      <Text style={styles.subtitle}>
-        Draft, publish, pause, close, and archive opportunities you created.
-      </Text>
-      <Button
-        label="Create opportunity link"
-        onPress={() => router.push(routes.newOpportunity())}
+      <CompactPageHeader
+        eyebrow="Your Lance"
+        rightAction={
+          <Pressable
+            accessibilityLabel="Create opportunity"
+            accessibilityRole="button"
+            onPress={() => router.push(routes.newOpportunity())}
+            style={({ pressed }) => [
+              styles.createButton,
+              pressed && styles.pressed,
+            ]}>
+            <Ionicons color={theme.colors.white} name="add" size={22} />
+          </Pressable>
+        }
+        subtitle="Draft, publish, pause, close, and archive your links."
+        title="Opportunities"
       />
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {opportunities.length === 0 ? (
-        <EmptyState
-          body="Start with a draft or publish when every required detail is ready."
-          title="You have not posted an opportunity yet."
-        />
+        <View style={styles.emptyPanel}>
+          <EmptyState
+            actionLabel="Create your first link"
+            body="Start with a draft, shape the details, then publish when it feels ready."
+            onActionPress={() => router.push(routes.newOpportunity())}
+            title="Your opportunity links live here"
+          />
+        </View>
       ) : (
         <>
           <OpportunityGroup items={groups.published} title="Published" />
@@ -101,7 +109,10 @@ function OpportunityGroup({
 
   return (
     <View style={styles.group}>
-      <Text style={styles.groupTitle}>{title}</Text>
+      <View style={styles.groupHeader}>
+        <Text style={styles.groupTitle}>{title}</Text>
+        <Text style={styles.groupCount}>{items.length}</Text>
+      </View>
       <View style={styles.list}>
         {items.map((opportunity) => (
           <OpportunityCard
@@ -117,48 +128,54 @@ function OpportunityGroup({
 
 const styles = StyleSheet.create({
   screen: {
-    gap: theme.spacing.xl,
+    gap: theme.spacing.lg,
     paddingBottom: theme.spacing.xxxl,
   },
-  header: {
+  createButton: {
     alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  iconButton: {
-    alignItems: 'center',
+    backgroundColor: theme.colors.accent,
+    borderColor: 'rgba(167,139,250,0.5)',
+    borderRadius: theme.radii.md,
+    borderWidth: 1,
     height: 44,
     justifyContent: 'center',
     width: 44,
   },
-  placeholder: {
-    height: 44,
-    width: 44,
-  },
-  title: {
-    color: theme.colors.text,
-    fontSize: theme.typography.heading,
-    fontWeight: '900',
-  },
-  subtitle: {
-    color: theme.colors.muted,
-    fontSize: theme.typography.body,
-    lineHeight: 24,
+  emptyPanel: {
+    borderColor: theme.colors.border,
+    borderRadius: theme.radii.md,
+    borderWidth: 1,
+    marginTop: theme.spacing.sm,
+    overflow: 'hidden',
   },
   group: {
-    gap: theme.spacing.md,
+    gap: theme.spacing.sm,
+  },
+  groupHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   groupTitle: {
-    color: theme.colors.text,
-    fontSize: theme.typography.subheading,
-    fontWeight: '900',
+    color: theme.colors.textSoft,
+    fontFamily: theme.typography.familyMonoSemiBold,
+    fontSize: theme.typography.tiny,
+    textTransform: 'uppercase',
+  },
+  groupCount: {
+    color: theme.colors.muted,
+    fontFamily: theme.typography.familyMonoMedium,
+    fontSize: theme.typography.tiny,
   },
   list: {
-    gap: theme.spacing.md,
+    gap: theme.spacing.sm,
   },
   error: {
     color: theme.colors.danger,
     fontSize: theme.typography.small,
     textAlign: 'center',
+  },
+  pressed: {
+    opacity: 0.72,
   },
 });

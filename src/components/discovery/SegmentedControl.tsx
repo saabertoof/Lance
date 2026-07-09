@@ -61,7 +61,7 @@ export function SegmentedControl<T extends string>({
                       : theme.colors.muted
                 }
                 name={option.icon}
-                size={compact ? 15 : operator ? 18 : 16}
+                size={compact ? 15 : operator ? 15 : 16}
               />
             ) : null}
             <Text
@@ -119,8 +119,10 @@ const styles = StyleSheet.create({
   },
   operatorOption: {
     borderRadius: 19,
+    gap: 3,
     minHeight: 40,
     overflow: 'hidden',
+    paddingHorizontal: 4,
   },
   compactOption: {
     borderRadius: 15,
@@ -149,7 +151,7 @@ const styles = StyleSheet.create({
   operatorLabel: {
     color: v.textSoft,
     fontFamily: operatorFonts.monoSemiBold,
-    fontSize: 11,
+    fontSize: 9,
     fontWeight: '600',
     textTransform: 'uppercase',
   },

@@ -577,7 +577,7 @@ function Detail({ label, value }: { label: string; value: string }) {
 
 const styles = StyleSheet.create({
   screen: {
-    gap: theme.spacing.xl,
+    gap: theme.spacing.lg,
     paddingBottom: theme.spacing.xxxl,
   },
   topBar: {
@@ -604,10 +604,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: theme.colors.accentSoft,
     borderRadius: theme.radii.md,
-    height: 52,
+    height: 44,
     justifyContent: 'center',
     overflow: 'hidden',
-    width: 52,
+    width: 44,
   },
   image: {
     height: '100%',
@@ -624,7 +624,7 @@ const styles = StyleSheet.create({
   },
   posterName: {
     color: theme.colors.text,
-    fontSize: theme.typography.body,
+    fontSize: theme.typography.small,
     fontFamily: theme.typography.familySemiBold,
   },
   posterType: {
@@ -632,18 +632,18 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.tiny,
   },
   hero: {
-    gap: theme.spacing.md,
+    gap: 10,
   },
   title: {
     color: theme.colors.text,
     fontFamily: theme.typography.familySemiBold,
-    fontSize: theme.typography.title,
-    lineHeight: 36,
+    fontSize: theme.typography.screenHeading,
+    lineHeight: 27,
   },
   summary: {
     color: theme.colors.textSoft,
-    fontSize: theme.typography.body,
-    lineHeight: 25,
+    fontSize: theme.typography.small,
+    lineHeight: 20,
   },
   badges: {
     flexDirection: 'row',
@@ -678,13 +678,14 @@ const styles = StyleSheet.create({
   section: {
     borderBottomColor: theme.colors.border,
     borderBottomWidth: 1,
-    gap: theme.spacing.md,
-    paddingBottom: theme.spacing.xl,
+    gap: 10,
+    paddingBottom: theme.spacing.lg,
   },
   sectionTitle: {
-    color: theme.colors.text,
-    fontSize: theme.typography.subheading,
-    fontWeight: '900',
+    color: theme.colors.textSoft,
+    fontFamily: theme.typography.familyMonoSemiBold,
+    fontSize: theme.typography.tiny,
+    textTransform: 'uppercase',
   },
   detail: {
     flexDirection: 'row',
@@ -693,19 +694,19 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     color: theme.colors.muted,
-    fontSize: theme.typography.small,
+    fontSize: theme.typography.caption,
   },
   detailValue: {
     color: theme.colors.text,
     flex: 1,
-    fontSize: theme.typography.small,
-    fontWeight: '700',
+    fontFamily: theme.typography.familyMedium,
+    fontSize: theme.typography.caption,
     textAlign: 'right',
   },
   body: {
     color: theme.colors.textSoft,
-    fontSize: theme.typography.body,
-    lineHeight: 25,
+    fontSize: theme.typography.small,
+    lineHeight: 20,
   },
   skills: {
     flexDirection: 'row',
@@ -720,8 +721,8 @@ const styles = StyleSheet.create({
   },
   linkLabel: {
     color: theme.colors.accentStrong,
-    fontSize: theme.typography.body,
-    fontWeight: '700',
+    fontFamily: theme.typography.familySemiBold,
+    fontSize: theme.typography.small,
   },
   sharePrompt: {
     alignItems: 'center',
@@ -747,8 +748,8 @@ const styles = StyleSheet.create({
   },
   shareTitle: {
     color: theme.colors.text,
+    fontFamily: theme.typography.familySemiBold,
     fontSize: theme.typography.small,
-    fontWeight: '900',
   },
   shareBody: {
     color: theme.colors.textSoft,

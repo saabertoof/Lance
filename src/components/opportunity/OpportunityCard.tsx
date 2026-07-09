@@ -141,10 +141,10 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: theme.colors.surface,
     borderColor: theme.colors.border,
-    borderRadius: theme.radii.lg,
+    borderRadius: theme.radii.md,
     borderWidth: 1,
-    gap: theme.spacing.md,
-    padding: theme.spacing.lg,
+    gap: 10,
+    padding: theme.spacing.md,
   },
   posterRow: {
     alignItems: 'center',
@@ -191,12 +191,13 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
     flex: 1,
     fontFamily: theme.typography.familySemiBold,
-    fontSize: theme.typography.heading,
+    fontSize: theme.typography.sectionHeading,
+    lineHeight: 21,
   },
   summary: {
     color: theme.colors.textSoft,
-    fontSize: theme.typography.small,
-    lineHeight: 21,
+    fontSize: theme.typography.caption,
+    lineHeight: 17,
   },
   badges: {
     flexDirection: 'row',
@@ -205,8 +206,8 @@ const styles = StyleSheet.create({
   },
   meta: {
     color: theme.colors.muted,
-    fontSize: theme.typography.small,
-    lineHeight: 20,
+    fontSize: theme.typography.caption,
+    lineHeight: 17,
   },
   skills: {
     flexDirection: 'row',

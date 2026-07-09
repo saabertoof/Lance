@@ -5,7 +5,12 @@ import { useCallback, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { BusinessCard } from '@/components/business';
-import { Button, EmptyState, LoadingState, Screen } from '@/components/ui';
+import {
+  CompactPageHeader,
+  EmptyState,
+  LoadingState,
+  Screen,
+} from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { formatBusinessError, loadMyBusinesses } from '@/lib/business';
@@ -53,28 +58,33 @@ export default function MyBusinessesScreen() {
 
   return (
     <Screen scroll contentStyle={styles.screen}>
-      <View style={styles.header}>
-        <Pressable
-          accessibilityLabel="Go back"
-          accessibilityRole="button"
-          onPress={() => router.back()}
-          style={styles.iconButton}>
-          <Ionicons color={theme.colors.text} name="arrow-back" size={22} />
-        </Pressable>
-        <Text style={styles.title}>My businesses</Text>
-        <View style={styles.placeholder} />
-      </View>
-      <Text style={styles.subtitle}>Manage business profiles you own.</Text>
-      <Button
-        label="Create business profile"
-        onPress={() => router.push(routes.newBusiness)}
+      <CompactPageHeader
+        eyebrow="Your Lance"
+        rightAction={
+          <Pressable
+            accessibilityLabel="Create business profile"
+            accessibilityRole="button"
+            onPress={() => router.push(routes.newBusiness)}
+            style={({ pressed }) => [
+              styles.createButton,
+              pressed && styles.pressed,
+            ]}>
+            <Ionicons color={theme.colors.white} name="add" size={22} />
+          </Pressable>
+        }
+        subtitle="Manage the identities you post opportunities from."
+        title="Businesses"
       />
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {businesses.length === 0 ? (
-        <EmptyState
-          body="Create one to build a public identity and post opportunities under it."
-          title="No business profiles yet."
-        />
+        <View style={styles.emptyPanel}>
+          <EmptyState
+            actionLabel="Create a business"
+            body="Build a clean public identity, then publish opportunity links under it."
+            onActionPress={() => router.push(routes.newBusiness)}
+            title="No business profiles yet"
+          />
+        </View>
       ) : (
         <View style={styles.list}>
           {businesses.map((business) => (
@@ -92,40 +102,35 @@ export default function MyBusinessesScreen() {
 
 const styles = StyleSheet.create({
   screen: {
-    gap: theme.spacing.xl,
+    gap: theme.spacing.lg,
     paddingBottom: theme.spacing.xxxl,
   },
-  header: {
+  createButton: {
     alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  iconButton: {
-    alignItems: 'center',
+    backgroundColor: theme.colors.accent,
+    borderColor: 'rgba(167,139,250,0.5)',
+    borderRadius: theme.radii.md,
+    borderWidth: 1,
     height: 44,
     justifyContent: 'center',
     width: 44,
   },
-  placeholder: {
-    height: 44,
-    width: 44,
-  },
-  title: {
-    color: theme.colors.text,
-    fontSize: theme.typography.heading,
-    fontWeight: '900',
-  },
-  subtitle: {
-    color: theme.colors.muted,
-    fontSize: theme.typography.body,
-    lineHeight: 24,
+  emptyPanel: {
+    borderColor: theme.colors.border,
+    borderRadius: theme.radii.md,
+    borderWidth: 1,
+    marginTop: theme.spacing.sm,
+    overflow: 'hidden',
   },
   list: {
-    gap: theme.spacing.md,
+    gap: theme.spacing.sm,
   },
   error: {
     color: theme.colors.danger,
     fontSize: theme.typography.small,
     textAlign: 'center',
+  },
+  pressed: {
+    opacity: 0.72,
   },
 });

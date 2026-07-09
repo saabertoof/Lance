@@ -1,13 +1,18 @@
-import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import {
   ConnectionRequestRow,
   OpportunityResponseRow,
 } from '@/components/communication';
-import { Button, EmptyState, LoadingState, Screen } from '@/components/ui';
+import {
+  Button,
+  CompactPageHeader,
+  EmptyState,
+  LoadingState,
+  Screen,
+} from '@/components/ui';
 import { theme } from '@/constants/theme';
 import {
   formatCommunicationError,
@@ -88,23 +93,15 @@ export default function SentRequestsScreen() {
       refreshing={isLoading}
       scroll
       contentStyle={styles.screen}>
-      <View style={styles.header}>
-        <Pressable
-          accessibilityLabel="Go back"
-          onPress={() => router.back()}
-          style={styles.iconButton}>
-          <Ionicons color={theme.colors.text} name="arrow-back" size={22} />
-        </Pressable>
-        <Text style={styles.title}>
-          {applicationsOnly ? 'Applications' : 'Sent requests'}
-        </Text>
-        <View style={styles.iconButton} />
-      </View>
-      <Text style={styles.subtitle}>
-        {applicationsOnly
-          ? 'Track opportunity applications and active discussions.'
-          : 'Track Connect requests and opportunity applications you have sent.'}
-      </Text>
+      <CompactPageHeader
+        eyebrow="Activity"
+        subtitle={
+          applicationsOnly
+            ? 'Track opportunity applications and active discussions.'
+            : 'Connect requests and opportunity applications you have sent.'
+        }
+        title={applicationsOnly ? 'Applications' : 'Sent requests'}
+      />
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {requests.length + responses.length === 0 ? (
         <EmptyState
@@ -181,12 +178,8 @@ function Section({
 }
 
 const styles = StyleSheet.create({
-  screen: { gap: theme.spacing.xl, paddingBottom: theme.spacing.xxxl },
-  header: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
-  iconButton: { alignItems: 'center', height: 44, justifyContent: 'center', width: 44 },
-  title: { color: theme.colors.text, fontSize: theme.typography.heading, fontWeight: '900' },
-  subtitle: { color: theme.colors.muted, fontSize: theme.typography.small, lineHeight: 21 },
-  section: { marginBottom: theme.spacing.lg },
-  sectionTitle: { color: theme.colors.text, fontSize: theme.typography.subheading, fontWeight: '900', marginBottom: theme.spacing.sm },
+  screen: { gap: theme.spacing.md, paddingBottom: theme.spacing.xxxl },
+  section: { marginBottom: theme.spacing.md },
+  sectionTitle: { color: theme.colors.textSoft, fontFamily: theme.typography.familyMonoSemiBold, fontSize: theme.typography.tiny, marginBottom: theme.spacing.sm, textTransform: 'uppercase' },
   error: { color: theme.colors.danger, fontSize: theme.typography.small, lineHeight: 20 },
 });

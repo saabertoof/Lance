@@ -1,12 +1,17 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { router } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { PersonCard, SegmentedControl } from '@/components/discovery';
 import { OpportunityCard } from '@/components/opportunity';
-import { Button, EmptyState, LoadingState, Screen } from '@/components/ui';
+import {
+  Button,
+  CompactPageHeader,
+  EmptyState,
+  LoadingState,
+  Screen,
+} from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { useSaved } from '@/context/SavedContext';
@@ -114,21 +119,11 @@ export default function SavedScreen() {
       contentStyle={styles.screen}
       onRefresh={() => void refresh()}
       refreshing={isRefreshing}>
-      <View style={styles.header}>
-        <Pressable
-          accessibilityLabel="Go back"
-          accessibilityRole="button"
-          onPress={() => router.back()}
-          style={styles.iconButton}>
-          <Ionicons color={theme.colors.text} name="arrow-back" size={22} />
-        </Pressable>
-        <Text style={styles.title}>Saved</Text>
-        <View style={styles.placeholder} />
-      </View>
-
-      <Text style={styles.privateNote}>
-        Saved items are private. Saving is not a like or expression of interest.
-      </Text>
+      <CompactPageHeader
+        eyebrow="Private"
+        subtitle="Quietly keep people and opportunities worth returning to."
+        title="Saved"
+      />
       <SegmentedControl onChange={setMode} options={modes} value={mode} />
 
       {isLoading ? <LoadingState message={`Loading saved ${mode}`} /> : null}
@@ -194,41 +189,11 @@ function mergeById<T extends { id: string }>(current: T[], next: T[]) {
 
 const styles = StyleSheet.create({
   screen: {
-    gap: theme.spacing.lg,
+    gap: theme.spacing.md,
     paddingBottom: theme.spacing.xxxl,
   },
-  header: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  iconButton: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.surfaceMuted,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radii.md,
-    borderWidth: 1,
-    height: 44,
-    justifyContent: 'center',
-    width: 44,
-  },
-  title: {
-    color: theme.colors.text,
-    fontSize: theme.typography.heading,
-    fontWeight: '900',
-  },
-  placeholder: {
-    height: 44,
-    width: 44,
-  },
-  privateNote: {
-    color: theme.colors.muted,
-    fontSize: theme.typography.small,
-    lineHeight: 20,
-    textAlign: 'center',
-  },
   results: {
-    gap: theme.spacing.md,
+    gap: theme.spacing.sm,
   },
   state: {
     gap: theme.spacing.sm,

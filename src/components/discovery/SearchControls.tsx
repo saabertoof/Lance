@@ -26,7 +26,7 @@ export function SearchBar({
       <Ionicons
         color={operator ? v.textSoft : theme.colors.muted}
         name="search-outline"
-        size={operator ? 18 : theme.icons.standard}
+        size={operator ? 16 : theme.icons.standard}
       />
       <TextInput
         accessibilityLabel={accessibilityLabel}
@@ -138,12 +138,12 @@ const styles = StyleSheet.create({
     borderColor: v.borderStrong,
     borderRadius: 16,
     minHeight: 44,
-    paddingHorizontal: 13,
+    paddingHorizontal: 10,
   },
   operatorInput: {
     color: v.text,
     fontFamily: operatorFonts.sans,
-    fontSize: 14,
+    fontSize: 13,
     minHeight: 44,
   },
   clear: {

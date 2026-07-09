@@ -9,7 +9,12 @@ import {
   View,
 } from 'react-native';
 
-import { Button, LoadingState, Screen } from '@/components/ui';
+import {
+  Button,
+  CompactPageHeader,
+  LoadingState,
+  Screen,
+} from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { useFeedback } from '@/context/FeedbackContext';
@@ -207,20 +212,11 @@ export default function ProfileSettingsScreen() {
 
   return (
     <Screen compact scroll contentStyle={styles.screen}>
-      <View style={styles.header}>
-        <Pressable
-          accessibilityLabel="Go back"
-          accessibilityRole="button"
-          onPress={() => router.back()}
-          style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}>
-          <Ionicons color={theme.colors.text} name="arrow-back" size={21} />
-        </Pressable>
-        <View style={styles.headerCopy}>
-          <Text style={styles.title}>Settings</Text>
-          <Text style={styles.subtitle}>Account, privacy, alerts, and app controls.</Text>
-        </View>
-        <View style={styles.iconButton} />
-      </View>
+      <CompactPageHeader
+        eyebrow="Controls"
+        subtitle="Account, privacy, alerts, and app preferences."
+        title="Settings"
+      />
 
       <SettingsSection
         description="Your login, profile, and communication basics."
@@ -561,62 +557,33 @@ function RowIcon({
 
 const styles = StyleSheet.create({
   screen: {
-    gap: theme.spacing.md,
+    gap: theme.spacing.lg,
     paddingBottom: 120,
-    paddingHorizontal: 14,
-  },
-  header: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: theme.spacing.md,
-  },
-  headerCopy: {
-    flex: 1,
-    gap: 2,
-  },
-  iconButton: {
-    alignItems: 'center',
-    borderRadius: theme.radii.pill,
-    height: 44,
-    justifyContent: 'center',
-    width: 44,
-  },
-  title: {
-    color: theme.colors.text,
-    fontFamily: theme.typography.familySemiBold,
-    fontSize: theme.typography.screenHeading,
-  },
-  subtitle: {
-    color: theme.colors.muted,
-    fontSize: theme.typography.caption,
-    fontFamily: theme.typography.familyMedium,
+    paddingHorizontal: 16,
   },
   section: {
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: 18,
-    borderWidth: 1,
-    gap: theme.spacing.md,
-    padding: theme.spacing.lg,
+    borderTopColor: theme.colors.border,
+    borderTopWidth: 1,
+    gap: theme.spacing.sm,
+    paddingHorizontal: 2,
+    paddingTop: theme.spacing.md,
   },
   dangerSection: {
-    backgroundColor: 'rgba(255,107,107,0.08)',
-    borderColor: 'rgba(255,107,107,0.22)',
+    borderTopColor: 'rgba(255,107,107,0.28)',
   },
   sectionHeader: {
-    gap: 4,
+    gap: 3,
   },
   sectionTitle: {
-    color: theme.colors.text,
+    color: theme.colors.textSoft,
     fontFamily: theme.typography.familyMonoSemiBold,
-    fontSize: theme.typography.cardTitle,
-    letterSpacing: 0.6,
+    fontSize: theme.typography.tiny,
     textTransform: 'uppercase',
   },
   sectionDescription: {
     color: theme.colors.muted,
-    fontSize: theme.typography.caption,
-    lineHeight: 17,
+    fontSize: 10,
+    lineHeight: 14,
   },
   sectionBody: {
     borderTopColor: theme.colors.border,
@@ -625,17 +592,17 @@ const styles = StyleSheet.create({
   row: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: theme.spacing.md,
-    minHeight: 56,
-    paddingVertical: theme.spacing.sm,
+    gap: 10,
+    minHeight: 50,
+    paddingVertical: 7,
   },
   rowIcon: {
     alignItems: 'center',
     backgroundColor: theme.colors.accentSoft,
-    borderRadius: theme.radii.md,
-    height: 36,
+    borderRadius: theme.radii.sm,
+    height: 32,
     justifyContent: 'center',
-    width: 36,
+    width: 32,
   },
   dangerIcon: {
     backgroundColor: 'rgba(255,107,107,0.12)',
@@ -647,18 +614,18 @@ const styles = StyleSheet.create({
   },
   rowLabel: {
     color: theme.colors.text,
-    fontSize: theme.typography.small,
     fontFamily: theme.typography.familySemiBold,
+    fontSize: 12,
   },
   rowDetail: {
     color: theme.colors.muted,
-    fontSize: theme.typography.caption,
-    lineHeight: 16,
+    fontSize: 10,
+    lineHeight: 14,
   },
   rowValue: {
     color: theme.colors.muted,
     flexShrink: 0,
-    fontSize: theme.typography.caption,
+    fontSize: 10,
     fontFamily: theme.typography.familyMonoMedium,
     maxWidth: 112,
     textAlign: 'right',

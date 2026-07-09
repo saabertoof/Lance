@@ -4,7 +4,13 @@ import { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { ProfileAvatar } from '@/components/communication';
-import { Button, EmptyState, LoadingState, Screen } from '@/components/ui';
+import {
+  Button,
+  CompactPageHeader,
+  EmptyState,
+  LoadingState,
+  Screen,
+} from '@/components/ui';
 import { theme } from '@/constants/theme';
 import {
   COMMUNICATION_PAGE_SIZE,
@@ -61,10 +67,11 @@ export default function ConnectionsScreen() {
       refreshing={isLoading}
       scroll
       contentStyle={styles.screen}>
-      <Header title="Connections" />
-      <Text style={styles.subtitle}>
-        Accepted connections can message each other directly.
-      </Text>
+      <CompactPageHeader
+        eyebrow="Network"
+        subtitle="People you can message directly."
+        title="Connections"
+      />
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {connections.length > 0 ? (
         <View>
@@ -125,32 +132,13 @@ export default function ConnectionsScreen() {
   );
 }
 
-function Header({ title }: { title: string }) {
-  return (
-    <View style={styles.header}>
-      <Pressable
-        accessibilityLabel="Go back"
-        onPress={() => router.back()}
-        style={styles.iconButton}>
-        <Ionicons color={theme.colors.text} name="arrow-back" size={22} />
-      </Pressable>
-      <Text style={styles.title}>{title}</Text>
-      <View style={styles.iconButton} />
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  screen: { gap: theme.spacing.lg, paddingBottom: theme.spacing.xxxl },
-  header: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
-  iconButton: { alignItems: 'center', height: 44, justifyContent: 'center', width: 44 },
-  title: { color: theme.colors.text, fontSize: theme.typography.heading, fontWeight: '900' },
-  subtitle: { color: theme.colors.muted, fontSize: theme.typography.small, lineHeight: 21 },
-  row: { alignItems: 'center', borderBottomColor: theme.colors.border, borderBottomWidth: 1, flexDirection: 'row', gap: theme.spacing.md, minHeight: 76, paddingVertical: theme.spacing.md },
+  screen: { gap: theme.spacing.md, paddingBottom: theme.spacing.xxxl },
+  row: { alignItems: 'center', borderBottomColor: theme.colors.border, borderBottomWidth: 1, flexDirection: 'row', gap: theme.spacing.md, minHeight: 68, paddingVertical: 10 },
   person: { alignItems: 'center', flex: 1, flexDirection: 'row', gap: theme.spacing.md, minWidth: 0 },
   copy: { flex: 1, gap: 3, minWidth: 0 },
-  name: { color: theme.colors.text, fontSize: theme.typography.body, fontWeight: '800' },
-  meta: { color: theme.colors.muted, fontSize: theme.typography.small },
+  name: { color: theme.colors.text, fontFamily: theme.typography.familySemiBold, fontSize: theme.typography.small },
+  meta: { color: theme.colors.muted, fontSize: theme.typography.caption },
   messageButton: { alignItems: 'center', backgroundColor: theme.colors.accentSoft, borderRadius: theme.radii.md, height: 44, justifyContent: 'center', width: 44 },
   error: { color: theme.colors.danger, fontSize: theme.typography.small, lineHeight: 20 },
 });

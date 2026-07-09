@@ -317,13 +317,13 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
   },
   body: {
-    gap: 12,
+    gap: 10,
     paddingBottom: 24,
     paddingHorizontal: 16,
   },
   cardRow: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 10,
   },
   error: {
     color: profileVisual.danger,
