@@ -187,7 +187,8 @@ for (const query of ['Find me someone good', 'I need help', 'Show me marketing']
     const plan = fixture('people', (value) => {
       value.original_intent_summary = query;
       value.needs_clarification = true;
-      value.clarification_question = 'Are you looking for People, Jobs, or Businesses?';
+      value.clarification_question =
+        'Are you looking for People, opportunities, or Businesses?';
       value.confidence = 0.3;
     });
     assert.equal(validateSearchPlan(plan).success, true);
@@ -317,4 +318,14 @@ test('Ask Lance uses Responses API strict Structured Outputs', async () => {
   assert.match(source, /type:\s*'json_schema'/);
   assert.match(source, /strict:\s*true/);
   assert.match(source, /OPENAI_SEARCH_MODEL/);
+});
+
+test('Ask Lance keeps opportunity language in user-facing clarifications', async () => {
+  const source = await readFile(
+    new URL('../supabase/functions/ask-lance/index.ts', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(source, /say opportunities instead of jobs/i);
+  assert.doesNotMatch(source, /People, Jobs, or Businesses/);
 });

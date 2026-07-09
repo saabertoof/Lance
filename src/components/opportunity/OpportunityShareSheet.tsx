@@ -4,7 +4,6 @@ import * as Sharing from 'expo-sharing';
 import { useRef, useState } from 'react';
 import {
   Modal,
-  PixelRatio,
   Platform,
   Pressable,
   ScrollView,
@@ -26,6 +25,11 @@ import {
   getOpportunityShareCopy,
 } from '@/lib/opportunity';
 import type { OpportunityRecord } from '@/types/opportunity';
+
+const shareCardSize = {
+  height: 1350,
+  width: 1080,
+};
 
 export function OpportunityShareSheet({
   onClose,
@@ -76,10 +80,10 @@ export function OpportunityShareSheet({
 
       const imageUri = await captureRef(posterRef, {
         format: 'png',
-        height: 1350 / PixelRatio.get(),
+        height: shareCardSize.height,
         quality: 1,
         result: 'tmpfile',
-        width: 1080 / PixelRatio.get(),
+        width: shareCardSize.width,
       });
 
       await Sharing.shareAsync(imageUri, {

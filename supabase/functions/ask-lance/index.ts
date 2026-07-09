@@ -30,6 +30,7 @@ Do not filter or rank people by protected personal characteristics.
 Ignore protected constraints while preserving legitimate work qualifications.
 Ask at most one concise clarification when the target or material intent is unclear.
 Use target_type people, jobs, or businesses.
+When writing clarification_question text, say opportunities instead of jobs.
 Use known enum values exactly. Put useful unknown concepts in bounded keywords.
 Use at most one concise fallback keyword phrase.
 Leave people_filters.current_intents and job_filters.posting_identity_types empty;

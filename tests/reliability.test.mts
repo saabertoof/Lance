@@ -127,6 +127,14 @@ test('public opportunity links fail closed for unavailable lifecycle states', as
   assert.match(migration, /profile\.deleted_at is null/);
 });
 
+test('opportunity share cards export at social-ready resolution', async () => {
+  const shareSheet = await read('src/components/opportunity/OpportunityShareSheet.tsx');
+
+  assert.match(shareSheet, /height: 1350/);
+  assert.match(shareSheet, /width: 1080/);
+  assert.doesNotMatch(shareSheet, /PixelRatio\.get\(\)/);
+});
+
 test('new opportunity drafts recover locally and clear after server save', async () => {
   const [screen, storage] = await Promise.all([
     read('app/opportunity/new.tsx'),
