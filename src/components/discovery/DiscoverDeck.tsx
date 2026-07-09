@@ -229,17 +229,17 @@ export function DiscoverDeck({
   });
   const nextCardOpacity = position.x.interpolate({
     inputRange: [-width, 0, width],
-    outputRange: [1, 0.52, 1],
+    outputRange: [1, 0.5, 1],
     extrapolate: 'clamp',
   });
   const nextCardScale = position.x.interpolate({
     inputRange: [-width, 0, width],
-    outputRange: [1, 0.965, 1],
+    outputRange: [1, 0.982, 1],
     extrapolate: 'clamp',
   });
   const nextCardTranslateY = position.x.interpolate({
     inputRange: [-width, 0, width],
-    outputRange: [0, 10, 0],
+    outputRange: [0, 7, 0],
     extrapolate: 'clamp',
   });
   const primaryIcon: keyof typeof Ionicons.glyphMap =
@@ -497,20 +497,22 @@ const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
     gap: 12,
+    overflow: 'visible',
     position: 'relative',
   },
   stack: {
     flex: 1,
     minHeight: 390,
+    overflow: 'visible',
     paddingBottom: 2,
     position: 'relative',
   },
   nextCard: {
-    bottom: 2,
-    left: 10,
+    bottom: 0,
+    left: 0,
     position: 'absolute',
-    right: 10,
-    top: 2,
+    right: 0,
+    top: 0,
     zIndex: 0,
   },
   jiggleLayer: {
@@ -649,6 +651,8 @@ const styles = StyleSheet.create({
     gap: 10,
     minHeight: 36,
     paddingHorizontal: 14,
+    position: 'absolute',
+    bottom: 84,
     zIndex: 10,
   },
   undoMessage: {
