@@ -15,6 +15,7 @@ import { Button, Chip, LoadingState, Screen } from '@/components/ui';
 import { operatorFonts, operatorVisual as v } from '@/constants/operatorTheme';
 import { theme } from '@/constants/theme';
 import { type OnboardingStatus, useAuth } from '@/context/AuthContext';
+import { useNetworkStatus } from '@/context/NetworkStatusContext';
 import { authRoute, normalizeInternalNext } from '@/lib/authNavigation';
 import { formatDateLabel } from '@/lib/date';
 import { openExternalUrl } from '@/lib/externalLinks';
@@ -26,6 +27,7 @@ import {
   loadPublicOpportunityBySlug,
   needsCompensationWarning,
 } from '@/lib/opportunity';
+import { trackOpportunityFunnelEvent } from '@/lib/opportunityFunnel';
 import {
   opportunityExperienceOptions,
   type OpportunityRecord,
@@ -71,6 +73,11 @@ export default function PublicOpportunityScreen() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    if (!opportunity?.slug) return;
+    void trackOpportunityFunnelEvent(opportunity.slug, 'view');
+  }, [opportunity?.slug]);
 
   if (isLoading && !opportunity) {
     return <LoadingState message="Opening opportunity" />;
@@ -410,6 +417,9 @@ function ApplyAction({
   userId: string | null;
 }) {
   const nextPath = normalizeInternalNext(`/o/${opportunity.slug}`);
+  const { isOffline } = useNetworkStatus();
+  const trackApplicationStart = () =>
+    void trackOpportunityFunnelEvent(opportunity.slug, 'apply_started');
 
   if (authLoading || onboardingStatus === 'loading') {
     return (
@@ -425,8 +435,12 @@ function ApplyAction({
   if (!sessionExists) {
     return (
       <Button
-        label="Apply with Lance"
-        onPress={() => router.push(authRoute('/signup', nextPath))}
+        disabled={isOffline}
+        label={isOffline ? 'Reconnect to apply' : 'Apply with Lance'}
+        onPress={() => {
+          trackApplicationStart();
+          router.push(authRoute('/signup', nextPath));
+        }}
         style={styles.applyButton}
       />
     );
@@ -446,8 +460,12 @@ function ApplyAction({
   if (onboardingStatus !== 'complete') {
     return (
       <Button
-        label="Finish profile"
-        onPress={() => router.push(authRoute('/onboarding', nextPath))}
+        disabled={isOffline}
+        label={isOffline ? 'Reconnect to continue' : 'Finish profile'}
+        onPress={() => {
+          trackApplicationStart();
+          router.push(authRoute('/onboarding', nextPath));
+        }}
         style={styles.applyButton}
       />
     );
@@ -468,6 +486,7 @@ function ApplyAction({
     <View style={styles.applyButton}>
       <OpportunityInterestAction
         deferLoad
+        onApplicationStart={trackApplicationStart}
         onError={onError}
         opportunity={opportunity}
       />

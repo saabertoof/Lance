@@ -5,10 +5,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { ProfileAvatar, formatInboxTime } from '@/components/communication';
+import { OpportunityFunnelCard } from '@/components/opportunity';
 import { Button, EmptyState, LoadingState, Screen } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { useFeedback } from '@/context/FeedbackContext';
+import { captureClientError } from '@/lib/clientMonitoring';
 import {
   COMMUNICATION_PAGE_SIZE,
   formatCommunicationError,
@@ -72,6 +74,7 @@ export default function OpportunityResponsesScreen() {
       await loadApplicantProfiles(responseResult, false);
       await markOpportunityResponsesViewed({ opportunityId: id });
     } catch (loadError) {
+      captureClientError(loadError, 'opportunity_applicants_load');
       setError(
         formatCommunicationError(loadError) || formatOpportunityError(loadError),
       );
@@ -97,6 +100,7 @@ export default function OpportunityResponsesScreen() {
       setHasMore(result.length === COMMUNICATION_PAGE_SIZE);
       await loadApplicantProfiles(result, true);
     } catch (loadError) {
+      captureClientError(loadError, 'opportunity_applicants_more');
       setError(formatCommunicationError(loadError));
     } finally {
       setIsLoadingMore(false);
@@ -138,6 +142,7 @@ export default function OpportunityResponsesScreen() {
       showSuccess('Conversation started.');
       router.push(routes.conversation(conversationId));
     } catch (startError) {
+      captureClientError(startError, 'opportunity_applicant_discussion');
       setError(formatCommunicationError(startError));
     } finally {
       actionRef.current = false;
@@ -175,6 +180,7 @@ export default function OpportunityResponsesScreen() {
       );
       showSuccess('Applicant marked as passed.');
     } catch (updateError) {
+      captureClientError(updateError, 'opportunity_applicant_pass');
       setError(formatCommunicationError(updateError));
     } finally {
       actionRef.current = false;
@@ -227,7 +233,15 @@ export default function OpportunityResponsesScreen() {
           <SummaryPill label="Talking" value={summary.discussionCount} />
         </View>
       ) : null}
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {isOwner && opportunity?.status === 'published' ? (
+        <OpportunityFunnelCard opportunityId={opportunity.id} />
+      ) : null}
+      {error ? (
+        <View style={styles.errorPanel}>
+          <Text style={styles.error}>{error}</Text>
+          <Button label="Try again" onPress={() => void load()} variant="secondary" />
+        </View>
+      ) : null}
       {!isOwner ? (
         <EmptyState
           title="Owner access only"
@@ -330,7 +344,7 @@ function ApplicantCard({
             ) : null}
           </View>
           <Text numberOfLines={1} style={styles.roleLine}>
-            {[response.responder.primaryRole, location].filter(Boolean).join(' · ') ||
+            {[response.responder.primaryRole, location].filter(Boolean).join(' | ') ||
               'Lance applicant'}
           </Text>
           <Text style={styles.sentAt}>Applied {formatInboxTime(response.createdAt)}</Text>
@@ -602,5 +616,6 @@ const styles = StyleSheet.create({
   cardActionTextSubtle: { color: theme.colors.muted },
   disabled: { opacity: 0.55 },
   pressed: { opacity: 0.68 },
+  errorPanel: { gap: theme.spacing.sm },
   error: { color: theme.colors.danger, fontSize: theme.typography.small, lineHeight: 20 },
 });

@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { router } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
@@ -15,14 +16,22 @@ import { operatorFonts, operatorVisual as v } from '@/constants/operatorTheme';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { useAdaptiveTabBar } from '@/context/AdaptiveTabBarContext';
+import { useFeedback } from '@/context/FeedbackContext';
 import {
   loadCreateStudioSummary,
   type CreateStudioSummary,
 } from '@/lib/createStudio';
+import {
+  clearLocalOpportunityDraft,
+  loadLocalOpportunityDraft,
+} from '@/lib/localOpportunityDraft';
 import { applyMagicOpportunityDraft } from '@/lib/opportunityMagicDraft';
 import { loadPersonalProfile } from '@/lib/profile';
 import { routes } from '@/lib/routes';
-import { createEmptyOpportunityDraft } from '@/types/opportunity';
+import {
+  createEmptyOpportunityDraft,
+  type OpportunityDraft,
+} from '@/types/opportunity';
 
 const emptySummary: CreateStudioSummary = {
   businesses: [],
@@ -34,11 +43,13 @@ const emptySummary: CreateStudioSummary = {
 export default function CreateScreen() {
   const { user } = useAuth();
   const { reduceMotion } = useAdaptiveTabBar();
+  const { showSuccess, showWarning } = useFeedback();
   const [summary, setSummary] = useState<CreateStudioSummary>(emptySummary);
   const [isLoading, setIsLoading] = useState(true);
   const [ideaPrompt, setIdeaPrompt] = useState('');
   const [posterName, setPosterName] = useState('Your Lance profile');
   const [posterImageUrl, setPosterImageUrl] = useState<string | null>(null);
+  const [localDraft, setLocalDraft] = useState<OpportunityDraft | null>(null);
 
   const previewDraft = useMemo(() => {
     const base = createEmptyOpportunityDraft();
@@ -61,13 +72,15 @@ export default function CreateScreen() {
   const load = useCallback(async () => {
     if (!user) return;
     setIsLoading(true);
-    const [result, profile] = await Promise.all([
+    const [result, profile, recovered] = await Promise.all([
       loadCreateStudioSummary(user.id),
       loadPersonalProfile(user.id, user.email ?? null).catch(() => null),
+      loadLocalOpportunityDraft(user.id),
     ]);
     setSummary(result);
     setPosterName(profile?.displayName ?? 'Your Lance profile');
     setPosterImageUrl(profile?.avatarUrl ?? null);
+    setLocalDraft(recovered);
     setIsLoading(false);
   }, [user]);
 
@@ -80,12 +93,14 @@ export default function CreateScreen() {
       Promise.all([
         loadCreateStudioSummary(user.id),
         loadPersonalProfile(user.id, user.email ?? null).catch(() => null),
+        loadLocalOpportunityDraft(user.id),
       ])
-        .then(([result, profile]) => {
+        .then(([result, profile, recovered]) => {
           if (active) {
             setSummary(result);
             setPosterName(profile?.displayName ?? 'Your Lance profile');
             setPosterImageUrl(profile?.avatarUrl ?? null);
+            setLocalDraft(recovered);
           }
         })
         .finally(() => {
@@ -125,6 +140,17 @@ export default function CreateScreen() {
     router.push(routes.opportunities);
   }
 
+  async function discardLocalDraft() {
+    if (!user) return;
+    try {
+      await clearLocalOpportunityDraft(user.id);
+      setLocalDraft(null);
+      showSuccess('Local recovery draft removed.');
+    } catch {
+      showWarning('The local draft could not be removed.');
+    }
+  }
+
   return (
     <Screen compact scroll contentStyle={styles.screen} style={styles.canvas}>
       <PromptLinkBuilder
@@ -150,6 +176,45 @@ export default function CreateScreen() {
 
       {!isLoading ? (
         <>
+          {localDraft ? (
+            <Pressable
+              accessibilityHint="Continues the opportunity saved privately on this device."
+              accessibilityLabel="Continue local opportunity draft"
+              accessibilityRole="button"
+              onPress={() => router.push(routes.newOpportunity())}
+              style={({ pressed }) => [
+                styles.localDraft,
+                pressed && styles.pressed,
+              ]}>
+              <View style={styles.localDraftIcon}>
+                <Ionicons
+                  color={v.purpleStrong}
+                  name="phone-portrait-outline"
+                  size={18}
+                />
+              </View>
+              <View style={styles.localDraftCopy}>
+                <Text style={styles.localDraftEyebrow}>Recovered on this device</Text>
+                <Text numberOfLines={1} style={styles.localDraftTitle}>
+                  {localDraft.title.trim() || 'Unfinished opportunity'}
+                </Text>
+              </View>
+              <Ionicons color={v.purpleStrong} name="chevron-forward" size={17} />
+              <Pressable
+                accessibilityLabel="Discard local opportunity draft"
+                accessibilityRole="button"
+                onPress={(event) => {
+                  event.stopPropagation();
+                  void discardLocalDraft();
+                }}
+                style={({ pressed }) => [
+                  styles.localDraftDiscard,
+                  pressed && styles.pressed,
+                ]}>
+                <Ionicons color={v.muted} name="close" size={17} />
+              </Pressable>
+            </Pressable>
+          ) : null}
           <DraftContinuation
             drafts={summary.drafts}
             onOpen={(id) => router.push(routes.editOpportunity(id))}
@@ -204,6 +269,51 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 10,
     padding: 12,
+  },
+  localDraft: {
+    alignItems: 'center',
+    backgroundColor: v.purpleWash,
+    borderColor: v.borderPurple,
+    borderRadius: 16,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 10,
+    minHeight: 58,
+    paddingHorizontal: 12,
+  },
+  localDraftIcon: {
+    alignItems: 'center',
+    backgroundColor: v.purpleSoft,
+    borderRadius: 11,
+    height: 36,
+    justifyContent: 'center',
+    width: 36,
+  },
+  localDraftCopy: {
+    flex: 1,
+    gap: 2,
+    minWidth: 0,
+  },
+  localDraftEyebrow: {
+    color: v.purpleStrong,
+    fontFamily: operatorFonts.monoMedium,
+    fontSize: 9,
+    textTransform: 'uppercase',
+  },
+  localDraftTitle: {
+    color: v.text,
+    fontFamily: operatorFonts.sansSemiBold,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  localDraftDiscard: {
+    alignItems: 'center',
+    borderColor: v.border,
+    borderRadius: 11,
+    borderWidth: 1,
+    height: 36,
+    justifyContent: 'center',
+    width: 36,
   },
   loadErrorText: {
     color: v.textSoft,

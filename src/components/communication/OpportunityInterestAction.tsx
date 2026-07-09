@@ -7,6 +7,7 @@ import {
   formatCommunicationError,
   loadOpportunityResponseState,
 } from '@/lib/communication';
+import { useNetworkStatus } from '@/context/NetworkStatusContext';
 import { routes } from '@/lib/routes';
 import type { OpportunityResponseState } from '@/types/communication';
 import type { OpportunityRecord } from '@/types/opportunity';
@@ -23,12 +24,14 @@ export function OpportunityInterestAction({
   deferLoad,
   buttonLabelStyle,
   buttonStyle,
+  onApplicationStart,
   onError,
   opportunity,
 }: {
   buttonLabelStyle?: StyleProp<TextStyle>;
   buttonStyle?: StyleProp<ViewStyle>;
   deferLoad?: boolean;
+  onApplicationStart?: () => void;
   onError?: (message: string) => void;
   opportunity: OpportunityRecord;
 }) {
@@ -36,6 +39,7 @@ export function OpportunityInterestAction({
   const [sheetOpen, setSheetOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(!deferLoad);
   const [hasLoaded, setHasLoaded] = useState(false);
+  const { isOffline } = useNetworkStatus();
 
   useEffect(() => {
     setState(emptyResponseState);
@@ -75,6 +79,7 @@ export function OpportunityInterestAction({
     } else if (nextState.status === 'submitted') {
       router.push(routes.sentRequests);
     } else if (nextState.status === 'none') {
+      onApplicationStart?.();
       setSheetOpen(true);
     }
   }
@@ -102,9 +107,10 @@ export function OpportunityInterestAction({
       <Button
         disabled={
           isLoading ||
+          isOffline ||
           !['none', 'submitted', 'in_discussion'].includes(state.status)
         }
-        label={label}
+        label={isOffline ? 'Offline' : label}
         labelStyle={buttonLabelStyle}
         onPress={() => void handlePress()}
         style={buttonStyle}

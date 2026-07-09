@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { isNetworkFailure } from '@/lib/reliability';
 import type {
   CommunicationPreference,
   ConnectReason,
@@ -662,6 +663,9 @@ export function formatCommunicationError(error: unknown) {
     });
   }
   const message = details.message ?? '';
+  if (isNetworkFailure(error)) {
+    return 'Lance could not reach the server. Check your connection and try again. Nothing was sent.';
+  }
   const friendly =
     /^(The connection is not active|Sign in again|This (request|connection|profile|person|opportunity|response|conversation|message|report)|Choose |Keep |Add |Acknowledge |You (have reached|already|cannot)|Messages |Messaging |Reports |A new request)/i.test(
       message,

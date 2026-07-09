@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { AuthFormShell } from '@/components/auth/AuthFormShell';
 import { Button, TextField } from '@/components/ui';
 import { theme } from '@/constants/theme';
+import { useNetworkStatus } from '@/context/NetworkStatusContext';
 import { authRoute, normalizeInternalNext } from '@/lib/authNavigation';
 import { formatAuthError } from '@/lib/authErrors';
 import { supabase } from '@/lib/supabase';
@@ -19,6 +20,7 @@ type LoginForm = z.infer<typeof loginSchema>;
 export default function LoginScreen() {
   const { next } = useLocalSearchParams<{ next?: string | string[] }>();
   const nextPath = normalizeInternalNext(next);
+  const { isOffline } = useNetworkStatus();
   const {
     control,
     formState: { errors, isSubmitting },
@@ -32,6 +34,12 @@ export default function LoginScreen() {
   });
 
   async function onSubmit(values: LoginForm) {
+    if (isOffline) {
+      setError('password', {
+        message: 'Reconnect before signing in. Your details have not been sent.',
+      });
+      return;
+    }
     const parsed = loginSchema.safeParse(values);
 
     if (!parsed.success) {
@@ -101,7 +109,12 @@ export default function LoginScreen() {
           />
         )}
       />
-      <Button label="Log in" loading={isSubmitting} onPress={handleSubmit(onSubmit)} />
+      <Button
+        disabled={isOffline}
+        label={isOffline ? 'Reconnect to log in' : 'Log in'}
+        loading={isSubmitting}
+        onPress={handleSubmit(onSubmit)}
+      />
       <Link href={authRoute('/reset-password', nextPath)} style={styles.secondaryLink}>
         Forgot your password?
       </Link>

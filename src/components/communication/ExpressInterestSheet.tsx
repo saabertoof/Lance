@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Modal,
   Pressable,
   ScrollView,
@@ -16,8 +17,11 @@ import { Button, Chip, TextField } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { useFeedback } from '@/context/FeedbackContext';
+import { useNetworkStatus } from '@/context/NetworkStatusContext';
+import { captureClientError } from '@/lib/clientMonitoring';
 import {
   formatCommunicationError,
+  loadOpportunityResponseState,
   loadMyProfileSkills,
   sendOpportunityResponse,
 } from '@/lib/communication';
@@ -62,6 +66,7 @@ export function ExpressInterestSheet({
 }) {
   const { user } = useAuth();
   const { showSuccess } = useFeedback();
+  const { isOffline } = useNetworkStatus();
   const submitting = useRef(false);
   const [skills, setSkills] = useState<{ id: string; name: string }[]>([]);
   const [sender, setSender] = useState<ApplicantSnapshot | null>(null);
@@ -71,6 +76,9 @@ export function ExpressInterestSheet({
   const [note, setNote] = useState('');
   const [acknowledged, setAcknowledged] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [profileState, setProfileState] = useState<
+    'error' | 'idle' | 'loading' | 'ready'
+  >('idle');
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -81,46 +89,60 @@ export function ExpressInterestSheet({
     setPortfolioItemId(null);
     setNote('');
     setAcknowledged(false);
+    setProfileState('idle');
     setError(null);
   }, [opportunity?.id, visible]);
 
+  const loadApplicationProfile = useCallback(async () => {
+    if (!visible || !user || !opportunity) return;
+    setProfileState('loading');
+    setError(null);
+
+    try {
+      const [profileSkills, polish, personalProfile] = await Promise.all([
+        loadMyProfileSkills(),
+        loadProfilePolish(user.id),
+        loadPersonalProfile(user.id, user.email ?? null),
+      ]);
+      if (!personalProfile) {
+        throw new Error('Your reusable profile could not be found.');
+      }
+
+      setSkills(profileSkills);
+      setSender({
+        avatarUrl: personalProfile.avatarUrl,
+        availability: personalProfile.availability,
+        displayName: personalProfile.displayName,
+        experienceLevel: personalProfile.experienceLevel,
+        headline: personalProfile.headline,
+        linkCount: personalProfile.links.length + polish.customLinks.length,
+        locationLabel: polish.location?.label ?? personalProfile.city,
+        primaryRole: personalProfile.primaryRole,
+      });
+      const required = new Set(
+        opportunity.skills.map((skill) => skill.toLowerCase()),
+      );
+      setSelectedSkillIds(
+        profileSkills
+          .filter((skill) => required.has(skill.name.toLowerCase()))
+          .slice(0, 5)
+          .map((skill) => skill.id),
+      );
+      setPortfolio(polish.portfolio);
+      setProfileState('ready');
+    } catch (loadError) {
+      captureClientError(loadError, 'opportunity_application_profile');
+      setProfileState('error');
+      setError(
+        'Your reusable profile could not be prepared. Check your connection and try again.',
+      );
+    }
+  }, [opportunity, user, visible]);
+
   useEffect(() => {
     if (!visible || !user || !opportunity) return;
-    Promise.all([
-      loadMyProfileSkills(),
-      loadProfilePolish(user.id),
-      loadPersonalProfile(user.id, user.email ?? null),
-    ])
-      .then(([profileSkills, polish, personalProfile]) => {
-        setSkills(profileSkills);
-        if (personalProfile) {
-          setSender({
-            avatarUrl: personalProfile.avatarUrl,
-            availability: personalProfile.availability,
-            displayName: personalProfile.displayName,
-            experienceLevel: personalProfile.experienceLevel,
-            headline: personalProfile.headline,
-            linkCount: personalProfile.links.length + polish.customLinks.length,
-            locationLabel: polish.location?.label ?? personalProfile.city,
-            primaryRole: personalProfile.primaryRole,
-          });
-        }
-        const required = new Set(
-          opportunity.skills.map((skill) => skill.toLowerCase()),
-        );
-        setSelectedSkillIds(
-          profileSkills
-            .filter((skill) => required.has(skill.name.toLowerCase()))
-            .slice(0, 5)
-            .map((skill) => skill.id),
-        );
-        setPortfolio(polish.portfolio);
-      })
-      .catch(() => {
-        setSkills([]);
-        setPortfolio([]);
-      });
-  }, [opportunity, user, visible]);
+    void loadApplicationProfile();
+  }, [loadApplicationProfile, opportunity, user, visible]);
 
   const needsAcknowledgement = opportunity ? !isClearlyPaid(opportunity) : false;
   const selectedPortfolio = portfolio.find((item) => item.id === portfolioItemId) ?? null;
@@ -139,6 +161,14 @@ export function ExpressInterestSheet({
 
   async function submit() {
     if (!opportunity || submitting.current) return;
+    if (isOffline) {
+      setError('You are offline. Reconnect before sending your application.');
+      return;
+    }
+    if (profileState !== 'ready') {
+      setError('Wait for your reusable profile to finish loading.');
+      return;
+    }
     if (selectedSkillIds.length > 5) {
       setError('Choose up to five relevant skills.');
       return;
@@ -165,7 +195,25 @@ export function ExpressInterestSheet({
       setAcknowledged(false);
       onClose();
     } catch (submitError) {
-      setError(formatCommunicationError(submitError));
+      captureClientError(submitError, 'opportunity_application_submit');
+      const message = formatCommunicationError(submitError);
+      if (/already responded/i.test(message)) {
+        try {
+          const current = await loadOpportunityResponseState(opportunity.id);
+          if (current.responseId) {
+            onSuccess(current.responseId);
+            showSuccess('Application already sent.');
+            onClose();
+            return;
+          }
+        } catch (reconcileError) {
+          captureClientError(
+            reconcileError,
+            'opportunity_application_reconcile',
+          );
+        }
+      }
+      setError(message);
     } finally {
       submitting.current = false;
       setIsSubmitting(false);
@@ -204,6 +252,37 @@ export function ExpressInterestSheet({
               <Text style={styles.meta}>{formatOpportunityLocation(opportunity)}</Text>
             </View>
           ) : null}
+          {profileState === 'loading' ? (
+            <View style={styles.prepareState}>
+              <ActivityIndicator color={theme.colors.accentStrong} />
+              <View style={styles.prepareCopy}>
+                <Text style={styles.prepareTitle}>Preparing your profile</Text>
+                <Text style={styles.prepareBody}>
+                  Loading your skills, links, and portfolio.
+                </Text>
+              </View>
+            </View>
+          ) : null}
+          {profileState === 'error' ? (
+            <View style={styles.prepareState}>
+              <Ionicons
+                color={theme.colors.danger}
+                name="cloud-offline-outline"
+                size={20}
+              />
+              <View style={styles.prepareCopy}>
+                <Text style={styles.prepareTitle}>Profile unavailable</Text>
+                <Text style={styles.prepareBody}>
+                  Nothing has been sent. Retry when your connection is stable.
+                </Text>
+              </View>
+              <Button
+                label="Retry"
+                onPress={() => void loadApplicationProfile()}
+                variant="secondary"
+              />
+            </View>
+          ) : null}
           {sender ? (
             <View style={styles.profileCard}>
               <View style={styles.sender}>
@@ -226,7 +305,7 @@ export function ExpressInterestSheet({
                     {sender.displayName}
                   </Text>
                   <Text numberOfLines={1} style={styles.senderMeta}>
-                    {[sender.primaryRole, sender.locationLabel].filter(Boolean).join(' · ') ||
+                    {[sender.primaryRole, sender.locationLabel].filter(Boolean).join(' | ') ||
                       'Add role and location to stand out'}
                   </Text>
                 </View>
@@ -268,13 +347,13 @@ export function ExpressInterestSheet({
               value={
                 selectedSkills.length > 0
                   ? `${selectedSkills.length} highlighted`
-                  : 'Add your best matches'
+                  : 'None selected'
               }
             />
             <View style={styles.previewDivider} />
             <PreviewSignal
               label="Proof"
-              value={selectedPortfolio?.title ?? 'Optional portfolio'}
+              value={selectedPortfolio?.title ?? 'None attached'}
             />
           </View>
           {opportunity && opportunity.skills.length > 0 ? (
@@ -380,7 +459,8 @@ export function ExpressInterestSheet({
         <View style={styles.actions}>
           <Button label="Cancel" onPress={onClose} variant="ghost" />
           <Button
-            label="Send application"
+            disabled={isOffline || profileState !== 'ready'}
+            label={isOffline ? 'Reconnect to send' : 'Send application'}
             loading={isSubmitting}
             onPress={() => void submit()}
             style={styles.primary}
@@ -442,6 +522,10 @@ const styles = StyleSheet.create({
   opportunityTitle: { color: theme.colors.text, fontSize: theme.typography.subheading, fontWeight: '900' },
   compensation: { color: theme.colors.accentStrong, fontSize: theme.typography.small, fontWeight: '800' },
   meta: { color: theme.colors.muted, fontSize: theme.typography.small },
+  prepareState: { alignItems: 'center', backgroundColor: theme.colors.surface, borderColor: theme.colors.border, borderRadius: theme.radii.md, borderWidth: 1, flexDirection: 'row', gap: theme.spacing.md, padding: theme.spacing.md },
+  prepareCopy: { flex: 1, gap: 2 },
+  prepareTitle: { color: theme.colors.text, fontFamily: theme.typography.familySemiBold, fontSize: theme.typography.small },
+  prepareBody: { color: theme.colors.muted, fontSize: theme.typography.caption, lineHeight: 16 },
   profileCard: { backgroundColor: theme.colors.surface, borderColor: theme.colors.border, borderRadius: theme.radii.lg, borderWidth: 1, gap: theme.spacing.md, padding: theme.spacing.md, ...theme.shadows.card },
   sender: { alignItems: 'center', flexDirection: 'row', gap: theme.spacing.md },
   senderAvatar: { alignItems: 'center', backgroundColor: theme.colors.accentSoft, borderRadius: 24, height: 48, justifyContent: 'center', overflow: 'hidden', width: 48 },

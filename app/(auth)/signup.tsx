@@ -1,3 +1,4 @@
+import * as Linking from 'expo-linking';
 import { Link, router, useLocalSearchParams } from 'expo-router';
 import { Controller, useForm } from 'react-hook-form';
 import { useState } from 'react';
@@ -7,6 +8,7 @@ import { z } from 'zod';
 import { AuthFormShell } from '@/components/auth/AuthFormShell';
 import { Button, TextField } from '@/components/ui';
 import { theme } from '@/constants/theme';
+import { useNetworkStatus } from '@/context/NetworkStatusContext';
 import { authRoute, normalizeInternalNext } from '@/lib/authNavigation';
 import { formatAuthError } from '@/lib/authErrors';
 import { supabase } from '@/lib/supabase';
@@ -22,6 +24,7 @@ type SignupForm = z.infer<typeof signupSchema>;
 export default function SignupScreen() {
   const { next } = useLocalSearchParams<{ next?: string | string[] }>();
   const nextPath = normalizeInternalNext(next);
+  const { isOffline } = useNetworkStatus();
   const [confirmationSent, setConfirmationSent] = useState(false);
   const {
     control,
@@ -38,6 +41,12 @@ export default function SignupScreen() {
 
   async function onSubmit(values: SignupForm) {
     setConfirmationSent(false);
+    if (isOffline) {
+      setError('email', {
+        message: 'Reconnect before creating your account. Nothing was sent.',
+      });
+      return;
+    }
     const parsed = signupSchema.safeParse(values);
 
     if (!parsed.success) {
@@ -48,10 +57,14 @@ export default function SignupScreen() {
     }
 
     try {
+      const emailRedirectTo = Linking.createURL('/onboarding', {
+        queryParams: nextPath ? { next: String(nextPath) } : undefined,
+      });
       const { data, error } = await supabase.auth.signUp({
         email: parsed.data.email,
         password: parsed.data.password,
         options: {
+          emailRedirectTo,
           data: {
             display_name: parsed.data.displayName,
           },
@@ -134,10 +147,17 @@ export default function SignupScreen() {
           />
         )}
       />
-      <Button label="Sign up" loading={isSubmitting} onPress={handleSubmit(onSubmit)} />
+      <Button
+        disabled={isOffline}
+        label={isOffline ? 'Reconnect to sign up' : 'Sign up'}
+        loading={isSubmitting}
+        onPress={handleSubmit(onSubmit)}
+      />
       {confirmationSent ? (
         <Text accessibilityLiveRegion="polite" style={styles.success}>
-          Check your email to confirm your account.
+          {String(nextPath ?? '').startsWith('/o/')
+            ? 'Check your email to confirm your account. Lance will bring you back to the opportunity afterward.'
+            : 'Check your email to confirm your account, then return to Lance to finish your profile.'}
         </Text>
       ) : null}
     </AuthFormShell>

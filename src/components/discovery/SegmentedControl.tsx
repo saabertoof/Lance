@@ -1,5 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 
 import { operatorFonts, operatorVisual as v } from '@/constants/operatorTheme';
 import { theme } from '@/constants/theme';
@@ -24,6 +30,8 @@ export function SegmentedControl<T extends string>({
   variant = 'default',
 }: SegmentedControlProps<T>) {
   const operator = variant === 'operator';
+  const { width } = useWindowDimensions();
+  const hideOperatorIcons = operator && width < 360;
 
   return (
     <View
@@ -49,7 +57,7 @@ export function SegmentedControl<T extends string>({
               operator && selected && styles.operatorSelected,
               pressed && styles.pressed,
             ]}>
-            {option.icon ? (
+            {option.icon && !hideOperatorIcons ? (
               <Ionicons
                 color={
                   operator
@@ -72,6 +80,7 @@ export function SegmentedControl<T extends string>({
                 styles.label,
                 operator && styles.operatorLabel,
                 compact && styles.compactLabel,
+                hideOperatorIcons && styles.narrowOperatorLabel,
                 selected && styles.selectedLabel,
                 operator && selected && styles.operatorSelectedLabel,
               ]}>
@@ -158,6 +167,10 @@ const styles = StyleSheet.create({
   compactLabel: {
     fontSize: 10,
     letterSpacing: 0.7,
+  },
+  narrowOperatorLabel: {
+    fontSize: 8,
+    letterSpacing: 0.2,
   },
   selectedLabel: {
     color: theme.colors.text,

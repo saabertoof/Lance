@@ -28,6 +28,8 @@ import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { useFeedback } from '@/context/FeedbackContext';
 import { useMessaging } from '@/context/MessagingContext';
+import { useNetworkStatus } from '@/context/NetworkStatusContext';
+import { captureClientError } from '@/lib/clientMonitoring';
 import {
   createClientNonce,
   formatCommunicationError,
@@ -51,6 +53,7 @@ export default function ConversationScreen() {
   const { user } = useAuth();
   const { showSuccess, showWarning } = useFeedback();
   const { refreshUnread } = useMessaging();
+  const { connectionState, isOffline } = useNetworkStatus();
   const isFocused = useIsFocused();
   const listRef = useRef<FlatList<MessageRecord>>(null);
   const sending = useRef(false);
@@ -163,9 +166,21 @@ export default function ConversationScreen() {
     };
   }, [id, isFocused, markRead, refreshMessages, user?.id]);
 
+  useEffect(() => {
+    if (connectionState !== 'online' || isLoading) return;
+    void refreshMessages(isFocused).catch((loadError) => {
+      captureClientError(loadError, 'conversation_reconnect');
+      setError(formatCommunicationError(loadError));
+    });
+  }, [connectionState, isFocused, isLoading, refreshMessages]);
+
   async function submit(existing?: MessageRecord) {
     const body = (existing?.body ?? draft).trim();
     if (!body || body.length > MESSAGE_LIMIT || sending.current) return;
+    if (isOffline) {
+      setError('You are offline. Your message is still here and has not been sent.');
+      return;
+    }
 
     const nonce = existing?.clientNonce ?? createClientNonce();
     const optimistic: MessageRecord = {
@@ -187,6 +202,7 @@ export default function ConversationScreen() {
       const saved = await sendMessage(id, body, nonce);
       setMessages((current) => mergeMessages(current, [saved]));
     } catch (sendError) {
+      captureClientError(sendError, 'conversation_send');
       setMessages((current) =>
         current.map((message) =>
           message.clientNonce === nonce
@@ -462,11 +478,11 @@ export default function ConversationScreen() {
             />
             <Pressable
               accessibilityLabel="Send message"
-              disabled={!draft.trim() || sending.current}
+              disabled={!draft.trim() || sending.current || isOffline}
               onPress={() => void submit()}
               style={({ pressed }) => [
                 styles.send,
-                (!draft.trim() || sending.current) && styles.disabled,
+                (!draft.trim() || sending.current || isOffline) && styles.disabled,
                 pressed && styles.pressed,
               ]}>
               <Ionicons color={theme.colors.white} name="arrow-up" size={22} />

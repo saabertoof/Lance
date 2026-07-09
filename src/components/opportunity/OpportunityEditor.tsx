@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useForm } from 'react-hook-form';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
@@ -13,6 +13,7 @@ import {
 import { Button, DateField, TextField } from '@/components/ui';
 import { industryCatalog, skillCatalog } from '@/constants/catalogs';
 import { theme } from '@/constants/theme';
+import { useNetworkStatus } from '@/context/NetworkStatusContext';
 import {
   OpportunityLinkPreviewCard,
   OpportunitySharePoster,
@@ -57,6 +58,7 @@ type OpportunityEditorProps = {
   isSaving: boolean;
   onCreateBusiness: () => void;
   onError: (message: string | null) => void;
+  onDraftChange?: (draft: OpportunityDraft) => void;
   onSave: (draft: OpportunityDraft, status: OpportunityStatus) => Promise<void>;
   onStepChange?: (step: number) => void;
   profileImageUrl: string | null;
@@ -70,6 +72,7 @@ export function OpportunityEditor({
   initialStep = 0,
   isSaving,
   onCreateBusiness,
+  onDraftChange,
   onError,
   onSave,
   onStepChange,
@@ -77,10 +80,17 @@ export function OpportunityEditor({
 }: OpportunityEditorProps) {
   const [step, setStep] = useState(initialStep);
   const [magicPrompt, setMagicPrompt] = useState(initialMagicPrompt);
+  const { isOffline } = useNetworkStatus();
   const { getValues, setValue, watch } = useForm<OpportunityDraft>({
     defaultValues: initialDraft,
   });
   const draft = watch();
+
+  useEffect(() => {
+    if (!onDraftChange) return;
+    const timeout = setTimeout(() => onDraftChange(draft), 600);
+    return () => clearTimeout(timeout);
+  }, [draft, onDraftChange]);
 
   function moveToStep(nextStep: number) {
     const bounded = Math.max(0, Math.min(nextStep, TOTAL_STEPS - 1));
@@ -106,6 +116,10 @@ export function OpportunityEditor({
   }
 
   async function save(status: OpportunityStatus) {
+    if (isOffline) {
+      onError('Reconnect before saving. Your unfinished draft remains on this device.');
+      return;
+    }
     const currentDraft = getValues();
     const error = validateOpportunityDraft(currentDraft, status === 'published');
 
@@ -152,6 +166,7 @@ export function OpportunityEditor({
         ) : null}
         {canSaveDraft ? (
           <Button
+            disabled={isSaving || isOffline}
             label="Save draft"
             loading={isSaving}
             onPress={() => save('draft')}
@@ -160,9 +175,12 @@ export function OpportunityEditor({
           />
         ) : null}
         <Button
+          disabled={isSaving || (step === TOTAL_STEPS - 1 && isOffline)}
           label={
             step < TOTAL_STEPS - 1
               ? 'Continue'
+              : isOffline
+                ? 'Reconnect to save'
               : primaryStatus === 'published' && initialDraft.status === 'draft'
                 ? 'Publish and get link'
                 : 'Save changes'

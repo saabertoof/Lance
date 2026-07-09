@@ -18,6 +18,7 @@ import {
   CompensationBadge,
   OpportunityStatusBadge,
   OpportunityShareSheet,
+  OpportunityFunnelCard,
   WorkArrangementBadge,
 } from '@/components/opportunity';
 import { SaveButton } from '@/components/saved';
@@ -398,6 +399,9 @@ export default function OpportunityDetailScreen() {
 
       {isOwner ? (
         <>
+          {opportunity.status === 'published' ? (
+            <OpportunityFunnelCard opportunityId={opportunity.id} />
+          ) : null}
           {opportunity.status === 'published' ? (
             <View style={styles.sharePrompt}>
               <View style={styles.shareIcon}>

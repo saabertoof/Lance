@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit",
     "expo:config": "expo config --type public",
     "test:phase6": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/search-plan.test.mts",
-    "test:app": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/location.test.mts tests/app-hygiene.test.mts tests/auth-navigation.test.mts tests/opportunity-creation.test.mts",
+    "test:app": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/location.test.mts tests/app-hygiene.test.mts tests/auth-navigation.test.mts tests/opportunity-creation.test.mts tests/reliability.test.mts",
     "check": "npm run typecheck && npm run lint && npm run expo:config && npm run test:phase6 && npm run test:app"
   },
   "dependencies": {
@@ -32,6 +32,7 @@
     "expo-image": "~3.0.11",
     "expo-image-picker": "~17.0.11",
     "expo-linking": "~8.0.12",
+    "expo-network": "~8.0.8",
     "expo-router": "~6.0.23",
     "expo-sharing": "~14.0.8",
     "expo-splash-screen": "~31.0.13",

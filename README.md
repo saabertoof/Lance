@@ -2,7 +2,7 @@
 
 Lance is a mobile-first platform for discovering people and opportunities, structured search, and direct communication. Lance does not employ users, process payments, hold escrow, manage contracts, or guarantee compensation.
 
-## Phase 5
+## Current Build
 
 Lance preserves the completed Phase 1-4.5 product and now adds:
 
@@ -51,7 +51,7 @@ contracts, reviews, verification, premium features, group chats, attachments, or
 - Node.js LTS
 - npm
 - Expo Go
-- A Supabase project with migrations `0001` through `0007` already applied
+- A Supabase project with migrations `0001` through `0011` already applied
 
 On this Windows machine, use `npm.cmd` if PowerShell blocks `npm`.
 
@@ -253,6 +253,15 @@ npm.cmd run start -- --clear
 
 Scan the QR code using Expo Go while the phone and computer are on the same network.
 
+## Beta Reliability Migration
+
+Apply `supabase/migrations/0012_beta_reliability_observability.sql` once after
+`0011`. It adds private opportunity funnel aggregates and sanitized client error
+reports without exposing raw telemetry to the app.
+
+The full migration, redirect, two-account, offline, RLS, and internal preview
+instructions are in `docs/BETA_READINESS.md`.
+
 ## Business Phone Test
 
 1. Log in and complete onboarding.
@@ -365,8 +374,10 @@ npm.cmd run lint
 npm.cmd run expo:config
 ```
 
-There is no automated test suite configured. Database-backed Discover, Search, filters, saves,
-Storage, and cross-user RLS flows require migrations `0004` through `0007` plus phone testing.
+The automated suites cover structured search, auth routing, location,
+opportunity drafting, hygiene, and beta reliability helpers. Database-backed
+RLS, Storage, Realtime, and cross-user flows still require the two-account
+phone checks in `docs/BETA_READINESS.md`.
 
 ## Checkpoints
 

@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { OpportunityEditor } from '@/components/opportunity';
@@ -10,6 +10,11 @@ import { useAuth } from '@/context/AuthContext';
 import { useFeedback } from '@/context/FeedbackContext';
 import { loadMyBusinesses } from '@/lib/business';
 import { formatOpportunityError, saveOpportunity } from '@/lib/opportunity';
+import {
+  clearLocalOpportunityDraft,
+  loadLocalOpportunityDraft,
+  saveLocalOpportunityDraft,
+} from '@/lib/localOpportunityDraft';
 import { applyMagicOpportunityDraft } from '@/lib/opportunityMagicDraft';
 import { loadPersonalProfile } from '@/lib/profile';
 import { routes } from '@/lib/routes';
@@ -52,9 +57,12 @@ export default function NewOpportunityScreen() {
           loadMyBusinesses(user.id),
           loadPersonalProfile(user.id, user.email ?? null),
         ]);
-        const draft = createEmptyOpportunityDraft();
-
         const promptText = typeof prompt === 'string' ? prompt.trim() : '';
+        const recoveredDraft =
+          promptText.length >= 12
+            ? null
+            : await loadLocalOpportunityDraft(user.id);
+        const draft = recoveredDraft ?? createEmptyOpportunityDraft();
 
         if (promptText.length >= 12) {
           Object.assign(draft, applyMagicOpportunityDraft(promptText, draft));
@@ -70,6 +78,9 @@ export default function NewOpportunityScreen() {
           setDisplayName(profile?.displayName ?? 'My profile');
           setProfileImageUrl(profile?.avatarUrl ?? null);
           setInitialDraft(draft);
+          if (recoveredDraft) {
+            showSuccess('Recovered your unfinished opportunity.');
+          }
         }
       } catch (loadError) {
         if (active) setError(formatOpportunityError(loadError));
@@ -82,7 +93,15 @@ export default function NewOpportunityScreen() {
     return () => {
       active = false;
     };
-  }, [businessId, prompt, user]);
+  }, [businessId, prompt, showSuccess, user]);
+
+  const preserveDraft = useCallback(
+    (draft: OpportunityDraft) => {
+      if (!user) return;
+      void saveLocalOpportunityDraft(user.id, draft);
+    },
+    [user],
+  );
 
   async function save(draft: OpportunityDraft, status: OpportunityStatus) {
     if (!user || submissionRef.current) return;
@@ -92,6 +111,7 @@ export default function NewOpportunityScreen() {
 
     try {
       const id = await saveOpportunity(draft, user.id, status);
+      await clearLocalOpportunityDraft(user.id);
       showSuccess(status === 'draft' ? 'Opportunity draft saved.' : 'Opportunity published.');
       router.replace(routes.opportunity(id, { share: status === 'published' }));
     } catch (saveError) {
@@ -134,6 +154,7 @@ export default function NewOpportunityScreen() {
         isSaving={isSaving}
         onCreateBusiness={() => router.push(routes.newBusiness)}
         onError={setError}
+        onDraftChange={preserveDraft}
         onSave={save}
         onStepChange={setEditorStep}
         profileImageUrl={profileImageUrl}
