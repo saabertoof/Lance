@@ -178,10 +178,14 @@ test('published opportunity owners get a creator launch center', async () => {
   assert.match(detail, /OpportunityLaunchCenter/);
   assert.doesNotMatch(detail, /Share this opportunity/);
   assert.match(launchCenter, /Launch center/);
+  assert.match(launchCenter, /OpportunityLinkPreviewCard/);
+  assert.match(launchCenter, /Live preview/);
   assert.match(launchCenter, /Review applicants/);
   assert.match(launchCenter, /Share kit/);
+  assert.match(launchCenter, /Copy launch kit/);
   assert.match(launchCenter, /Preview link/);
   assert.match(launchCenter, /Clipboard\.setStringAsync\(publicUrl\)/);
+  assert.match(launchCenter, /Clipboard\.setStringAsync\(launchKit\)/);
   assert.match(launchCenter, /OpportunityFunnelCard/);
   assert.match(routes, /publicOpportunity/);
 });

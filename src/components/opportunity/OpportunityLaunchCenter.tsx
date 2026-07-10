@@ -3,9 +3,12 @@ import * as Clipboard from 'expo-clipboard';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { OpportunityLinkPreviewCard } from '@/components/create/OpportunityLinkPreviewCard';
 import { theme } from '@/constants/theme';
 import { useFeedback } from '@/context/FeedbackContext';
 import {
+  formatCompensation,
+  formatOpportunityLocation,
   getOpportunityPublicUrl,
   getOpportunityShareCopy,
 } from '@/lib/opportunity';
@@ -25,6 +28,13 @@ export function OpportunityLaunchCenter({
   const publicUrl = getOpportunityPublicUrl(opportunity);
   const share = getOpportunityShareCopy(opportunity);
   const slugOrId = opportunity.slug || opportunity.id;
+  const launchKit = [
+    share.linktreeText,
+    '',
+    share.socialCaption,
+    '',
+    publicUrl,
+  ].join('\n');
 
   async function copyLink() {
     try {
@@ -35,12 +45,12 @@ export function OpportunityLaunchCenter({
     }
   }
 
-  async function copyStoryLine() {
+  async function copyLaunchKit() {
     try {
-      await Clipboard.setStringAsync(share.storyText);
-      showSuccess('Story line copied.');
+      await Clipboard.setStringAsync(launchKit);
+      showSuccess('Launch kit copied.');
     } catch {
-      showWarning('The story line could not be copied. Try again.');
+      showWarning('The launch kit could not be copied. Try again.');
     }
   }
 
@@ -65,6 +75,23 @@ export function OpportunityLaunchCenter({
       <Text style={styles.body}>
         Share the creator link, watch the funnel, and review applicants from one place.
       </Text>
+
+      <View style={styles.previewShell}>
+        <View style={styles.previewHeader}>
+          <Text style={styles.sectionLabel}>Live preview</Text>
+          <Text style={styles.previewHint}>what applicants see first</Text>
+        </View>
+        <OpportunityLinkPreviewCard
+          compensationLabel={formatCompensation(opportunity)}
+          locationLabel={formatOpportunityLocation(opportunity)}
+          posterImageUrl={opportunity.poster.imageUrl}
+          posterLabel={opportunity.poster.name}
+          skills={opportunity.skills}
+          summary={opportunity.shortSummary}
+          title={opportunity.title}
+          urlLabel={publicUrl}
+        />
+      </View>
 
       <Pressable
         accessibilityLabel="Copy public opportunity link"
@@ -96,9 +123,9 @@ export function OpportunityLaunchCenter({
           onPress={onShare}
         />
         <LaunchAction
-          icon="camera-outline"
-          label="Copy story line"
-          onPress={() => void copyStoryLine()}
+          icon="albums-outline"
+          label="Copy launch kit"
+          onPress={() => void copyLaunchKit()}
         />
         <LaunchAction
           icon="eye-outline"
@@ -208,6 +235,28 @@ const styles = StyleSheet.create({
     color: theme.colors.textSoft,
     fontSize: theme.typography.caption,
     lineHeight: 18,
+  },
+  previewShell: {
+    gap: theme.spacing.sm,
+  },
+  previewHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+    justifyContent: 'space-between',
+  },
+  sectionLabel: {
+    color: theme.colors.accentStrong,
+    fontFamily: theme.typography.familyMonoSemiBold,
+    fontSize: 10,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
+  previewHint: {
+    color: theme.colors.muted,
+    flex: 1,
+    fontSize: 10,
+    textAlign: 'right',
   },
   linkBox: {
     alignItems: 'center',
