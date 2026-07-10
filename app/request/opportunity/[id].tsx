@@ -38,6 +38,8 @@ import {
   type PublicProfile,
 } from '@/types/profile';
 
+const META_SEPARATOR = ' \u00B7 ';
+
 export default function OpportunityResponseScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
@@ -181,7 +183,7 @@ export default function OpportunityResponseScreen() {
           style={styles.iconButton}>
           <Ionicons color={theme.colors.text} name="arrow-back" size={22} />
         </Pressable>
-        <Text style={styles.title}>Application</Text>
+        <Text style={styles.title}>Application packet</Text>
         <Pressable
           accessibilityLabel="Application safety options"
           onPress={() => setSafetyOpen(true)}
@@ -189,6 +191,8 @@ export default function OpportunityResponseScreen() {
           <Ionicons color={theme.colors.text} name="ellipsis-horizontal" size={22} />
         </Pressable>
       </View>
+
+      <ApplicationStatusCard ownerView={ownerView} response={response} />
 
       <Pressable
         accessibilityLabel={`Open ${response.responder.displayName}'s profile`}
@@ -205,7 +209,7 @@ export default function OpportunityResponseScreen() {
               <ResponseStatusBadge status={response.status} />
             </View>
             <Text numberOfLines={1} style={styles.meta}>
-              {[response.responder.primaryRole, location].filter(Boolean).join(' · ') ||
+              {compactMeta([response.responder.primaryRole, location]) ||
                 'Lance applicant'}
             </Text>
             {applicantProfile?.headline ? (
@@ -249,7 +253,9 @@ export default function OpportunityResponseScreen() {
           </Text>
         </View>
         <View style={styles.noteBox}>
-          <Text style={styles.noteLabel}>Why they fit</Text>
+          <Text style={styles.noteLabel}>
+            {ownerView ? 'Why they fit' : 'Your fit note'}
+          </Text>
           <Text style={styles.body}>
             {response.note || 'No note added. Use the profile, skills, and proof below to review fit.'}
           </Text>
@@ -363,6 +369,96 @@ export default function OpportunityResponseScreen() {
   );
 }
 
+function ApplicationStatusCard({
+  ownerView,
+  response,
+}: {
+  ownerView: boolean;
+  response: OpportunityResponseRecord;
+}) {
+  const copy = applicationStatusCopy(response.status, ownerView);
+
+  return (
+    <EliteCard compact style={styles.statusCard} tone={copy.tone}>
+      <View style={styles.statusCardTop}>
+        <View style={styles.statusIcon}>
+          <Ionicons color={copy.iconColor} name={copy.icon} size={18} />
+        </View>
+        <View style={styles.statusCopy}>
+          <Text style={styles.statusEyebrow}>{copy.eyebrow}</Text>
+          <Text style={styles.statusTitle}>{copy.title}</Text>
+          <Text style={styles.statusBody}>{copy.body}</Text>
+        </View>
+      </View>
+    </EliteCard>
+  );
+}
+
+function applicationStatusCopy(
+  status: OpportunityResponseRecord['status'],
+  ownerView: boolean,
+): {
+  body: string;
+  eyebrow: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  iconColor: string;
+  title: string;
+  tone: 'accent' | 'cyan' | 'neutral' | 'success' | 'warning';
+} {
+  if (status === 'submitted') {
+    return {
+      body: ownerView
+        ? 'Review their packet, open the profile, then message if there is a fit.'
+        : 'Your packet is in. The creator can review your public profile, note, skills, and attached proof.',
+      eyebrow: ownerView ? 'Creator queue' : 'Sent',
+      icon: 'paper-plane-outline',
+      iconColor: theme.colors.accentStrong,
+      title: ownerView ? 'Applicant is waiting' : 'Application sent',
+      tone: 'accent',
+    };
+  }
+  if (status === 'in_discussion') {
+    return {
+      body: 'A conversation is open for this opportunity. Keep details in Lance so the thread stays attached.',
+      eyebrow: 'Conversation',
+      icon: 'chatbubble-ellipses-outline',
+      iconColor: theme.colors.success,
+      title: 'In discussion',
+      tone: 'success',
+    };
+  }
+  if (status === 'declined') {
+    return {
+      body: ownerView
+        ? 'You passed on this applicant. The original packet remains here for record keeping.'
+        : 'The creator passed on this application. Your reusable profile is unchanged.',
+      eyebrow: 'Closed',
+      icon: 'close-circle-outline',
+      iconColor: theme.colors.textSoft,
+      title: 'Passed',
+      tone: 'neutral',
+    };
+  }
+  if (status === 'withdrawn') {
+    return {
+      body: 'This application was withdrawn. The creator can no longer start a discussion from it.',
+      eyebrow: 'Closed',
+      icon: 'return-down-back-outline',
+      iconColor: theme.colors.warning,
+      title: 'Withdrawn',
+      tone: 'warning',
+    };
+  }
+  return {
+    body: 'This opportunity discussion is closed. Messages and records stay available where permitted.',
+    eyebrow: 'Closed',
+    icon: 'lock-closed-outline',
+    iconColor: theme.colors.textSoft,
+    title: 'Closed',
+    tone: 'neutral',
+  };
+}
+
 function statusLabel(value: string) {
   if (value === 'in_discussion') return 'In discussion';
   if (value === 'submitted') return 'Applied';
@@ -418,6 +514,10 @@ function profileCompleteness(profile: PublicProfile) {
   return Math.round((checks.filter(Boolean).length / checks.length) * 100);
 }
 
+function compactMeta(values: (string | null | undefined)[]) {
+  return values.filter((value): value is string => Boolean(value)).join(META_SEPARATOR);
+}
+
 function statusTone(status: OpportunityResponseRecord['status']) {
   if (status === 'submitted') {
     return { background: theme.colors.accentSoft, text: theme.colors.accentStrong };
@@ -436,6 +536,13 @@ const styles = StyleSheet.create({
   topBar: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
   iconButton: { alignItems: 'center', height: 44, justifyContent: 'center', width: 44 },
   title: { color: theme.colors.text, fontSize: theme.typography.subheading, fontWeight: '900' },
+  statusCard: { gap: theme.spacing.sm },
+  statusCardTop: { alignItems: 'flex-start', flexDirection: 'row', gap: theme.spacing.md },
+  statusIcon: { alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.07)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: theme.radii.md, borderWidth: 1, height: 40, justifyContent: 'center', width: 40 },
+  statusCopy: { flex: 1, gap: 3, minWidth: 0 },
+  statusEyebrow: { color: theme.colors.accentStrong, fontFamily: theme.typography.familyMonoSemiBold, fontSize: 9, letterSpacing: 0.9, textTransform: 'uppercase' },
+  statusTitle: { color: theme.colors.text, fontFamily: theme.typography.familySemiBold, fontSize: theme.typography.body },
+  statusBody: { color: theme.colors.textSoft, fontSize: theme.typography.caption, lineHeight: 17 },
   profileHero: { backgroundColor: theme.colors.surface, borderColor: theme.colors.border, borderRadius: theme.radii.lg, borderWidth: 1, gap: theme.spacing.md, padding: theme.spacing.md, ...theme.shadows.card },
   profileTop: { alignItems: 'center', flexDirection: 'row', gap: theme.spacing.md },
   profileCopy: { flex: 1, gap: 4, minWidth: 0 },
