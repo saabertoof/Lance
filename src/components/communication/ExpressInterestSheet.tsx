@@ -147,6 +147,7 @@ export function ExpressInterestSheet({
   const needsAcknowledgement = opportunity ? !isClearlyPaid(opportunity) : false;
   const selectedPortfolio = portfolio.find((item) => item.id === portfolioItemId) ?? null;
   const selectedSkills = skills.filter((skill) => selectedSkillIds.includes(skill.id));
+  const notePreview = note.trim();
   const profileScore = sender
     ? profileCompleteness({
         hasAvatar: Boolean(sender.avatarUrl),
@@ -341,21 +342,13 @@ export function ExpressInterestSheet({
               </View>
             </View>
           ) : null}
-          <View style={styles.previewStrip}>
-            <PreviewSignal
-              label="Skills"
-              value={
-                selectedSkills.length > 0
-                  ? `${selectedSkills.length} highlighted`
-                  : 'None selected'
-              }
-            />
-            <View style={styles.previewDivider} />
-            <PreviewSignal
-              label="Proof"
-              value={selectedPortfolio?.title ?? 'None attached'}
-            />
-          </View>
+          <ApplicationPacketPreview
+            note={notePreview}
+            profileScore={profileScore}
+            selectedPortfolio={selectedPortfolio}
+            selectedSkills={selectedSkills}
+            sender={sender}
+          />
           {opportunity && opportunity.skills.length > 0 ? (
             <View style={styles.section}>
               <Text style={styles.label}>What they are looking for</Text>
@@ -471,6 +464,126 @@ export function ExpressInterestSheet({
   );
 }
 
+function ApplicationPacketPreview({
+  note,
+  profileScore,
+  selectedPortfolio,
+  selectedSkills,
+  sender,
+}: {
+  note: string;
+  profileScore: number | null;
+  selectedPortfolio: PortfolioItem | null;
+  selectedSkills: { id: string; name: string }[];
+  sender: ApplicantSnapshot | null;
+}) {
+  const skillSummary =
+    selectedSkills.length > 0
+      ? selectedSkills.map((skill) => skill.name).join(', ')
+      : 'Choose up to five skills to make the application easier to scan.';
+
+  return (
+    <View style={styles.packetCard}>
+      <View style={styles.packetHeader}>
+        <View style={styles.packetHeaderCopy}>
+          <Text style={styles.packetEyebrow}>Application packet</Text>
+          <Text style={styles.packetTitle}>What the creator gets</Text>
+        </View>
+        <View style={styles.packetScore}>
+          <Text style={styles.packetScoreValue}>
+            {profileScore == null ? '--' : `${profileScore}%`}
+          </Text>
+          <Text style={styles.packetScoreLabel}>profile</Text>
+        </View>
+      </View>
+
+      <View style={styles.packetRows}>
+        <PacketRow
+          detail={
+            sender
+              ? [sender.primaryRole, sender.locationLabel].filter(Boolean).join(' · ') ||
+                'Profile basics'
+              : 'Still loading'
+          }
+          icon="person-circle-outline"
+          label="Reusable profile"
+          ready={Boolean(sender)}
+          value={sender?.displayName ?? 'Preparing'}
+        />
+        <PacketRow
+          detail={skillSummary}
+          icon="pricetags-outline"
+          label="Highlighted skills"
+          ready={selectedSkills.length > 0}
+          value={
+            selectedSkills.length > 0
+              ? `${selectedSkills.length} selected`
+              : 'Needs selection'
+          }
+        />
+        <PacketRow
+          detail={
+            selectedPortfolio
+              ? 'Attached to this application'
+              : 'Optional, but strong proof helps creators decide faster.'
+          }
+          icon="images-outline"
+          label="Proof of work"
+          ready={Boolean(selectedPortfolio)}
+          value={selectedPortfolio?.title ?? 'None attached'}
+        />
+        <PacketRow
+          detail={
+            note ||
+            'Add one tight note about what you can do, proof you have done it, and when you can start.'
+          }
+          icon="chatbubble-ellipses-outline"
+          label="Fit note"
+          ready={Boolean(note)}
+          value={note ? 'Ready' : 'Recommended'}
+        />
+      </View>
+    </View>
+  );
+}
+
+function PacketRow({
+  detail,
+  icon,
+  label,
+  ready,
+  value,
+}: {
+  detail: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  ready: boolean;
+  value: string;
+}) {
+  return (
+    <View style={styles.packetRow}>
+      <View style={[styles.packetIcon, ready && styles.packetIconReady]}>
+        <Ionicons
+          color={ready ? theme.colors.success : theme.colors.textSoft}
+          name={icon}
+          size={17}
+        />
+      </View>
+      <View style={styles.packetRowCopy}>
+        <View style={styles.packetRowTop}>
+          <Text style={styles.packetLabel}>{label}</Text>
+          <Text style={[styles.packetValue, ready && styles.packetValueReady]}>
+            {value}
+          </Text>
+        </View>
+        <Text numberOfLines={2} style={styles.packetDetail}>
+          {detail}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
 function ProfileSignal({
   icon,
   label,
@@ -484,15 +597,6 @@ function ProfileSignal({
       <Text numberOfLines={1} style={styles.profileSignalText}>
         {label}
       </Text>
-    </View>
-  );
-}
-
-function PreviewSignal({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.previewSignal}>
-      <Text style={styles.previewLabel}>{label}</Text>
-      <Text numberOfLines={1} style={styles.previewValue}>{value}</Text>
     </View>
   );
 }
@@ -542,11 +646,24 @@ const styles = StyleSheet.create({
   signalGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm },
   profileSignal: { alignItems: 'center', backgroundColor: theme.colors.surfaceMuted, borderRadius: theme.radii.pill, flexDirection: 'row', gap: 5, maxWidth: '100%', paddingHorizontal: 10, paddingVertical: 7 },
   profileSignalText: { color: theme.colors.textSoft, flexShrink: 1, fontSize: theme.typography.caption, fontWeight: '800' },
-  previewStrip: { alignItems: 'center', backgroundColor: '#17151F', borderRadius: theme.radii.lg, flexDirection: 'row', gap: theme.spacing.md, padding: theme.spacing.md },
-  previewSignal: { flex: 1, gap: 2, minWidth: 0 },
-  previewLabel: { color: 'rgba(255,255,255,0.54)', fontSize: theme.typography.caption, fontWeight: '900', textTransform: 'uppercase' },
-  previewValue: { color: theme.colors.white, fontSize: theme.typography.small, fontWeight: '900' },
-  previewDivider: { backgroundColor: 'rgba(255,255,255,0.16)', height: 34, width: 1 },
+  packetCard: { backgroundColor: '#17151F', borderColor: 'rgba(167,139,250,0.18)', borderRadius: theme.radii.lg, borderWidth: 1, gap: theme.spacing.md, padding: theme.spacing.md },
+  packetHeader: { alignItems: 'center', flexDirection: 'row', gap: theme.spacing.md, justifyContent: 'space-between' },
+  packetHeaderCopy: { flex: 1, gap: 3, minWidth: 0 },
+  packetEyebrow: { color: theme.colors.accentStrong, fontFamily: theme.typography.familyMonoSemiBold, fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase' },
+  packetTitle: { color: theme.colors.white, fontFamily: theme.typography.familySemiBold, fontSize: theme.typography.cardTitle },
+  packetScore: { alignItems: 'flex-end' },
+  packetScoreValue: { color: theme.colors.white, fontFamily: theme.typography.familySemiBold, fontSize: theme.typography.subheading },
+  packetScoreLabel: { color: 'rgba(255,255,255,0.52)', fontSize: 9, fontWeight: '800', textTransform: 'uppercase' },
+  packetRows: { gap: theme.spacing.sm },
+  packetRow: { alignItems: 'flex-start', backgroundColor: 'rgba(255,255,255,0.055)', borderColor: 'rgba(255,255,255,0.08)', borderRadius: theme.radii.md, borderWidth: 1, flexDirection: 'row', gap: theme.spacing.sm, padding: theme.spacing.sm },
+  packetIcon: { alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: theme.radii.sm, height: 34, justifyContent: 'center', width: 34 },
+  packetIconReady: { backgroundColor: 'rgba(52,216,112,0.13)' },
+  packetRowCopy: { flex: 1, gap: 4, minWidth: 0 },
+  packetRowTop: { alignItems: 'center', flexDirection: 'row', gap: theme.spacing.sm, justifyContent: 'space-between' },
+  packetLabel: { color: 'rgba(255,255,255,0.58)', flex: 1, fontFamily: theme.typography.familyMonoSemiBold, fontSize: 9, letterSpacing: 0.6, textTransform: 'uppercase' },
+  packetValue: { color: theme.colors.textSoft, flexShrink: 1, fontFamily: theme.typography.familySemiBold, fontSize: theme.typography.caption, textAlign: 'right' },
+  packetValueReady: { color: theme.colors.success },
+  packetDetail: { color: 'rgba(255,255,255,0.78)', fontSize: theme.typography.caption, lineHeight: 17 },
   section: { gap: theme.spacing.md },
   sectionHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
   label: { color: theme.colors.text, fontSize: theme.typography.small, fontWeight: '800' },

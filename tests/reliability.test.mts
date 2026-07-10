@@ -91,6 +91,18 @@ test('application submission waits for profile readiness and blocks duplicates',
   assert.match(communication, /phase5_send_opportunity_response/);
 });
 
+test('opportunity applications preview a reusable application packet', async () => {
+  const sheet = await read('src/components/communication/ExpressInterestSheet.tsx');
+
+  assert.match(sheet, /Application packet/);
+  assert.match(sheet, /What the creator gets/);
+  assert.match(sheet, /Reusable profile/);
+  assert.match(sheet, /Highlighted skills/);
+  assert.match(sheet, /Proof of work/);
+  assert.match(sheet, /Fit note/);
+  assert.match(sheet, /Clipboard|sendOpportunityResponse/);
+});
+
 test('message retry keeps one client nonce from app through database', async () => {
   const [conversation, migration] = await Promise.all([
     read('app/messages/[id].tsx'),
