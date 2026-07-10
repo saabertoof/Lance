@@ -168,6 +168,24 @@ test('opportunity share cards export at social-ready resolution', async () => {
   assert.doesNotMatch(shareSheet, /PixelRatio\.get\(\)/);
 });
 
+test('published opportunity owners get a creator launch center', async () => {
+  const [detail, launchCenter, routes] = await Promise.all([
+    read('app/opportunity/[id]/index.tsx'),
+    read('src/components/opportunity/OpportunityLaunchCenter.tsx'),
+    read('src/lib/routes.ts'),
+  ]);
+
+  assert.match(detail, /OpportunityLaunchCenter/);
+  assert.doesNotMatch(detail, /Share this opportunity/);
+  assert.match(launchCenter, /Launch center/);
+  assert.match(launchCenter, /Review applicants/);
+  assert.match(launchCenter, /Share kit/);
+  assert.match(launchCenter, /Preview link/);
+  assert.match(launchCenter, /Clipboard\.setStringAsync\(publicUrl\)/);
+  assert.match(launchCenter, /OpportunityFunnelCard/);
+  assert.match(routes, /publicOpportunity/);
+});
+
 test('discover deck holds the mounted next card during promotion to prevent flashes', async () => {
   const deck = await read('src/components/discovery/DiscoverDeck.tsx');
 

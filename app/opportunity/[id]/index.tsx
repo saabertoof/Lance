@@ -16,9 +16,9 @@ import {
 
 import {
   CompensationBadge,
+  OpportunityLaunchCenter,
   OpportunityStatusBadge,
   OpportunityShareSheet,
-  OpportunityFunnelCard,
   WorkArrangementBadge,
 } from '@/components/opportunity';
 import { SaveButton } from '@/components/saved';
@@ -400,37 +400,11 @@ export default function OpportunityDetailScreen() {
       {isOwner ? (
         <>
           {opportunity.status === 'published' ? (
-            <OpportunityFunnelCard opportunityId={opportunity.id} />
+            <OpportunityLaunchCenter
+              onShare={() => setShareOpen(true)}
+              opportunity={opportunity}
+            />
           ) : null}
-          {opportunity.status === 'published' ? (
-            <View style={styles.sharePrompt}>
-              <View style={styles.shareIcon}>
-                <Ionicons
-                  color={theme.colors.accentStrong}
-                  name="paper-plane-outline"
-                  size={21}
-                />
-              </View>
-              <View style={styles.shareCopy}>
-                <Text style={styles.shareTitle}>Share this opportunity</Text>
-                <Text style={styles.shareBody}>
-                  Copy a clean Lance link and captions for your bio, story, Discord, or X.
-                </Text>
-              </View>
-              <Pressable
-                accessibilityLabel="Open share panel"
-                accessibilityRole="button"
-                onPress={() => setShareOpen(true)}
-                style={styles.shareButton}>
-                <Ionicons color={theme.colors.white} name="arrow-forward" size={19} />
-              </Pressable>
-            </View>
-          ) : null}
-          <Button
-            label="Interested talent"
-            onPress={() => router.push(routes.opportunityTalent(id))}
-            variant="secondary"
-          />
           <OwnerControls
             isUpdating={isUpdating}
             onArchive={() =>
@@ -727,46 +701,6 @@ const styles = StyleSheet.create({
     color: theme.colors.accentStrong,
     fontFamily: theme.typography.familySemiBold,
     fontSize: theme.typography.small,
-  },
-  sharePrompt: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.accentSoft,
-    borderColor: 'rgba(167,139,250,0.28)',
-    borderRadius: theme.radii.lg,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: theme.spacing.md,
-    padding: theme.spacing.md,
-  },
-  shareIcon: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.radii.md,
-    height: 44,
-    justifyContent: 'center',
-    width: 44,
-  },
-  shareCopy: {
-    flex: 1,
-    gap: 3,
-  },
-  shareTitle: {
-    color: theme.colors.text,
-    fontFamily: theme.typography.familySemiBold,
-    fontSize: theme.typography.small,
-  },
-  shareBody: {
-    color: theme.colors.textSoft,
-    fontSize: theme.typography.tiny,
-    lineHeight: 18,
-  },
-  shareButton: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.accent,
-    borderRadius: theme.radii.pill,
-    height: 40,
-    justifyContent: 'center',
-    width: 40,
   },
   ownerControls: {
     gap: theme.spacing.md,
