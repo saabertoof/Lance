@@ -76,10 +76,12 @@ export function DiscoverDeck({
   const jiggleAnimation = useRef<Animated.CompositeAnimation | null>(null);
   const immediateJigglePlayedFor = useRef<number | null>(null);
   const previousCardKey = useRef(cardKey);
+  const latestChildren = useRef(children);
   const threshold = useRef<DiscoverDeckAction | null>(null);
   const [isActing, setIsActing] = useState(false);
   const [isPromotingNextCard, setIsPromotingNextCard] = useState(false);
   const [reduceMotion, setReduceMotion] = useState<boolean | null>(null);
+  const [renderedCurrentCard, setRenderedCurrentCard] = useState(children);
   const [renderedNextCard, setRenderedNextCard] = useState(nextCard);
 
   useEffect(() => {
@@ -156,23 +158,25 @@ export function DiscoverDeck({
   );
 
   useLayoutEffect(() => {
+    latestChildren.current = children;
+    if (!isActing) {
+      setRenderedCurrentCard(children);
+    }
+  }, [children, isActing]);
+
+  useLayoutEffect(() => {
     const cardChanged = previousCardKey.current !== cardKey;
     previousCardKey.current = cardKey;
     position.stopAnimation();
     position.setValue({ x: 0, y: 0 });
     entryProgress.stopAnimation();
-    entryProgress.setValue(reduceMotion === false ? 0 : 1);
+    entryProgress.setValue(1);
     threshold.current = null;
+    if (cardChanged) {
+      setRenderedCurrentCard(latestChildren.current);
+    }
     setIsActing(false);
     setIsPromotingNextCard(cardChanged && reduceMotion === false);
-    if (reduceMotion === false) {
-      Animated.spring(entryProgress, {
-        friction: 9,
-        tension: 115,
-        toValue: 1,
-        useNativeDriver: true,
-      }).start();
-    }
   }, [cardKey, entryProgress, position, reduceMotion]);
 
   useEffect(() => {
@@ -452,7 +456,7 @@ export function DiscoverDeck({
               onPress={() => void act('openDetail')}
               onPressIn={cancelJiggle}
               style={styles.openArea}>
-              {children}
+              {renderedCurrentCard}
             </Pressable>
           </Animated.View>
         </Animated.View>

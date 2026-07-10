@@ -238,9 +238,13 @@ test('discover deck holds the mounted next card during promotion to prevent flas
   const deck = await read('src/components/discovery/DiscoverDeck.tsx');
 
   assert.match(deck, /CARD_PROMOTION_HOLD_MS/);
+  assert.match(deck, /latestChildren/);
+  assert.match(deck, /renderedCurrentCard/);
   assert.match(deck, /renderedNextCard/);
   assert.match(deck, /isPromotingNextCard/);
+  assert.match(deck, /setRenderedCurrentCard\(latestChildren\.current\)/);
   assert.match(deck, /setRenderedNextCard\(nextCard\)/);
+  assert.match(deck, /entryProgress\.setValue\(1\)/);
   assert.match(deck, /opacity: isPromotingNextCard \? 1 : nextCardOpacity/);
   assert.match(deck, /outputRange: \[0, 1\]/);
 });

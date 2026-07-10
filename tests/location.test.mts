@@ -15,6 +15,16 @@ test('normalizes common country names, shorthands, and aliases', () => {
   assert.equal(normalizeCountryCode('Canada'), 'CA');
 });
 
+test('location editor lets manual typing stay manual', async () => {
+  const source = await readFile('src/components/profile/LocationSelector.tsx', 'utf8');
+
+  assert.ok(source.includes('const [isTypingLocation, setIsTypingLocation] = useState(false);'));
+  assert.ok(source.includes('if (isTypingLocation) return;'));
+  assert.ok(source.includes('city.trim().length >= 2 || region.trim().length >= 2'));
+  assert.ok(source.includes('(!isTypingLocation && value) || hasTypedLocationPreview'));
+  assert.ok(source.includes('autoCorrect={false}'));
+});
+
 test('derives flags from ISO country codes instead of storing them', () => {
   assert.equal(countryFlag('US'), '🇺🇸');
   assert.equal(countryFlag('gb'), '🇬🇧');

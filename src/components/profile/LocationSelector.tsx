@@ -53,17 +53,23 @@ export function LocationInput({
   );
   const [countryOpen, setCountryOpen] = useState(false);
   const [countryQuery, setCountryQuery] = useState('');
+  const [isTypingLocation, setIsTypingLocation] = useState(false);
   const [query, setQuery] = useState('');
   const [region, setRegion] = useState(value?.region ?? '');
 
   useEffect(() => {
+    if (isTypingLocation) return;
     setCity(value?.city ?? '');
     setRegion(value?.region ?? '');
     setCountryCode(getLocationCountryCode(value) || normalizeCountryCode(defaultCountryCode));
-  }, [defaultCountryCode, value]);
+  }, [defaultCountryCode, isTypingLocation, value]);
 
   const selectedCountry = countryOptionForCode(countryCode);
-  const hasLocationInput = Boolean(value || city.trim() || region.trim());
+  const hasTypedLocationPreview =
+    city.trim().length >= 2 || region.trim().length >= 2;
+  const hasLocationInput = Boolean(
+    (!isTypingLocation && value) || hasTypedLocationPreview,
+  );
   const selectedPreview = hasLocationInput
     ? locationOptionFromParts({
         catalogId: getLocationCatalogId(value),
@@ -102,6 +108,7 @@ export function LocationInput({
     countryCode?: string;
     region?: string;
   }) {
+    setIsTypingLocation(true);
     const nextCity = next.city ?? city;
     const nextCountryCode =
       normalizeCountryCode(next.countryCode) || countryCode || normalizeCountryCode(defaultCountryCode);
@@ -123,6 +130,7 @@ export function LocationInput({
   }
 
   function selectSuggestion(location: LocationOption) {
+    setIsTypingLocation(false);
     setCity(location.city ?? '');
     setRegion(location.region ?? '');
     setCountryCode(location.countryCode);
@@ -131,6 +139,7 @@ export function LocationInput({
   }
 
   function selectCountry(country: CountryOption) {
+    setIsTypingLocation(false);
     setCountryCode(country.code);
     setCountryOpen(false);
     setCountryQuery('');
@@ -146,6 +155,7 @@ export function LocationInput({
   }
 
   function clear() {
+    setIsTypingLocation(false);
     setCity('');
     setRegion('');
     setCountryCode(normalizeCountryCode(defaultCountryCode));
@@ -175,6 +185,8 @@ export function LocationInput({
             <Text style={styles.fieldLabel}>City</Text>
             <TextInput
               autoCapitalize="words"
+              autoCorrect={false}
+              onBlur={() => setIsTypingLocation(false)}
               onChangeText={(nextCity) => update({ city: nextCity })}
               placeholder={placeholderCity}
               placeholderTextColor={theme.colors.mutedLight}
@@ -186,7 +198,9 @@ export function LocationInput({
             <Text style={styles.fieldLabel}>Region</Text>
             <TextInput
               autoCapitalize="characters"
+              autoCorrect={false}
               maxLength={32}
+              onBlur={() => setIsTypingLocation(false)}
               onChangeText={(nextRegion) => update({ region: nextRegion })}
               placeholder="IL"
               placeholderTextColor={theme.colors.mutedLight}
