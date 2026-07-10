@@ -123,6 +123,18 @@ test('premium opportunity surfaces use the shared elite UI system', async () => 
   assert.match(responseDetail, /EliteSignalPill/);
 });
 
+test('public opportunity links present a premium application packet path', async () => {
+  const publicOpportunity = await read('app/o/[slug].tsx');
+
+  assert.match(publicOpportunity, /Profile apply/);
+  assert.match(publicOpportunity, /Private review/);
+  assert.match(publicOpportunity, /Application packet/);
+  assert.match(publicOpportunity, /Reusable profile/);
+  assert.match(publicOpportunity, /Proof friendly/);
+  assert.match(publicOpportunity, /No messy DMs/);
+  assert.match(publicOpportunity, /EliteHairline tone="cyan"/);
+});
+
 test('message retry keeps one client nonce from app through database', async () => {
   const [conversation, migration] = await Promise.all([
     read('app/messages/[id].tsx'),

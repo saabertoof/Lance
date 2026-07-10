@@ -11,7 +11,16 @@ import {
   OpportunityShareSheet,
   WorkArrangementBadge,
 } from '@/components/opportunity';
-import { Button, Chip, EliteCard, LoadingState, Screen } from '@/components/ui';
+import {
+  Button,
+  Chip,
+  EliteCard,
+  EliteHairline,
+  EliteSectionHeader,
+  EliteSignalPill,
+  LoadingState,
+  Screen,
+} from '@/components/ui';
 import { operatorFonts, operatorVisual as v } from '@/constants/operatorTheme';
 import { theme } from '@/constants/theme';
 import { type OnboardingStatus, useAuth } from '@/context/AuthContext';
@@ -234,17 +243,37 @@ export default function PublicOpportunityScreen() {
             <HeroMeta icon="time-outline" label={commitmentLabel} />
             <HeroMeta icon="location-outline" label={locationLabel || arrangementLabel} />
           </View>
+          <View style={styles.heroSignals}>
+            <EliteSignalPill
+              icon="person-circle-outline"
+              label="Profile apply"
+              tone="cyan"
+              value="clean packet"
+            />
+            <EliteSignalPill
+              icon="lock-closed-outline"
+              label="Private review"
+              tone="neutral"
+              value="creator only"
+            />
+          </View>
         </View>
       </EliteCard>
 
-      <View style={styles.applyCard}>
-        <View style={styles.applyCopy}>
-          <Text style={styles.applyTitle}>Apply with your Lance profile.</Text>
-          <Text style={styles.applyBody}>
-            Build it once, then reuse your skills, links, and portfolio for every
-            opportunity.
-          </Text>
+      <EliteCard style={styles.applyCard} tone="cyan">
+        <EliteSectionHeader
+          eyebrow="Application packet"
+          icon="paper-plane-outline"
+          subtitle="Your profile, skills, links, proof, and fit note stay organized for the creator."
+          title="Apply with your Lance profile."
+          tone="cyan"
+        />
+        <View style={styles.applySignals}>
+          <EliteSignalPill icon="sparkles-outline" label="Reusable profile" tone="cyan" />
+          <EliteSignalPill icon="images-outline" label="Proof friendly" tone="accent" />
+          <EliteSignalPill icon="chatbubble-ellipses-outline" label="No messy DMs" tone="neutral" />
         </View>
+        <EliteHairline tone="cyan" />
         <ApplyAction
           authLoading={authLoading}
           onError={setError}
@@ -254,7 +283,7 @@ export default function PublicOpportunityScreen() {
           sessionExists={Boolean(session)}
           userId={user?.id ?? null}
         />
-      </View>
+      </EliteCard>
 
       {warning ? (
         <View style={styles.warning}>
@@ -317,7 +346,7 @@ export default function PublicOpportunityScreen() {
         </View>
       </Section>
 
-      <View style={styles.creatorCard}>
+      <EliteCard style={styles.creatorCard} tone="accent">
         <View style={styles.creatorImage}>
           {opportunity.poster.imageUrl ? (
             <Image contentFit="cover" source={opportunity.poster.imageUrl} style={styles.image} />
@@ -333,7 +362,7 @@ export default function PublicOpportunityScreen() {
             creators do not have to sort through scattered DMs.
           </Text>
         </View>
-      </View>
+      </EliteCard>
 
       {opportunity.externalUrl ? (
         <Pressable
@@ -350,12 +379,14 @@ export default function PublicOpportunityScreen() {
         </Pressable>
       ) : null}
 
-      <View style={styles.finalApplyCard}>
-        <Text style={styles.finalApplyTitle}>Interested?</Text>
-        <Text style={styles.finalApplyBody}>
-          Apply with a reusable Lance profile so the creator can review your work,
-          skills, and links in one place.
-        </Text>
+      <EliteCard style={styles.finalApplyCard} tone="cyan">
+        <EliteSectionHeader
+          eyebrow="Ready"
+          icon="arrow-up-circle-outline"
+          subtitle="Send a focused application packet the creator can actually review."
+          title="Interested?"
+          tone="cyan"
+        />
         <ApplyAction
           authLoading={authLoading}
           onError={setError}
@@ -365,7 +396,7 @@ export default function PublicOpportunityScreen() {
           sessionExists={Boolean(session)}
           userId={user?.id ?? null}
         />
-      </View>
+      </EliteCard>
 
       <Text style={styles.publicUrl}>{getOpportunityPublicUrl(opportunity)}</Text>
 
@@ -721,6 +752,11 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: theme.spacing.sm,
   },
+  heroSignals: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: theme.spacing.sm,
+  },
   heroMetaPill: {
     alignItems: 'center',
     backgroundColor: theme.colors.surfaceMuted,
@@ -740,27 +776,12 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   applyCard: {
-    backgroundColor: '#17151F',
-    borderColor: v.border,
-    borderRadius: 16,
-    borderWidth: 1,
     gap: theme.spacing.md,
-    padding: 16,
-    ...theme.shadows.card,
   },
-  applyCopy: {
-    gap: theme.spacing.xs,
-  },
-  applyTitle: {
-    color: theme.colors.white,
-    fontFamily: operatorFonts.sansSemiBold,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  applyBody: {
-    color: 'rgba(255,255,255,0.72)',
-    fontSize: theme.typography.small,
-    lineHeight: 20,
+  applySignals: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: theme.spacing.sm,
   },
   applyButton: {
     width: '100%',
@@ -861,14 +882,8 @@ const styles = StyleSheet.create({
   },
   creatorCard: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: 16,
-    borderWidth: 1,
     flexDirection: 'row',
     gap: theme.spacing.md,
-    padding: theme.spacing.md,
-    ...theme.shadows.card,
   },
   creatorImage: {
     alignItems: 'center',
@@ -922,24 +937,7 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   finalApplyCard: {
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: 16,
-    borderWidth: 1,
     gap: theme.spacing.md,
-    padding: theme.spacing.lg,
-    ...theme.shadows.card,
-  },
-  finalApplyTitle: {
-    color: theme.colors.text,
-    fontFamily: operatorFonts.sansSemiBold,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  finalApplyBody: {
-    color: theme.colors.textSoft,
-    fontSize: theme.typography.small,
-    lineHeight: 20,
   },
   publicUrl: {
     color: theme.colors.muted,
