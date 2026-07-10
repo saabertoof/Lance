@@ -3,6 +3,7 @@ export * from './Card';
 export * from './Chip';
 export * from './CompactPageHeader';
 export * from './DateField';
+export * from './EliteSurface';
 export * from './EmptyState';
 export * from './LoadingState';
 export * from './Screen';

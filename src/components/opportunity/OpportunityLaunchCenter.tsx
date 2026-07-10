@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { OpportunityLinkPreviewCard } from '@/components/create/OpportunityLinkPreviewCard';
+import { EliteCard, EliteSectionHeader, EliteSignalPill } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useFeedback } from '@/context/FeedbackContext';
 import {
@@ -55,12 +56,14 @@ export function OpportunityLaunchCenter({
   }
 
   return (
-    <View style={styles.shell}>
+    <EliteCard style={styles.shell} tone="accent">
       <View style={styles.header}>
-        <View style={styles.liveBadge}>
-          <View style={styles.liveDot} />
-          <Text style={styles.liveText}>Live link</Text>
-        </View>
+        <EliteSignalPill
+          icon="radio-outline"
+          label="Live link"
+          tone="success"
+          value="public"
+        />
         <Pressable
           accessibilityLabel="Preview public opportunity page"
           accessibilityRole="button"
@@ -71,10 +74,12 @@ export function OpportunityLaunchCenter({
         </Pressable>
       </View>
 
-      <Text style={styles.title}>Launch center</Text>
-      <Text style={styles.body}>
-        Share the creator link, watch the funnel, and review applicants from one place.
-      </Text>
+      <EliteSectionHeader
+        eyebrow="Creator command"
+        icon="sparkles-outline"
+        subtitle="Share the creator link, watch the funnel, and review applicants from one place."
+        title="Launch center"
+      />
 
       <View style={styles.previewShell}>
         <View style={styles.previewHeader}>
@@ -135,7 +140,7 @@ export function OpportunityLaunchCenter({
       </View>
 
       <OpportunityFunnelCard opportunityId={opportunity.id} />
-    </View>
+    </EliteCard>
   );
 }
 
@@ -176,40 +181,12 @@ function LaunchAction({
 
 const styles = StyleSheet.create({
   shell: {
-    backgroundColor: theme.colors.surface,
-    borderColor: 'rgba(167,139,250,0.24)',
-    borderRadius: theme.radii.lg,
-    borderWidth: 1,
     gap: theme.spacing.md,
-    padding: theme.spacing.md,
   },
   header: {
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
-  },
-  liveBadge: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.accentSoft,
-    borderColor: 'rgba(167,139,250,0.24)',
-    borderRadius: theme.radii.pill,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 6,
-    minHeight: 28,
-    paddingHorizontal: 10,
-  },
-  liveDot: {
-    backgroundColor: theme.colors.success,
-    borderRadius: 4,
-    height: 8,
-    width: 8,
-  },
-  liveText: {
-    color: theme.colors.accentStrong,
-    fontFamily: theme.typography.familyMonoSemiBold,
-    fontSize: 10,
-    textTransform: 'uppercase',
   },
   previewButton: {
     alignItems: 'center',
@@ -225,16 +202,6 @@ const styles = StyleSheet.create({
     color: theme.colors.accentStrong,
     fontFamily: theme.typography.familySemiBold,
     fontSize: theme.typography.caption,
-  },
-  title: {
-    color: theme.colors.text,
-    fontFamily: theme.typography.familySemiBold,
-    fontSize: theme.typography.cardTitle,
-  },
-  body: {
-    color: theme.colors.textSoft,
-    fontSize: theme.typography.caption,
-    lineHeight: 18,
   },
   previewShell: {
     gap: theme.spacing.sm,

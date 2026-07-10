@@ -13,7 +13,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { MultiSelectChips } from '@/components/profile';
-import { Button, Chip, TextField } from '@/components/ui';
+import {
+  Button,
+  Chip,
+  EliteCard,
+  EliteSectionHeader,
+  EliteSignalPill,
+  TextField,
+} from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { useFeedback } from '@/context/FeedbackContext';
@@ -483,18 +490,37 @@ function ApplicationPacketPreview({
       : 'Choose up to five skills to make the application easier to scan.';
 
   return (
-    <View style={styles.packetCard}>
+    <EliteCard style={styles.packetCard} tone="cyan">
       <View style={styles.packetHeader}>
-        <View style={styles.packetHeaderCopy}>
-          <Text style={styles.packetEyebrow}>Application packet</Text>
-          <Text style={styles.packetTitle}>What the creator gets</Text>
-        </View>
+        <EliteSectionHeader
+          eyebrow="Application packet"
+          icon="scan-outline"
+          subtitle="A compact profile bundle the creator can review fast."
+          title="What the creator gets"
+          tone="cyan"
+        />
         <View style={styles.packetScore}>
           <Text style={styles.packetScoreValue}>
             {profileScore == null ? '--' : `${profileScore}%`}
           </Text>
           <Text style={styles.packetScoreLabel}>profile</Text>
         </View>
+      </View>
+      <View style={styles.packetSignalRow}>
+        <EliteSignalPill
+          icon="person-circle-outline"
+          label={sender ? 'Profile loaded' : 'Preparing profile'}
+          tone={sender ? 'success' : 'neutral'}
+        />
+        <EliteSignalPill
+          icon="pricetags-outline"
+          label={
+            selectedSkills.length > 0
+              ? `${selectedSkills.length} skills`
+              : 'Skills recommended'
+          }
+          tone={selectedSkills.length > 0 ? 'accent' : 'warning'}
+        />
       </View>
 
       <View style={styles.packetRows}>
@@ -543,7 +569,7 @@ function ApplicationPacketPreview({
           value={note ? 'Ready' : 'Recommended'}
         />
       </View>
-    </View>
+    </EliteCard>
   );
 }
 
@@ -646,11 +672,9 @@ const styles = StyleSheet.create({
   signalGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm },
   profileSignal: { alignItems: 'center', backgroundColor: theme.colors.surfaceMuted, borderRadius: theme.radii.pill, flexDirection: 'row', gap: 5, maxWidth: '100%', paddingHorizontal: 10, paddingVertical: 7 },
   profileSignalText: { color: theme.colors.textSoft, flexShrink: 1, fontSize: theme.typography.caption, fontWeight: '800' },
-  packetCard: { backgroundColor: '#17151F', borderColor: 'rgba(167,139,250,0.18)', borderRadius: theme.radii.lg, borderWidth: 1, gap: theme.spacing.md, padding: theme.spacing.md },
+  packetCard: { gap: theme.spacing.md },
   packetHeader: { alignItems: 'center', flexDirection: 'row', gap: theme.spacing.md, justifyContent: 'space-between' },
-  packetHeaderCopy: { flex: 1, gap: 3, minWidth: 0 },
-  packetEyebrow: { color: theme.colors.accentStrong, fontFamily: theme.typography.familyMonoSemiBold, fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase' },
-  packetTitle: { color: theme.colors.white, fontFamily: theme.typography.familySemiBold, fontSize: theme.typography.cardTitle },
+  packetSignalRow: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm },
   packetScore: { alignItems: 'flex-end' },
   packetScoreValue: { color: theme.colors.white, fontFamily: theme.typography.familySemiBold, fontSize: theme.typography.subheading },
   packetScoreLabel: { color: 'rgba(255,255,255,0.52)', fontSize: 9, fontWeight: '800', textTransform: 'uppercase' },

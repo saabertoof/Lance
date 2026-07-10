@@ -5,7 +5,16 @@ import { useEffect, useRef, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { ProfileAvatar, SafetySheet } from '@/components/communication';
-import { Button, Card, Chip, LoadingState, Screen } from '@/components/ui';
+import {
+  Button,
+  Card,
+  Chip,
+  EliteCard,
+  EliteSectionHeader,
+  EliteSignalPill,
+  LoadingState,
+  Screen,
+} from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { useFeedback } from '@/context/FeedbackContext';
@@ -271,10 +280,25 @@ export default function OpportunityResponseScreen() {
         ) : null}
       </Card>
 
-      <View style={styles.reviewCard}>
-        <View style={styles.reviewHeader}>
-          <Text style={styles.reviewTitle}>Fast review</Text>
-          <Text style={styles.reviewSubtitle}>Signals from their reusable profile</Text>
+      <EliteCard style={styles.reviewCard} tone="cyan">
+        <EliteSectionHeader
+          eyebrow="Creator review"
+          icon="scan-outline"
+          subtitle="Signals from their reusable profile"
+          title="Fast review"
+          tone="cyan"
+        />
+        <View style={styles.reviewSignals}>
+          <EliteSignalPill
+            icon="pricetags-outline"
+            label={skillNames.length ? `${skillNames.length} skills` : 'Needs skills'}
+            tone={skillNames.length ? 'accent' : 'warning'}
+          />
+          <EliteSignalPill
+            icon="images-outline"
+            label={response.portfolioTitle ? 'Proof attached' : 'No proof attached'}
+            tone={response.portfolioTitle ? 'success' : 'neutral'}
+          />
         </View>
         <View style={styles.reviewGrid}>
           <ReviewSignal label="Skills" value={skillNames.length ? `${skillNames.length} shown` : 'Needs more'} />
@@ -282,7 +306,7 @@ export default function OpportunityResponseScreen() {
           <ReviewSignal label="Links" value={linkCount ? `${linkCount} live` : 'None'} />
           <ReviewSignal label="Availability" value={availability ?? 'Not listed'} />
         </View>
-      </View>
+      </EliteCard>
 
       {ownerView && response.status === 'submitted' ? (
         <View style={styles.actions}>
@@ -442,10 +466,8 @@ const styles = StyleSheet.create({
   portfolioLabel: { color: theme.colors.muted, fontSize: theme.typography.tiny },
   portfolioTitle: { color: theme.colors.text, fontSize: theme.typography.small, fontWeight: '800' },
   date: { color: theme.colors.mutedLight, fontSize: theme.typography.tiny },
-  reviewCard: { backgroundColor: '#17151F', borderRadius: theme.radii.lg, gap: theme.spacing.md, padding: theme.spacing.lg, ...theme.shadows.card },
-  reviewHeader: { gap: 3 },
-  reviewTitle: { color: theme.colors.white, fontSize: theme.typography.cardTitle, fontWeight: '900' },
-  reviewSubtitle: { color: 'rgba(255,255,255,0.62)', fontSize: theme.typography.caption, fontWeight: '700' },
+  reviewCard: { gap: theme.spacing.md },
+  reviewSignals: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm },
   reviewGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm },
   reviewSignal: { backgroundColor: 'rgba(255,255,255,0.09)', borderColor: 'rgba(255,255,255,0.12)', borderRadius: theme.radii.md, borderWidth: 1, gap: 3, padding: theme.spacing.md, width: '48%' },
   reviewLabel: { color: 'rgba(255,255,255,0.58)', fontSize: theme.typography.caption, fontWeight: '900', textTransform: 'uppercase' },

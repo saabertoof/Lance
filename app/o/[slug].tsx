@@ -11,7 +11,7 @@ import {
   OpportunityShareSheet,
   WorkArrangementBadge,
 } from '@/components/opportunity';
-import { Button, Chip, LoadingState, Screen } from '@/components/ui';
+import { Button, Chip, EliteCard, LoadingState, Screen } from '@/components/ui';
 import { operatorFonts, operatorVisual as v } from '@/constants/operatorTheme';
 import { theme } from '@/constants/theme';
 import { type OnboardingStatus, useAuth } from '@/context/AuthContext';
@@ -167,7 +167,7 @@ export default function PublicOpportunityScreen() {
         </Pressable>
       </View>
 
-      <View style={styles.hero}>
+      <EliteCard style={styles.hero} tone="accent">
         <View style={styles.heroArt}>
           <View style={styles.heroStripe} />
           <View style={styles.heroStripeSecondary} />
@@ -235,7 +235,7 @@ export default function PublicOpportunityScreen() {
             <HeroMeta icon="location-outline" label={locationLabel || arrangementLabel} />
           </View>
         </View>
-      </View>
+      </EliteCard>
 
       <View style={styles.applyCard}>
         <View style={styles.applyCopy}>
@@ -566,12 +566,11 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   hero: {
-    backgroundColor: theme.colors.surface,
     borderColor: v.borderPurple,
     borderRadius: 20,
     borderWidth: 1,
     overflow: 'hidden',
-    ...theme.shadows.card,
+    padding: 0,
   },
   heroArt: {
     alignItems: 'center',

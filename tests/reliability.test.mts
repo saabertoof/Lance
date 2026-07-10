@@ -96,11 +96,31 @@ test('opportunity applications preview a reusable application packet', async () 
 
   assert.match(sheet, /Application packet/);
   assert.match(sheet, /What the creator gets/);
+  assert.match(sheet, /EliteCard/);
+  assert.match(sheet, /EliteSignalPill/);
   assert.match(sheet, /Reusable profile/);
   assert.match(sheet, /Highlighted skills/);
   assert.match(sheet, /Proof of work/);
   assert.match(sheet, /Fit note/);
   assert.match(sheet, /Clipboard|sendOpportunityResponse/);
+});
+
+test('premium opportunity surfaces use the shared elite UI system', async () => {
+  const [eliteSurface, publicOpportunity, launchCenter, responseDetail] =
+    await Promise.all([
+      read('src/components/ui/EliteSurface.tsx'),
+      read('app/o/[slug].tsx'),
+      read('src/components/opportunity/OpportunityLaunchCenter.tsx'),
+      read('app/request/opportunity/[id].tsx'),
+    ]);
+
+  assert.match(eliteSurface, /EliteCard/);
+  assert.match(eliteSurface, /EliteSectionHeader/);
+  assert.match(eliteSurface, /EliteSignalPill/);
+  assert.match(publicOpportunity, /<EliteCard style=\{styles\.hero\} tone="accent">/);
+  assert.match(launchCenter, /EliteSectionHeader/);
+  assert.match(responseDetail, /Creator review/);
+  assert.match(responseDetail, /EliteSignalPill/);
 });
 
 test('message retry keeps one client nonce from app through database', async () => {
