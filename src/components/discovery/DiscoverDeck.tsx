@@ -52,6 +52,7 @@ const HORIZONTAL_THRESHOLD = 88;
 const VERTICAL_THRESHOLD = 86;
 const CARD_PROMOTION_OFFSET = 7;
 const CARD_PROMOTION_SCALE = 0.982;
+const CARD_PROMOTION_HOLD_MS = 190;
 
 export function DiscoverDeck({
   active,
@@ -74,9 +75,12 @@ export function DiscoverDeck({
   const jiggleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const jiggleAnimation = useRef<Animated.CompositeAnimation | null>(null);
   const immediateJigglePlayedFor = useRef<number | null>(null);
+  const previousCardKey = useRef(cardKey);
   const threshold = useRef<DiscoverDeckAction | null>(null);
   const [isActing, setIsActing] = useState(false);
+  const [isPromotingNextCard, setIsPromotingNextCard] = useState(false);
   const [reduceMotion, setReduceMotion] = useState<boolean | null>(null);
+  const [renderedNextCard, setRenderedNextCard] = useState(nextCard);
 
   useEffect(() => {
     let active = true;
@@ -152,12 +156,15 @@ export function DiscoverDeck({
   );
 
   useLayoutEffect(() => {
+    const cardChanged = previousCardKey.current !== cardKey;
+    previousCardKey.current = cardKey;
     position.stopAnimation();
     position.setValue({ x: 0, y: 0 });
     entryProgress.stopAnimation();
     entryProgress.setValue(reduceMotion === false ? 0 : 1);
     threshold.current = null;
     setIsActing(false);
+    setIsPromotingNextCard(cardChanged && reduceMotion === false);
     if (reduceMotion === false) {
       Animated.spring(entryProgress, {
         friction: 9,
@@ -167,6 +174,20 @@ export function DiscoverDeck({
       }).start();
     }
   }, [cardKey, entryProgress, position, reduceMotion]);
+
+  useEffect(() => {
+    if (!isPromotingNextCard) {
+      setRenderedNextCard(nextCard);
+      return undefined;
+    }
+
+    const timeout = setTimeout(() => {
+      setRenderedNextCard(nextCard);
+      setIsPromotingNextCard(false);
+    }, CARD_PROMOTION_HOLD_MS);
+
+    return () => clearTimeout(timeout);
+  }, [isPromotingNextCard, nextCard]);
 
   useEffect(() => {
     if (!active || reduceMotion !== false || isActing) {
@@ -267,7 +288,7 @@ export function DiscoverDeck({
   });
   const entryOpacity = entryProgress.interpolate({
     inputRange: [0, 1],
-    outputRange: [0.94, 1],
+    outputRange: [0, 1],
     extrapolate: 'clamp',
   });
   const cardTranslateY = Animated.add(position.y, entryTranslateY);
@@ -374,20 +395,24 @@ export function DiscoverDeck({
   return (
     <View style={styles.wrapper}>
       <View style={styles.stack}>
-        {nextCard ? (
+        {renderedNextCard ? (
           <Animated.View
             pointerEvents="none"
             style={[
               styles.nextCard,
               {
-                opacity: nextCardOpacity,
+                opacity: isPromotingNextCard ? 1 : nextCardOpacity,
                 transform: [
-                  { translateY: nextCardTranslateY },
-                  { scale: nextCardScale },
+                  {
+                    translateY: isPromotingNextCard
+                      ? 0
+                      : nextCardTranslateY,
+                  },
+                  { scale: isPromotingNextCard ? 1 : nextCardScale },
                 ],
               },
             ]}>
-            {nextCard}
+            {renderedNextCard}
           </Animated.View>
         ) : null}
         <Animated.View

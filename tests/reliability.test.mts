@@ -168,6 +168,17 @@ test('opportunity share cards export at social-ready resolution', async () => {
   assert.doesNotMatch(shareSheet, /PixelRatio\.get\(\)/);
 });
 
+test('discover deck holds the mounted next card during promotion to prevent flashes', async () => {
+  const deck = await read('src/components/discovery/DiscoverDeck.tsx');
+
+  assert.match(deck, /CARD_PROMOTION_HOLD_MS/);
+  assert.match(deck, /renderedNextCard/);
+  assert.match(deck, /isPromotingNextCard/);
+  assert.match(deck, /setRenderedNextCard\(nextCard\)/);
+  assert.match(deck, /opacity: isPromotingNextCard \? 1 : nextCardOpacity/);
+  assert.match(deck, /outputRange: \[0, 1\]/);
+});
+
 test('new opportunity drafts recover locally and clear after server save', async () => {
   const [screen, storage] = await Promise.all([
     read('app/opportunity/new.tsx'),
