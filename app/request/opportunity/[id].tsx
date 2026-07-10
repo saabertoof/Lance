@@ -26,6 +26,7 @@ import {
   updateOpportunityResponse,
 } from '@/lib/communication';
 import { loadPublicProfilesByIds } from '@/lib/discovery';
+import { trackOpportunityResponseFunnelEvent } from '@/lib/opportunityFunnel';
 import { routes } from '@/lib/routes';
 import type {
   OpportunityResponseRecord,
@@ -79,6 +80,9 @@ export default function OpportunityResponseScreen() {
         setResponse(result);
         setApplicantProfile(profiles[0] ?? null);
         setRelationship(relationshipResult);
+        if (result.ownerProfileId === user?.id) {
+          void trackOpportunityResponseFunnelEvent(result.id, 'creator_reviewed');
+        }
       })
       .catch((loadError) => {
         if (active) setError(formatCommunicationError(loadError));
@@ -98,6 +102,7 @@ export default function OpportunityResponseScreen() {
     setError(null);
     try {
       const conversationId = await startOpportunityConversation(id);
+      void trackOpportunityResponseFunnelEvent(id, 'message_started');
       showSuccess('Conversation started.');
       router.replace(routes.conversation(conversationId));
     } catch (startError) {

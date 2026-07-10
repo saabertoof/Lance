@@ -336,6 +336,38 @@ test('migration 0012 keeps raw telemetry private and aggregated', async () => {
   assert.equal(/\bip_address\b|\bemail\b|\buser_agent\b/i.test(migration), false);
 });
 
+test('private beta feedback and deeper funnel tracking stay server controlled', async () => {
+  const [migration, feedbackRoute, settings, funnel, applySheet, responseRoute] =
+    await Promise.all([
+      read('supabase/migrations/0014_beta_feedback_and_funnel_depth.sql'),
+      read('app/profile/feedback.tsx'),
+      read('app/profile/settings.tsx'),
+      read('src/lib/opportunityFunnel.ts'),
+      read('src/components/communication/ExpressInterestSheet.tsx'),
+      read('app/request/opportunity/[id].tsx'),
+    ]);
+
+  assert.match(migration, /create table if not exists public\.beta_feedback/i);
+  assert.match(migration, /alter table public\.beta_feedback enable row level security/i);
+  assert.match(
+    migration,
+    /revoke all on table public\.beta_feedback from anon, authenticated/i,
+  );
+  assert.match(migration, /submit_beta_feedback/);
+  assert.match(migration, /record_opportunity_response_funnel_event/);
+  assert.match(migration, /application_submitted/);
+  assert.match(migration, /creator_reviewed/);
+  assert.match(migration, /message_started/);
+  assert.doesNotMatch(migration, /grant select on public\.beta_feedback to authenticated/i);
+
+  assert.match(feedbackRoute, /submitBetaFeedback/);
+  assert.match(settings, /Send beta feedback/);
+  assert.match(funnel, /trackOpportunityResponseFunnelEvent/);
+  assert.match(applySheet, /application_submitted/);
+  assert.match(responseRoute, /creator_reviewed/);
+  assert.match(responseRoute, /message_started/);
+});
+
 test('preview builds remain local and use internal distribution', async () => {
   const eas = JSON.parse(await read('eas.json')) as {
     build?: {

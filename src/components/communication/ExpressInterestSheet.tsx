@@ -38,6 +38,7 @@ import {
   formatOpportunityLocation,
   isClearlyPaid,
 } from '@/lib/opportunity';
+import { trackOpportunityFunnelEvent } from '@/lib/opportunityFunnel';
 import { loadPersonalProfile } from '@/lib/profile';
 import { loadProfilePolish } from '@/lib/profilePolish';
 import { routes } from '@/lib/routes';
@@ -224,6 +225,7 @@ export function ExpressInterestSheet({
         skillIds: selectedSkillIds,
         compensationAcknowledged: acknowledged,
       });
+      void trackOpportunityFunnelEvent(opportunity.slug, 'application_submitted');
       showSuccess('Application sent.');
       onSuccess(responseId);
       setNote('');

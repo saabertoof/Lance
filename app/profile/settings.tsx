@@ -364,6 +364,12 @@ export default function ProfileSettingsScreen() {
 
       <SettingsSection title="Support / About">
         <SettingsRow
+          detail="Send bugs, confusing moments, and polish notes during beta."
+          icon="flask-outline"
+          label="Send beta feedback"
+          onPress={() => router.push(routes.betaFeedback)}
+        />
+        <SettingsRow
           detail="Manage Ask Lance searches and alert schedules."
           icon="search-outline"
           label="Saved searches"

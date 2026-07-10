@@ -31,6 +31,7 @@ export default function ProfileLayout() {
       <Stack.Screen name="connections" />
       <Stack.Screen name="requests" />
       <Stack.Screen name="communication" />
+      <Stack.Screen name="feedback" />
       <Stack.Screen name="interested-talent" />
       <Stack.Screen name="settings" />
     </Stack>

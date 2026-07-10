@@ -8,7 +8,9 @@ This pass hardens the creator opportunity-link loop:
 4. The applicant reviews a reusable profile before sending.
 5. Duplicate and rapid submissions remain server-controlled.
 6. The creator reviews applicants and can begin a linked conversation.
-7. Private owner analytics show views, application starts, and real applications.
+7. Private owner analytics show views, application starts, real applications,
+   applicant reviews, and message starts.
+8. Testers can send private beta feedback from Settings without using abuse reports.
 
 ## Apply Migration 0012
 
@@ -31,6 +33,32 @@ Migration `0012` adds:
 
 It does not store IP addresses, emails, application notes, profile content,
 search history, device fingerprints, or Supabase credentials.
+
+## Apply Migration 0014
+
+Apply `0014_beta_feedback_and_funnel_depth.sql` once after `0013`.
+
+1. Open the Supabase dashboard.
+2. Open **SQL Editor**.
+3. Open `supabase/migrations/0014_beta_feedback_and_funnel_depth.sql`.
+4. Paste the complete file into a new query.
+5. Run the query once.
+6. Do not rerun migrations `0001` through `0013`.
+
+Migration `0014` adds:
+
+- Private beta feedback submissions through `submit_beta_feedback`.
+- No direct anon/authenticated read access to raw `beta_feedback` rows.
+- Deeper opportunity funnel events:
+  - `application_submitted`
+  - `creator_reviewed`
+  - `message_started`
+- A response-scoped funnel RPC so creator review/message events are tied to the
+  relevant opportunity response without exposing application content.
+- Expanded owner-only funnel summary counts for creator review and message starts.
+
+It does not store IP addresses, browser user agents, passwords, Supabase keys,
+application notes in telemetry, or private profile content in telemetry.
 
 ## Supabase Auth Redirects
 
@@ -69,6 +97,10 @@ Use Account A as the creator and Account B as the applicant.
 11. Account A starts a discussion and confirms one linked conversation exists.
 12. Exchange messages and verify unread state clears after opening the chat.
 13. Open the opportunity as Account A and verify Link performance is visible.
+14. Confirm the funnel shows deeper counts after Account B applies, Account A
+    reviews, and Account A starts the conversation.
+15. Open **Profile > Settings > Send beta feedback** and submit one beta note.
+16. Confirm the app shows success and the row is visible only from Supabase admin tools.
 
 ## Failure Tests
 
@@ -88,10 +120,14 @@ With Account B's authenticated session:
 
 - Directly selecting `opportunity_funnel_events` must fail.
 - Directly selecting `client_error_reports` must fail.
+- Directly selecting `beta_feedback` must fail.
 - Requesting Account A's funnel summary must fail.
 - Recording a funnel event for a draft, paused, closed, expired, or deleted
   opportunity must create no event.
+- Recording `creator_reviewed` or `message_started` for an opportunity response
+  Account B does not own must create no event.
 - Recording unsupported event names must fail.
+- Submitting more than 12 beta feedback notes in 24 hours must be rate-limited.
 - Applying to Account B's own opportunity must fail.
 - Applying to the same opportunity twice must fail.
 - Applying after a block must fail.

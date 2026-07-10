@@ -4,6 +4,7 @@ import type { BusinessType } from '@/types/business';
 export const routes = {
   editProfile: '/profile/edit' as Href,
   profileSettings: '/profile/settings' as Href,
+  betaFeedback: '/profile/feedback' as Href,
   profile: (id: string) =>
     ({ pathname: '/profile/[id]', params: { id } }) as unknown as Href,
   saved: '/profile/saved' as Href,

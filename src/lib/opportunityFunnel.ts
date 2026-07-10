@@ -3,11 +3,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { calculateFunnelConversion } from '@/lib/reliability';
 import { supabase } from '@/lib/supabase';
 
-export type OpportunityFunnelEvent = 'apply_started' | 'view';
+export type OpportunityFunnelEvent =
+  | 'application_submitted'
+  | 'apply_started'
+  | 'view';
+export type OpportunityResponseFunnelEvent = 'creator_reviewed' | 'message_started';
 
 export type OpportunityFunnelSummary = {
   applicationStarts: number;
   applications: number;
+  creatorReviews: number;
+  messageStarts: number;
   views: number;
 };
 
@@ -39,6 +45,26 @@ export async function trackOpportunityFunnelEvent(
   }
 }
 
+export async function trackOpportunityResponseFunnelEvent(
+  responseId: string,
+  event: OpportunityResponseFunnelEvent,
+) {
+  const normalizedResponseId = responseId.trim();
+  if (!normalizedResponseId) return;
+
+  try {
+    const { error } = await supabase.rpc('record_opportunity_response_funnel_event', {
+      target_event: event,
+      target_interest_id: normalizedResponseId,
+    });
+    if (error && !isMissingReliabilityMigration(error)) throw error;
+  } catch (error) {
+    if (__DEV__) {
+      console.warn('[Opportunity response funnel unavailable]', safeErrorName(error));
+    }
+  }
+}
+
 export async function loadOpportunityFunnelSummary(
   opportunityId: string,
 ): Promise<OpportunityFunnelSummary | null> {
@@ -54,6 +80,8 @@ export async function loadOpportunityFunnelSummary(
   return {
     applicationStarts: nonNegativeNumber(row.application_starts),
     applications: nonNegativeNumber(row.applications),
+    creatorReviews: nonNegativeNumber(row.creator_reviews),
+    messageStarts: nonNegativeNumber(row.message_starts),
     views: nonNegativeNumber(row.views),
   };
 }
@@ -102,7 +130,7 @@ function isMissingReliabilityMigration(error: unknown) {
   const details = error as { code?: string; message?: string };
   return (
     details?.code === 'PGRST202' ||
-    /record_opportunity_funnel_event|get_opportunity_funnel_summary/i.test(
+    /record_opportunity_funnel_event|record_opportunity_response_funnel_event|get_opportunity_funnel_summary/i.test(
       details?.message ?? '',
     )
   );

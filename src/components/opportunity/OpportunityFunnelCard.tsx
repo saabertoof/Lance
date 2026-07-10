@@ -62,7 +62,7 @@ export function OpportunityFunnelCard({
             <Text style={styles.conversionValue}>
               {summary ? opportunityConversionRate(summary) : 0}%
             </Text>
-            <Text style={styles.conversionLabel}>view to apply</Text>
+            <Text style={styles.conversionLabel}>view to packet</Text>
           </View>
         )}
       </View>
@@ -85,17 +85,25 @@ export function OpportunityFunnelCard({
             label="Views"
             value={summary?.views ?? 0}
           />
-          <View style={styles.divider} />
           <FunnelStat
             icon="open-outline"
             label="Started"
             value={summary?.applicationStarts ?? 0}
           />
-          <View style={styles.divider} />
           <FunnelStat
             icon="paper-plane-outline"
             label="Applied"
             value={summary?.applications ?? 0}
+          />
+          <FunnelStat
+            icon="scan-outline"
+            label="Reviewed"
+            value={summary?.creatorReviews ?? 0}
+          />
+          <FunnelStat
+            icon="chatbubble-ellipses-outline"
+            label="Messaged"
+            value={summary?.messageStarts ?? 0}
           />
         </View>
       )}
@@ -169,13 +177,22 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   stats: {
-    alignItems: 'center',
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: theme.spacing.sm,
   },
   stat: {
     alignItems: 'center',
-    flex: 1,
+    backgroundColor: theme.colors.surfaceMuted,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radii.md,
+    borderWidth: 1,
+    flexBasis: '30%',
+    flexGrow: 1,
     gap: 3,
+    minWidth: 86,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.sm,
   },
   statValue: {
     color: theme.colors.text,
@@ -185,11 +202,6 @@ const styles = StyleSheet.create({
   statLabel: {
     color: theme.colors.muted,
     fontSize: theme.typography.caption,
-  },
-  divider: {
-    backgroundColor: theme.colors.border,
-    height: 34,
-    width: 1,
   },
   note: {
     color: theme.colors.muted,

@@ -51,7 +51,7 @@ contracts, reviews, verification, premium features, group chats, attachments, or
 - Node.js LTS
 - npm
 - Expo Go
-- A Supabase project with migrations `0001` through `0011` already applied
+- A Supabase project with migrations `0001` through `0014` applied for the full beta flow
 
 On this Windows machine, use `npm.cmd` if PowerShell blocks `npm`.
 
@@ -259,8 +259,15 @@ Apply `supabase/migrations/0012_beta_reliability_observability.sql` once after
 `0011`. It adds private opportunity funnel aggregates and sanitized client error
 reports without exposing raw telemetry to the app.
 
-The full migration, redirect, two-account, offline, RLS, and internal preview
-instructions are in `docs/BETA_READINESS.md`.
+Apply `supabase/migrations/0014_beta_feedback_and_funnel_depth.sql` once after
+`0013`. It adds private beta feedback submissions and deeper creator funnel
+events for application submitted, applicant reviewed, and message started.
+
+Beta feedback is available in **Profile > Settings > Send beta feedback**.
+The mobile client can submit feedback but cannot read raw feedback rows.
+
+The full migration, redirect, two-account, offline, RLS, feedback, and internal
+preview instructions are in `docs/BETA_READINESS.md`.
 
 ## Business Phone Test
 
