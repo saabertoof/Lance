@@ -16,6 +16,7 @@ import {
   COMMUNICATION_PAGE_SIZE,
   formatCommunicationError,
   loadConnections,
+  openDirectConversation,
 } from '@/lib/communication';
 import { routes } from '@/lib/routes';
 import type { ConnectionRecord } from '@/types/communication';
@@ -26,6 +27,7 @@ export default function ConnectionsScreen() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [openingConnectionId, setOpeningConnectionId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -56,6 +58,26 @@ export default function ConnectionsScreen() {
       setError(formatCommunicationError(loadError));
     } finally {
       setIsLoadingMore(false);
+    }
+  }
+
+  async function openConnection(connection: ConnectionRecord) {
+    if (openingConnectionId) return;
+    setOpeningConnectionId(connection.id);
+    setError(null);
+    try {
+      const conversationId =
+        connection.conversationId ?? (await openDirectConversation(connection.id));
+      setConnections((current) =>
+        current.map((item) =>
+          item.id === connection.id ? { ...item, conversationId } : item,
+        ),
+      );
+      router.push(routes.conversation(conversationId));
+    } catch (openError) {
+      setError(formatCommunicationError(openError));
+    } finally {
+      setOpeningConnectionId(null);
     }
   }
 
@@ -97,20 +119,24 @@ export default function ConnectionsScreen() {
                   </Text>
                 </View>
               </Pressable>
-              {connection.conversationId ? (
-                <Pressable
-                  accessibilityLabel={`Message ${connection.otherProfile.displayName}`}
-                  onPress={() =>
-                    router.push(routes.conversation(connection.conversationId!))
+              <Pressable
+                accessibilityLabel={`Message ${connection.otherProfile.displayName}`}
+                disabled={Boolean(openingConnectionId)}
+                onPress={() => void openConnection(connection)}
+                style={[
+                  styles.messageButton,
+                  openingConnectionId === connection.id && styles.opening,
+                ]}>
+                <Ionicons
+                  color={theme.colors.accentStrong}
+                  name={
+                    openingConnectionId === connection.id
+                      ? 'ellipsis-horizontal'
+                      : 'chatbubble-outline'
                   }
-                  style={styles.messageButton}>
-                  <Ionicons
-                    color={theme.colors.accentStrong}
-                    name="chatbubble-outline"
-                    size={20}
-                  />
-                </Pressable>
-              ) : null}
+                  size={20}
+                />
+              </Pressable>
             </View>
           ))}
           {hasMore ? (
@@ -140,5 +166,6 @@ const styles = StyleSheet.create({
   name: { color: theme.colors.text, fontFamily: theme.typography.familySemiBold, fontSize: theme.typography.small },
   meta: { color: theme.colors.muted, fontSize: theme.typography.caption },
   messageButton: { alignItems: 'center', backgroundColor: theme.colors.accentSoft, borderRadius: theme.radii.md, height: 44, justifyContent: 'center', width: 44 },
+  opening: { opacity: 0.68 },
   error: { color: theme.colors.danger, fontSize: theme.typography.small, lineHeight: 20 },
 });

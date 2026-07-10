@@ -13,6 +13,7 @@ import {
   formatCommunicationError,
   loadConnectionRequest,
   loadRelationshipStatus,
+  openDirectConversation,
   updateConnectionRequest,
 } from '@/lib/communication';
 import { routes } from '@/lib/routes';
@@ -81,6 +82,23 @@ export default function ConnectRequestScreen() {
       setError(formatCommunicationError(acceptError));
     } finally {
       submitting.current = false;
+      setIsSubmitting(false);
+    }
+  }
+
+  async function openConversation() {
+    if (!relationship?.connectionId || isSubmitting) return;
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      const conversationId =
+        relationship.conversationId ??
+        (await openDirectConversation(relationship.connectionId));
+      setRelationship({ ...relationship, conversationId });
+      router.push(routes.conversation(conversationId));
+    } catch (openError) {
+      setError(formatCommunicationError(openError));
+    } finally {
       setIsSubmitting(false);
     }
   }
@@ -207,12 +225,11 @@ export default function ConnectRequestScreen() {
           variant="danger"
         />
       ) : null}
-      {relationship?.state === 'connected' && relationship.conversationId ? (
+      {relationship?.state === 'connected' && relationship.connectionId ? (
         <Button
-          label="Open conversation"
-          onPress={() =>
-            router.push(routes.conversation(relationship.conversationId!))
-          }
+          label={relationship.conversationId ? 'Open conversation' : 'Start conversation'}
+          loading={isSubmitting}
+          onPress={() => void openConversation()}
         />
       ) : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}

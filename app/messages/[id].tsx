@@ -53,7 +53,7 @@ export default function ConversationScreen() {
   const { user } = useAuth();
   const { showSuccess, showWarning } = useFeedback();
   const { refreshUnread } = useMessaging();
-  const { connectionState, isOffline } = useNetworkStatus();
+  const { connectionState } = useNetworkStatus();
   const isFocused = useIsFocused();
   const listRef = useRef<FlatList<MessageRecord>>(null);
   const sending = useRef(false);
@@ -177,10 +177,6 @@ export default function ConversationScreen() {
   async function submit(existing?: MessageRecord) {
     const body = (existing?.body ?? draft).trim();
     if (!body || body.length > MESSAGE_LIMIT || sending.current) return;
-    if (isOffline) {
-      setError('You are offline. Your message is still here and has not been sent.');
-      return;
-    }
 
     const nonce = existing?.clientNonce ?? createClientNonce();
     const optimistic: MessageRecord = {
@@ -478,11 +474,11 @@ export default function ConversationScreen() {
             />
             <Pressable
               accessibilityLabel="Send message"
-              disabled={!draft.trim() || sending.current || isOffline}
+              disabled={!draft.trim() || sending.current}
               onPress={() => void submit()}
               style={({ pressed }) => [
                 styles.send,
-                (!draft.trim() || sending.current || isOffline) && styles.disabled,
+                (!draft.trim() || sending.current) && styles.disabled,
                 pressed && styles.pressed,
               ]}>
               <Ionicons color={theme.colors.white} name="arrow-up" size={22} />

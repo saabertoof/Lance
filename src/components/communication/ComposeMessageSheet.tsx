@@ -18,6 +18,7 @@ import {
   COMMUNICATION_PAGE_SIZE,
   formatCommunicationError,
   loadConnections,
+  openDirectConversation,
 } from '@/lib/communication';
 import type { ConnectionRecord } from '@/types/communication';
 
@@ -39,6 +40,7 @@ export function ComposeMessageSheet({
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [openingConnectionId, setOpeningConnectionId] = useState<string | null>(null);
 
   useEffect(() => {
     const timeout = setTimeout(() => setDebouncedQuery(query.trim()), 250);
@@ -100,7 +102,29 @@ export function ComposeMessageSheet({
     setQuery('');
     setDebouncedQuery('');
     setError(null);
+    setOpeningConnectionId(null);
     onClose();
+  }
+
+  async function selectConnection(connection: ConnectionRecord) {
+    if (openingConnectionId) return;
+    setOpeningConnectionId(connection.id);
+    setError(null);
+    try {
+      const conversationId =
+        connection.conversationId ?? (await openDirectConversation(connection.id));
+      setConnections((current) =>
+        current.map((item) =>
+          item.id === connection.id ? { ...item, conversationId } : item,
+        ),
+      );
+      close();
+      onSelect(conversationId);
+    } catch (selectError) {
+      setError(formatCommunicationError(selectError));
+    } finally {
+      setOpeningConnectionId(null);
+    }
   }
 
   return (
@@ -185,18 +209,11 @@ export function ComposeMessageSheet({
                   accessibilityLabel={`Message ${connection.otherProfile.displayName}`}
                   accessibilityRole="button"
                   key={connection.id}
-                  onPress={() => {
-                    if (!connection.conversationId) {
-                      setError(
-                        'This connection does not have an available conversation yet.',
-                      );
-                      return;
-                    }
-                    close();
-                    onSelect(connection.conversationId);
-                  }}
+                  disabled={Boolean(openingConnectionId)}
+                  onPress={() => void selectConnection(connection)}
                   style={({ pressed }) => [
                     styles.connection,
+                    openingConnectionId === connection.id && styles.opening,
                     pressed && styles.pressed,
                   ]}>
                   <ProfileAvatar profile={connection.otherProfile} size={56} />
@@ -218,7 +235,11 @@ export function ComposeMessageSheet({
                   </View>
                   <Ionicons
                     color={v.purpleStrong}
-                    name="paper-plane-outline"
+                    name={
+                      openingConnectionId === connection.id
+                        ? 'ellipsis-horizontal'
+                        : 'paper-plane-outline'
+                    }
                     size={21}
                   />
                 </Pressable>
@@ -519,5 +540,8 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.65,
+  },
+  opening: {
+    opacity: 0.72,
   },
 });

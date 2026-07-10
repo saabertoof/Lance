@@ -6,6 +6,7 @@ import { Button } from '@/components/ui';
 import {
   formatCommunicationError,
   loadRelationshipStatus,
+  openDirectConversation,
 } from '@/lib/communication';
 import { routes } from '@/lib/routes';
 import type {
@@ -86,9 +87,24 @@ export function RelationshipAction({
             ? 'Unavailable'
             : 'Connect';
 
-  function actOnStatus(nextStatus: RelationshipStatus) {
-    if (nextStatus.state === 'connected' && nextStatus.conversationId) {
-      router.push(routes.conversation(nextStatus.conversationId));
+  async function actOnStatus(nextStatus: RelationshipStatus) {
+    if (nextStatus.state === 'connected') {
+      if (nextStatus.conversationId) {
+        router.push(routes.conversation(nextStatus.conversationId));
+        return;
+      }
+      if (nextStatus.connectionId) {
+        setIsLoading(true);
+        try {
+          const conversationId = await openDirectConversation(nextStatus.connectionId);
+          setStatus({ ...nextStatus, conversationId });
+          router.push(routes.conversation(conversationId));
+        } catch (error) {
+          onError?.(formatCommunicationError(error));
+        } finally {
+          setIsLoading(false);
+        }
+      }
     } else if (
       nextStatus.state === 'incoming_pending' &&
       nextStatus.requestId
@@ -108,7 +124,7 @@ export function RelationshipAction({
         const result = await loadRelationshipStatus(profile.id);
         setStatus(result);
         setHasLoaded(true);
-        actOnStatus(result);
+        await actOnStatus(result);
       } catch (error) {
         onError?.(formatCommunicationError(error));
       } finally {
@@ -116,7 +132,7 @@ export function RelationshipAction({
       }
       return;
     }
-    actOnStatus(status);
+    await actOnStatus(status);
   }
 
   return (

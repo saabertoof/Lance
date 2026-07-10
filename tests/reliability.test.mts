@@ -115,6 +115,39 @@ test('message retry keeps one client nonce from app through database', async () 
   );
 });
 
+test('direct message entry points can repair missing connection conversations', async () => {
+  const [communication, compose, connections, request, relationship, migration] =
+    await Promise.all([
+      read('src/lib/communication.ts'),
+      read('src/components/communication/ComposeMessageSheet.tsx'),
+      read('app/profile/connections.tsx'),
+      read('app/request/connect/[id].tsx'),
+      read('src/components/communication/RelationshipAction.tsx'),
+      read('supabase/migrations/0013_message_connection_repair.sql'),
+    ]);
+
+  assert.match(communication, /phase5_open_direct_conversation/);
+  assert.match(compose, /openDirectConversation\(connection\.id\)/);
+  assert.doesNotMatch(compose, /does not have an available conversation yet/);
+  assert.match(connections, /openDirectConversation\(connection\.id\)/);
+  assert.match(request, /openDirectConversation\(relationship\.connectionId\)/);
+  assert.match(relationship, /openDirectConversation\(nextStatus\.connectionId\)/);
+  assert.match(migration, /current_profile_id not in/i);
+  assert.match(migration, /on conflict \(match_id\)/i);
+  assert.match(
+    migration,
+    /grant execute on function public\.phase5_open_direct_conversation\(uuid\)\s+to authenticated/i,
+  );
+});
+
+test('conversation composer attempts send even when device network status is stale', async () => {
+  const conversation = await read('app/messages/[id].tsx');
+
+  assert.doesNotMatch(conversation, /const \{ connectionState, isOffline \}/);
+  assert.doesNotMatch(conversation, /disabled=\{!draft\.trim\(\) \|\| sending\.current \|\| isOffline\}/);
+  assert.doesNotMatch(conversation, /You are offline\. Your message is still here/);
+});
+
 test('public opportunity links fail closed for unavailable lifecycle states', async () => {
   const migration = await read(
     'supabase/migrations/0010_creator_opportunity_links.sql',

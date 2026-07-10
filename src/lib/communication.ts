@@ -533,6 +533,14 @@ export async function sendMessage(
   return mapMessage(data);
 }
 
+export async function openDirectConversation(connectionId: string) {
+  const { data, error } = await supabase.rpc('phase5_open_direct_conversation', {
+    target_connection_id: connectionId,
+  });
+  if (error) throw error;
+  return data as string;
+}
+
 export async function markConversationRead(conversationId: string) {
   const { error } = await supabase.rpc('phase5_mark_conversation_read', {
     target_conversation_id: conversationId,

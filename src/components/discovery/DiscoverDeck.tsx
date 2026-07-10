@@ -50,6 +50,8 @@ type DiscoverDeckProps = PropsWithChildren<{
 
 const HORIZONTAL_THRESHOLD = 88;
 const VERTICAL_THRESHOLD = 86;
+const CARD_PROMOTION_OFFSET = 7;
+const CARD_PROMOTION_SCALE = 0.982;
 
 export function DiscoverDeck({
   active,
@@ -67,6 +69,7 @@ export function DiscoverDeck({
 }: DiscoverDeckProps) {
   const { width } = useWindowDimensions();
   const position = useRef(new Animated.ValueXY()).current;
+  const entryProgress = useRef(new Animated.Value(1)).current;
   const jiggleX = useRef(new Animated.Value(0)).current;
   const jiggleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const jiggleAnimation = useRef<Animated.CompositeAnimation | null>(null);
@@ -151,9 +154,19 @@ export function DiscoverDeck({
   useLayoutEffect(() => {
     position.stopAnimation();
     position.setValue({ x: 0, y: 0 });
+    entryProgress.stopAnimation();
+    entryProgress.setValue(reduceMotion === false ? 0 : 1);
     threshold.current = null;
     setIsActing(false);
-  }, [cardKey, position]);
+    if (reduceMotion === false) {
+      Animated.spring(entryProgress, {
+        friction: 9,
+        tension: 115,
+        toValue: 1,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [cardKey, entryProgress, position, reduceMotion]);
 
   useEffect(() => {
     if (!active || reduceMotion !== false || isActing) {
@@ -234,14 +247,30 @@ export function DiscoverDeck({
   });
   const nextCardScale = position.x.interpolate({
     inputRange: [-width, 0, width],
-    outputRange: [1, 0.982, 1],
+    outputRange: [1, CARD_PROMOTION_SCALE, 1],
     extrapolate: 'clamp',
   });
   const nextCardTranslateY = position.x.interpolate({
     inputRange: [-width, 0, width],
-    outputRange: [0, 7, 0],
+    outputRange: [0, CARD_PROMOTION_OFFSET, 0],
     extrapolate: 'clamp',
   });
+  const entryScale = entryProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [CARD_PROMOTION_SCALE, 1],
+    extrapolate: 'clamp',
+  });
+  const entryTranslateY = entryProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [CARD_PROMOTION_OFFSET, 0],
+    extrapolate: 'clamp',
+  });
+  const entryOpacity = entryProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.94, 1],
+    extrapolate: 'clamp',
+  });
+  const cardTranslateY = Animated.add(position.y, entryTranslateY);
   const primaryIcon: keyof typeof Ionicons.glyphMap =
     primaryActionLabel.toLowerCase() === 'apply'
       ? 'briefcase-outline'
@@ -371,10 +400,12 @@ export function DiscoverDeck({
             style={[
               styles.card,
               {
+                opacity: entryOpacity,
                 transform: [
                   { translateX: position.x },
-                  { translateY: position.y },
+                  { translateY: cardTranslateY },
                   { rotate },
+                  { scale: entryScale },
                 ],
               },
             ]}>
