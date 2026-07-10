@@ -29,6 +29,57 @@ test('Magic Draft produces concise non-duplicated creator copy', () => {
   assert.ok(!draft.fullDescription.includes('..'));
 });
 
+test('Magic Draft uses a server-side strict structured output function', async () => {
+  const [edgeFunction, schema, config, client, envExample] = await Promise.all([
+    readFile(
+      new URL(
+        '../supabase/functions/magic-opportunity-draft/index.ts',
+        import.meta.url,
+      ),
+      'utf8',
+    ),
+    readFile(
+      new URL(
+        '../supabase/functions/_shared/opportunity-draft.ts',
+        import.meta.url,
+      ),
+      'utf8',
+    ),
+    readFile(new URL('../supabase/config.toml', import.meta.url), 'utf8'),
+    readFile(
+      new URL('../src/lib/opportunityMagicDraftApi.ts', import.meta.url),
+      'utf8',
+    ),
+    readFile(new URL('../.env.example', import.meta.url), 'utf8'),
+  ]);
+
+  assert.match(config, /\[functions\.magic-opportunity-draft\][\s\S]*verify_jwt = true/);
+  assert.match(edgeFunction, /https:\/\/api\.openai\.com\/v1\/responses/);
+  assert.match(edgeFunction, /OPENAI_API_KEY/);
+  assert.match(edgeFunction, /OPENAI_MAGIC_DRAFT_MODEL/);
+  assert.match(edgeFunction, /type: 'json_schema'/);
+  assert.match(edgeFunction, /strict: true/);
+  assert.match(edgeFunction, /lance_magic_opportunity_draft_v1/);
+  assert.match(schema, /additionalProperties: false/);
+  assert.match(schema, /share_caption/);
+  assert.match(client, /supabase\.functions\.invoke<MagicDraftResponse>/);
+  assert.match(client, /'magic-opportunity-draft'/);
+  assert.doesNotMatch(client, /OPENAI_API_KEY/);
+  assert.doesNotMatch(envExample, /^OPENAI_API_KEY=/m);
+});
+
+test('Opportunity editor falls back locally when Magic Draft API is unavailable', async () => {
+  const editor = await readFile(
+    new URL('../src/components/opportunity/OpportunityEditor.tsx', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(editor, /generateMagicOpportunityDraft\(prompt, getValues\(\)\)/);
+  assert.match(editor, /buildMagicOpportunityDraft\(prompt, getValues\(\)\)/);
+  assert.match(editor, /Used a local starter draft instead/);
+  assert.match(editor, /Draft with Lance/);
+});
+
 test('industry catalog migration removes stale hard-coded posting constraints', async () => {
   const migration = await readFile(
     new URL(

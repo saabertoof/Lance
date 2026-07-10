@@ -76,7 +76,7 @@ export function CreatePathGrid({
           label="Magic draft"
           onPress={onMagicDraft}
           reduceMotion={reduceMotion}
-          supporting="Seed the composer"
+          supporting="AI-start the editor"
         />
         <ActionTile
           delay={140}
@@ -163,7 +163,7 @@ export function PromptLinkBuilder({
         />
         <View style={styles.composerFooter}>
           <View style={styles.composerTools}>
-            <ToolButton icon="sparkles-outline" label="Local draft" />
+            <ToolButton icon="sparkles-outline" label="AI draft" />
             <ToolButton icon="link-outline" label="Shareable link" />
           </View>
           <Pressable

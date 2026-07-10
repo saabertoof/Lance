@@ -15,6 +15,7 @@ import {
   loadLocalOpportunityDraft,
   saveLocalOpportunityDraft,
 } from '@/lib/localOpportunityDraft';
+import { generateMagicOpportunityDraft } from '@/lib/opportunityMagicDraftApi';
 import { applyMagicOpportunityDraft } from '@/lib/opportunityMagicDraft';
 import { loadPersonalProfile } from '@/lib/profile';
 import { routes } from '@/lib/routes';
@@ -65,7 +66,12 @@ export default function NewOpportunityScreen() {
         const draft = recoveredDraft ?? createEmptyOpportunityDraft();
 
         if (promptText.length >= 12) {
-          Object.assign(draft, applyMagicOpportunityDraft(promptText, draft));
+          try {
+            const result = await generateMagicOpportunityDraft(promptText, draft);
+            Object.assign(draft, result.draft);
+          } catch {
+            Object.assign(draft, applyMagicOpportunityDraft(promptText, draft));
+          }
         }
 
         if (businessId && businessResult.some((business) => business.id === businessId)) {

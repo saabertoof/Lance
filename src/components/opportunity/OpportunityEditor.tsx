@@ -25,6 +25,7 @@ import {
   needsCompensationWarning,
   validateOpportunityDraft,
 } from '@/lib/opportunity';
+import { generateMagicOpportunityDraft } from '@/lib/opportunityMagicDraftApi';
 import { buildMagicOpportunityDraft } from '@/lib/opportunityMagicDraft';
 import {
   getLocationCatalogId,
@@ -80,6 +81,8 @@ export function OpportunityEditor({
 }: OpportunityEditorProps) {
   const [step, setStep] = useState(initialStep);
   const [magicPrompt, setMagicPrompt] = useState(initialMagicPrompt);
+  const [isDraftingWithLance, setIsDraftingWithLance] = useState(false);
+  const [magicNotice, setMagicNotice] = useState<string | null>(null);
   const { isOffline } = useNetworkStatus();
   const { getValues, setValue, watch } = useForm<OpportunityDraft>({
     defaultValues: initialDraft,
@@ -101,6 +104,7 @@ export function OpportunityEditor({
   function set<K extends keyof OpportunityDraft>(key: K, value: OpportunityDraft[K]) {
     setValue(key, value as never, { shouldDirty: true });
     onError(null);
+    setMagicNotice(null);
   }
 
   function continueForward() {
@@ -131,7 +135,7 @@ export function OpportunityEditor({
     await onSave(currentDraft, status);
   }
 
-  function applyMagicDraft() {
+  async function applyMagicDraft() {
     const prompt = magicPrompt.trim();
 
     if (prompt.length < 12) {
@@ -139,12 +143,39 @@ export function OpportunityEditor({
       return;
     }
 
-    const suggestion = buildMagicOpportunityDraft(prompt, getValues());
+    if (isDraftingWithLance) return;
+
+    setIsDraftingWithLance(true);
+    try {
+      const result = isOffline
+        ? null
+        : await generateMagicOpportunityDraft(prompt, getValues());
+      const suggestion = result?.draft ?? buildMagicOpportunityDraft(prompt, getValues());
+      applyDraftSuggestion(suggestion);
+      setMagicNotice(
+        result
+          ? 'Lance drafted this with AI. Review the fields before publishing.'
+          : 'Offline mode used a local starter draft. You can still edit everything.',
+      );
+      onError(null);
+      moveToStep(2);
+    } catch (error) {
+      const suggestion = buildMagicOpportunityDraft(prompt, getValues());
+      applyDraftSuggestion(suggestion);
+      setMagicNotice(
+        `${getErrorMessage(error)} Used a local starter draft instead.`,
+      );
+      onError(null);
+      moveToStep(2);
+    } finally {
+      setIsDraftingWithLance(false);
+    }
+  }
+
+  function applyDraftSuggestion(suggestion: Partial<OpportunityDraft>) {
     (Object.keys(suggestion) as (keyof OpportunityDraft)[]).forEach((key) => {
       setValue(key, suggestion[key] as never, { shouldDirty: true });
     });
-    onError(null);
-    moveToStep(2);
   }
 
   const primaryStatus =
@@ -231,6 +262,8 @@ export function OpportunityEditor({
             subtitle="Give people a clear first read on what you need."
           />
           <MagicDraftPanel
+            isDrafting={isDraftingWithLance}
+            notice={magicNotice}
             onApply={applyMagicDraft}
             onChange={setMagicPrompt}
             prompt={magicPrompt}
@@ -543,10 +576,14 @@ export function OpportunityEditor({
 }
 
 function MagicDraftPanel({
+  isDrafting,
+  notice,
   onApply,
   onChange,
   prompt,
 }: {
+  isDrafting: boolean;
+  notice: string | null;
   onApply: () => void;
   onChange: (value: string) => void;
   prompt: string;
@@ -560,7 +597,7 @@ function MagicDraftPanel({
         <View style={styles.magicCopy}>
           <Text style={styles.magicTitle}>Magic Draft</Text>
           <Text style={styles.magicBody}>
-            Describe the person you need. Lance will draft editable starter fields.
+            Describe the person you need. Lance drafts editable fields and a share-ready link preview.
           </Text>
         </View>
       </View>
@@ -574,9 +611,21 @@ function MagicDraftPanel({
         textAlignVertical="top"
         value={prompt}
       />
-      <Button label="Draft it" onPress={onApply} variant="secondary" />
+      {notice ? <Text style={styles.magicNotice}>{notice}</Text> : null}
+      <Button
+        label="Draft with Lance"
+        loading={isDrafting}
+        onPress={onApply}
+        variant="secondary"
+      />
     </View>
   );
+}
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error
+    ? error.message
+    : 'Magic Draft is temporarily unavailable.';
 }
 
 function StepHeader({ subtitle, title }: { subtitle: string; title: string }) {
@@ -703,6 +752,11 @@ const styles = StyleSheet.create({
   },
   magicBody: {
     color: theme.colors.muted,
+    fontSize: theme.typography.tiny,
+    lineHeight: 18,
+  },
+  magicNotice: {
+    color: theme.colors.textSoft,
     fontSize: theme.typography.tiny,
     lineHeight: 18,
   },

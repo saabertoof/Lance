@@ -379,6 +379,28 @@ opportunity drafting, hygiene, and beta reliability helpers. Database-backed
 RLS, Storage, Realtime, and cross-user flows still require the two-account
 phone checks in `docs/BETA_READINESS.md`.
 
+## AI setup
+
+Lance uses OpenAI only inside Supabase Edge Functions. Do not put an OpenAI API
+key in Expo, `app.json`, `.env`, SQL, or client code.
+
+Magic Draft is implemented by `supabase/functions/magic-opportunity-draft`.
+It turns a creator's natural-language opportunity prompt into validated editable
+fields, then the existing Lance editor and share-card previews render the result.
+If the function is not deployed or configured, the app falls back to the local
+starter draft helper so Create still works.
+
+Recommended setup:
+
+```powershell
+supabase secrets set OPENAI_API_KEY=your-openai-api-key
+supabase secrets set OPENAI_MAGIC_DRAFT_MODEL=gpt-5.6-luna
+supabase functions deploy magic-opportunity-draft
+```
+
+`OPENAI_SEARCH_MODEL` is still used by Ask Lance. You may set both AI features
+to the same cost-sensitive model if you want simpler configuration.
+
 ## Checkpoints
 
 - Phase 1: `629773a`
@@ -388,4 +410,4 @@ phone checks in `docs/BETA_READINESS.md`.
 - Phase 4: `eeae16d`
 - Phase 4.5: `1e08944`
 
-No OpenAI API key, service-role key, or external search service is used.
+No OpenAI API key or Supabase service-role key is used in the mobile client.
