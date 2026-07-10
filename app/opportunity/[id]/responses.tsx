@@ -10,6 +10,7 @@ import { Button, EmptyState, LoadingState, Screen } from '@/components/ui';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { useFeedback } from '@/context/FeedbackContext';
+import { useSaved } from '@/context/SavedContext';
 import { captureClientError } from '@/lib/clientMonitoring';
 import {
   COMMUNICATION_PAGE_SIZE,
@@ -38,6 +39,7 @@ export default function OpportunityResponsesScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
   const { showSuccess } = useFeedback();
+  const { isProfileSaved, setProfileSaved } = useSaved();
   const actionRef = useRef(false);
   const [opportunity, setOpportunity] = useState<OpportunityRecord | null>(null);
   const [responses, setResponses] = useState<OpportunityResponseRecord[]>([]);
@@ -188,6 +190,26 @@ export default function OpportunityResponsesScreen() {
     }
   }
 
+  async function toggleSaveApplicant(response: OpportunityResponseRecord) {
+    if (actionRef.current) return;
+    actionRef.current = true;
+    setActiveActionId(`${response.id}:save`);
+    setError(null);
+
+    try {
+      await setProfileSaved(
+        response.responderProfileId,
+        !isProfileSaved(response.responderProfileId),
+      );
+    } catch (saveError) {
+      captureClientError(saveError, 'opportunity_applicant_save');
+      setError(formatCommunicationError(saveError));
+    } finally {
+      actionRef.current = false;
+      setActiveActionId(null);
+    }
+  }
+
   if (isLoading) return <LoadingState message="Loading applicants" />;
   const isOwner = opportunity?.ownerProfileId === user?.id;
   const summary = getResponseSummary(responses);
@@ -217,12 +239,12 @@ export default function OpportunityResponsesScreen() {
               {opportunity.title}
             </Text>
             <Text style={styles.contextBody}>
-              Review reusable Lance profiles from people who came through your link.
+              Review reusable application packets from people who came through your link.
             </Text>
           </View>
           <View style={styles.totalPill}>
             <Text style={styles.totalValue}>{responses.length}</Text>
-            <Text style={styles.totalLabel}>applied</Text>
+            <Text style={styles.totalLabel}>applicants</Text>
           </View>
         </View>
       ) : null}
@@ -230,7 +252,7 @@ export default function OpportunityResponsesScreen() {
         <View style={styles.summaryRow}>
           <SummaryPill label="Fresh" value={summary.newCount} />
           <SummaryPill label="Ready" value={summary.activeCount} />
-          <SummaryPill label="Talking" value={summary.discussionCount} />
+          <SummaryPill label="Messaging" value={summary.discussionCount} />
         </View>
       ) : null}
       {isOwner && opportunity?.status === 'published' ? (
@@ -262,8 +284,10 @@ export default function OpportunityResponsesScreen() {
               onOpenProfile={() => router.push(routes.profile(response.responderProfileId))}
               onPass={() => confirmPass(response)}
               onStartDiscussion={() => void beginDiscussion(response)}
+              onToggleSave={() => void toggleSaveApplicant(response)}
               profile={profilesById[response.responderProfileId]}
               response={response}
+              saved={isProfileSaved(response.responderProfileId)}
             />
           ))}
           {hasMore ? (
@@ -292,8 +316,10 @@ function ApplicantCard({
   onOpenProfile,
   onPass,
   onStartDiscussion,
+  onToggleSave,
   profile,
   response,
+  saved,
 }: {
   activeActionId: string | null;
   onOpenApplication: () => void;
@@ -301,8 +327,10 @@ function ApplicantCard({
   onOpenProfile: () => void;
   onPass: () => void;
   onStartDiscussion: () => void;
+  onToggleSave: () => void;
   profile?: PublicProfile;
   response: OpportunityResponseRecord;
+  saved: boolean;
 }) {
   const isNew = !response.ownerViewedAt;
   const profileScore = profile ? profileCompleteness(profile) : null;
@@ -317,6 +345,7 @@ function ApplicantCard({
   const linkCount = profile
     ? profile.links.length + profile.polish.customLinks.length
     : 0;
+  const proofCount = portfolioCount + linkCount + (response.portfolioTitle ? 1 : 0);
   const primarySkills =
     response.selectedSkills.length > 0
       ? response.selectedSkills.map((skill) => skill.name)
@@ -350,6 +379,30 @@ function ApplicantCard({
           <Text style={styles.sentAt}>Applied {formatInboxTime(response.createdAt)}</Text>
         </View>
         <StatusBadge status={response.status} />
+      </View>
+
+      <View style={styles.signalStrip}>
+        <SignalMetric
+          icon="sparkles-outline"
+          label="Skill signal"
+          value={
+            response.selectedSkills.length > 0
+              ? `${response.selectedSkills.length} selected`
+              : primarySkills.length > 0
+                ? `${primarySkills.length} listed`
+                : 'Needs review'
+          }
+        />
+        <SignalMetric
+          icon="folder-open-outline"
+          label="Proof"
+          value={proofCount > 0 ? `${proofCount} items` : 'None yet'}
+        />
+        <SignalMetric
+          icon="person-circle-outline"
+          label="Profile"
+          value={profileScore != null ? `${profileScore}%` : 'Loading'}
+        />
       </View>
 
       {response.note ? (
@@ -409,6 +462,12 @@ function ApplicantCard({
 
       <View style={styles.cardActions}>
         <CardAction icon="person-outline" label="Profile" onPress={onOpenProfile} />
+        <CardAction
+          icon={saved ? 'bookmark' : 'bookmark-outline'}
+          label={saved ? 'Saved' : 'Save'}
+          loading={activeActionId === `${response.id}:save`}
+          onPress={onToggleSave}
+        />
         <CardAction icon="document-text-outline" label="Application" onPress={onOpenApplication} />
         {response.status === 'submitted' ? (
           <>
@@ -466,6 +525,32 @@ function Fact({ icon, label }: { icon: keyof typeof Ionicons.glyphMap; label: st
       <Text numberOfLines={1} style={styles.factText}>
         {label}
       </Text>
+    </View>
+  );
+}
+
+function SignalMetric({
+  icon,
+  label,
+  value,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  value: string;
+}) {
+  return (
+    <View style={styles.signalMetric}>
+      <View style={styles.signalIcon}>
+        <Ionicons color={theme.colors.accentStrong} name={icon} size={14} />
+      </View>
+      <View style={styles.signalCopy}>
+        <Text numberOfLines={1} style={styles.signalValue}>
+          {value}
+        </Text>
+        <Text numberOfLines={1} style={styles.signalLabel}>
+          {label}
+        </Text>
+      </View>
     </View>
   );
 }
@@ -595,6 +680,12 @@ const styles = StyleSheet.create({
   noteBox: { backgroundColor: theme.colors.surfaceMuted, borderRadius: theme.radii.md, gap: theme.spacing.xs, padding: theme.spacing.md },
   noteLabel: { color: theme.colors.muted, fontSize: theme.typography.caption, fontWeight: '900', textTransform: 'uppercase' },
   noteText: { color: theme.colors.textSoft, fontSize: theme.typography.small, lineHeight: 20 },
+  signalStrip: { flexDirection: 'row', gap: theme.spacing.sm },
+  signalMetric: { alignItems: 'center', backgroundColor: theme.colors.surfaceMuted, borderColor: theme.colors.border, borderRadius: theme.radii.md, borderWidth: 1, flex: 1, flexDirection: 'row', gap: theme.spacing.sm, minHeight: 54, paddingHorizontal: theme.spacing.sm },
+  signalIcon: { alignItems: 'center', backgroundColor: theme.colors.accentSoft, borderRadius: theme.radii.pill, height: 28, justifyContent: 'center', width: 28 },
+  signalCopy: { flex: 1, gap: 1, minWidth: 0 },
+  signalValue: { color: theme.colors.text, fontSize: theme.typography.caption, fontWeight: '900' },
+  signalLabel: { color: theme.colors.muted, fontSize: 9, fontWeight: '800', textTransform: 'uppercase' },
   factGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm },
   fact: { alignItems: 'center', backgroundColor: theme.colors.surfaceMuted, borderRadius: theme.radii.pill, flexDirection: 'row', gap: 5, maxWidth: '100%', paddingHorizontal: 10, paddingVertical: 7 },
   factText: { color: theme.colors.textSoft, flexShrink: 1, fontSize: theme.typography.caption, fontWeight: '800' },

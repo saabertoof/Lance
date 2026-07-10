@@ -29,6 +29,7 @@ export function OpportunityLaunchCenter({
   const publicUrl = getOpportunityPublicUrl(opportunity);
   const share = getOpportunityShareCopy(opportunity);
   const slugOrId = opportunity.slug || opportunity.id;
+  const statusLabel = opportunity.status === 'published' ? 'Live' : opportunity.status;
   const launchKit = [
     share.linktreeText,
     '',
@@ -55,6 +56,15 @@ export function OpportunityLaunchCenter({
     }
   }
 
+  async function copyShareText(label: string, value: string) {
+    try {
+      await Clipboard.setStringAsync(value);
+      showSuccess(`${label} copied.`);
+    } catch {
+      showWarning(`${label} could not be copied. Try again.`);
+    }
+  }
+
   return (
     <EliteCard style={styles.shell} tone="accent">
       <View style={styles.header}>
@@ -77,9 +87,30 @@ export function OpportunityLaunchCenter({
       <EliteSectionHeader
         eyebrow="Creator command"
         icon="sparkles-outline"
-        subtitle="Share the creator link, watch the funnel, and review applicants from one place."
+        subtitle="Launch the link, post the card, and review applicants without digging through DMs."
         title="Launch center"
       />
+
+      <View style={styles.statusGrid}>
+        <LaunchStatus
+          icon="radio-outline"
+          label="Page"
+          tone="success"
+          value={statusLabel}
+        />
+        <LaunchStatus
+          icon="image-outline"
+          label="Share card"
+          tone="accent"
+          value="4:5"
+        />
+        <LaunchStatus
+          icon="people-outline"
+          label="Applicants"
+          tone="cyan"
+          value="ready"
+        />
+      </View>
 
       <View style={styles.previewShell}>
         <View style={styles.previewHeader}>
@@ -139,8 +170,64 @@ export function OpportunityLaunchCenter({
         />
       </View>
 
+      <View style={styles.copyKit}>
+        <View style={styles.copyKitHeader}>
+          <Text style={styles.sectionLabel}>Post anywhere kit</Text>
+          <Text style={styles.previewHint}>tap to copy</Text>
+        </View>
+        <LaunchCopyRow
+          icon="leaf-outline"
+          label="Bio / Linktree title"
+          onPress={() => void copyShareText('Bio title', share.linktreeText)}
+          value={share.linktreeText}
+        />
+        <LaunchCopyRow
+          icon="camera-outline"
+          label="Story line"
+          onPress={() => void copyShareText('Story line', share.storyText)}
+          value={share.storyText}
+        />
+        <LaunchCopyRow
+          icon="chatbubble-ellipses-outline"
+          label="Community caption"
+          onPress={() => void copyShareText('Caption', share.socialCaption)}
+          value={share.socialCaption}
+        />
+      </View>
+
       <OpportunityFunnelCard opportunityId={opportunity.id} />
     </EliteCard>
+  );
+}
+
+function LaunchStatus({
+  icon,
+  label,
+  tone,
+  value,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  tone: 'accent' | 'cyan' | 'success';
+  value: string;
+}) {
+  const color =
+    tone === 'success'
+      ? theme.colors.success
+      : tone === 'cyan'
+        ? theme.colors.accentCyan
+        : theme.colors.accentStrong;
+
+  return (
+    <View style={styles.statusItem}>
+      <Ionicons color={color} name={icon} size={15} />
+      <Text numberOfLines={1} style={styles.statusItemValue}>
+        {value}
+      </Text>
+      <Text numberOfLines={1} style={styles.statusItemLabel}>
+        {label}
+      </Text>
+    </View>
   );
 }
 
@@ -179,6 +266,37 @@ function LaunchAction({
   );
 }
 
+function LaunchCopyRow({
+  icon,
+  label,
+  onPress,
+  value,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  onPress: () => void;
+  value: string;
+}) {
+  return (
+    <Pressable
+      accessibilityLabel={`Copy ${label}`}
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [styles.copyRow, pressed && styles.pressed]}>
+      <View style={styles.copyIcon}>
+        <Ionicons color={theme.colors.accentStrong} name={icon} size={16} />
+      </View>
+      <View style={styles.copyText}>
+        <Text style={styles.copyLabel}>{label}</Text>
+        <Text numberOfLines={2} style={styles.copyValue}>
+          {value}
+        </Text>
+      </View>
+      <Ionicons color={theme.colors.muted} name="copy-outline" size={17} />
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
   shell: {
     gap: theme.spacing.md,
@@ -201,6 +319,31 @@ const styles = StyleSheet.create({
   previewText: {
     color: theme.colors.accentStrong,
     fontFamily: theme.typography.familySemiBold,
+    fontSize: theme.typography.caption,
+  },
+  statusGrid: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
+  statusItem: {
+    alignItems: 'flex-start',
+    backgroundColor: theme.colors.surfaceMuted,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radii.md,
+    borderWidth: 1,
+    flex: 1,
+    gap: 4,
+    minHeight: 74,
+    padding: theme.spacing.sm,
+  },
+  statusItemValue: {
+    color: theme.colors.text,
+    fontFamily: theme.typography.familySemiBold,
+    fontSize: theme.typography.small,
+    textTransform: 'capitalize',
+  },
+  statusItemLabel: {
+    color: theme.colors.muted,
     fontSize: theme.typography.caption,
   },
   previewShell: {
@@ -298,6 +441,51 @@ const styles = StyleSheet.create({
   },
   actionLabelPrimary: {
     color: theme.colors.white,
+  },
+  copyKit: {
+    gap: theme.spacing.sm,
+  },
+  copyKitHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  copyRow: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.surfaceMuted,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radii.md,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+    minHeight: 58,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.sm,
+  },
+  copyIcon: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.accentSoft,
+    borderRadius: theme.radii.pill,
+    height: 34,
+    justifyContent: 'center',
+    width: 34,
+  },
+  copyText: {
+    flex: 1,
+    gap: 2,
+    minWidth: 0,
+  },
+  copyLabel: {
+    color: theme.colors.muted,
+    fontFamily: theme.typography.familyMonoSemiBold,
+    fontSize: 9,
+    letterSpacing: 0.7,
+    textTransform: 'uppercase',
+  },
+  copyValue: {
+    color: theme.colors.textSoft,
+    fontSize: theme.typography.caption,
+    lineHeight: 16,
   },
   pressed: {
     opacity: 0.68,

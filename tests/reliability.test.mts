@@ -234,6 +234,28 @@ test('published opportunity owners get a creator launch center', async () => {
   assert.match(routes, /publicOpportunity/);
 });
 
+test('creator launch center includes post-anywhere copy blocks', async () => {
+  const launchCenter = await read('src/components/opportunity/OpportunityLaunchCenter.tsx');
+
+  assert.match(launchCenter, /Post anywhere kit/);
+  assert.match(launchCenter, /Bio \/ Linktree title/);
+  assert.match(launchCenter, /Story line/);
+  assert.match(launchCenter, /Community caption/);
+  assert.match(launchCenter, /LaunchStatus/);
+});
+
+test('applicant review keeps creator-native packet actions', async () => {
+  const responses = await read('app/opportunity/[id]/responses.tsx');
+
+  assert.match(responses, /useSaved/);
+  assert.match(responses, /toggleSaveApplicant/);
+  assert.match(responses, /Skill signal/);
+  assert.match(responses, /Proof/);
+  assert.match(responses, /Application/);
+  assert.match(responses, /Message/);
+  assert.match(responses, /Pass/);
+});
+
 test('discover deck holds the mounted next card during promotion to prevent flashes', async () => {
   const deck = await read('src/components/discovery/DiscoverDeck.tsx');
 
